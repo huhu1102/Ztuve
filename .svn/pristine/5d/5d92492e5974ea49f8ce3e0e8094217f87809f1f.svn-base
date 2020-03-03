@@ -1,0 +1,367 @@
+<template>
+  <div>
+    <el-container>
+      <el-header class="home-header">
+        <span class="home_title">郑铁管理系统</span>
+        <div style="display: flex;align-items: center;margin-right: 7px">
+          <el-badge style="margin-right: 30px" :is-dot="this.$store.state.nfDot">
+            <i class="fa fa-bell-o" @click="goChat" style="cursor: pointer"></i>
+          </el-badge>
+          <el-dropdown @command="handleCommand">
+            <span class="el-dropdown-link home_userinfo" style="display: flex;align-items: center">
+              {{user.username}}
+              <i><img v-if="user.userface!=''" :src="user.userface"
+                  style="width: 40px;height: 40px;margin-right: 5px;margin-left: 5px;border-radius: 40px" /></i>
+            </span>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item>个人中心</el-dropdown-item>
+              <el-dropdown-item>设置</el-dropdown-item>
+              <el-dropdown-item command="logout" divided>注销</el-dropdown-item>
+            </el-dropdown-menu>
+          </el-dropdown>
+        </div>
+      </el-header>
+      <el-container>
+        <el-aside width="200px" class="home-aside">
+          <div style="display: flex;justify-content: flex-start;width: 180px;text-align: left;">
+            <el-menu style="background: #ececec;width: 180px;" unique-opened router>
+              <template v-for="(item,index) in menuitems" v-if="!item.hidden">
+                <el-submenu :index="index+''" v-if="!item.leaf">
+                  <template slot="title"><i :class="item.iconCls"></i>{{item.name}}</template>
+                  <el-menu-item v-for="child in item.children" :index="child.path" :key="child.path"
+                    v-if="!child.hidden">{{child.name}}
+                  </el-menu-item>
+                </el-submenu>
+                <el-menu-item v-if="item.leaf&&item.children.length>0" :index="item.children[0].path"><i
+                    :class="item.iconCls"></i>{{item.children[0].name}}
+                </el-menu-item>
+              </template>
+            </el-menu>
+          </div>
+        </el-aside>
+        <el-container>
+          <el-main class="home-main">
+            <el-breadcrumb separator-class="el-icon-arrow-right">
+              <el-breadcrumb-item :to="{path:'/main'}">首页</el-breadcrumb-item>
+              <el-breadcrumb-item v-text="this.$router.currentRoute.name"></el-breadcrumb-item>
+            </el-breadcrumb>
+            <keep-alive>
+              <router-view v-if="this.$route.meta.keepAlive"></router-view>
+            </keep-alive>
+            <router-view v-if="!this.$route.meta.keepAlive"></router-view>
+          </el-main>
+          <!--      <el-footer>Footer</el-footer>-->
+        </el-container>
+      </el-container>
+    </el-container>
+  </div>
+</template>
+
+<script>
+  export default {
+    data() {
+      const item = {
+        date: '2016-05-02',
+        name: '张三',
+        address: '上海市普陀区金沙江路 1518 弄'
+      };
+      return {
+        keywords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        rules: {
+          name: [{
+            required: true,
+            message: '必填:姓名',
+            trigger: 'blur'
+          }],
+          phone: [{
+            required: true,
+            message: '必填:电话号码',
+            trigger: 'blur'
+          }],
+          gender: [{
+            required: true,
+            message: '必选:性别',
+            trigger: 'blur'
+          }],
+          email: [{
+            required: true,
+            message: '必填:电子邮箱',
+            trigger: 'blur'
+          }, {
+            type: 'email',
+            message: '邮箱格式不正确',
+            trigger: 'blur'
+          }],
+          beginDate: [{
+            required: true,
+            message: '必填:入职日期',
+            trigger: 'blur'
+          }],
+        },
+        emps: [{
+          date: '2016-05-02',
+          name: '王小虎',
+          address: '上海市普陀区金沙江路 1518 弄'
+        }],
+        dialogTitle: '',
+        currentPage: 1,
+        tableData: Array(10).fill(item),
+        formLabelWidth: '120px',
+        totalCount: -1,
+        employee: {
+          name: '',
+          phone: '',
+          address: '',
+          email: '',
+          birthday: '',
+          entryDate: '',
+          gender: ''
+        },
+        isDot: false,
+        dialogTableVisible: false,
+        dialogFormVisible: false,
+        //   <el-menu style="background: #ececec;width: 180px;" unique-opened router>
+        // <template v-for="(item,index) in menuitems" v-if="!item.hidden">
+        //   <el-submenu :index="index+''" v-if="!item.leaf">
+        //   <template slot="title"><i :class="item.iconCls"></i>{{item.name}}</template>
+        // <el-menu-item v-for="child in item.children" :index="child.path" :key="child.path" v-if="!child.hidden">{{child.name}}</el-menu-item>
+        // </el-submenu>
+        // <el-menu-item v-if="item.leaf&&item.children.length>0" :index="item.children[0].path"><i :class="item.iconCls"></i>{{item.children[0].name}}</el-menu-item>
+        // </template>
+        // </el-menu> 
+        menuitems: [{
+          iconCls: 'el-icon-menu',
+          index: '/home',
+          title: '首页',
+          name: '部门管理',
+          leaf: false,
+          hidden: false,
+          children: [{
+              path: '/emp',
+              name: '员工'
+            },
+            {
+              path: '/department',
+              name: '部门'
+            },
+            {
+              path: '/position',
+              name: '职位'
+            },
+            {
+              path: '/company',
+              name: '客户'
+            }
+          ]
+        }, {
+          iconCls: 'el-icon-menu',
+          index: '/home',
+          title: '综合管理',
+          name: '综合部',
+          leaf: false,
+          hidden: false,
+          children: [{
+              path: '/car',
+              name: '车辆管理'
+            },
+            // {path: '/carRecord', name: '车辆记录'},
+            // {path: '/carRepair', name: '车辆维护'},
+            {
+              path: '/product',
+              name: '产品管理'
+            },
+            // {path: '/askRequest', name: '用车申请'},
+            // {path: '/askBack', name: '分配车辆'},
+            // {path: '/workStep', name: '工序步骤'},
+            {
+              path: '/buyPlan',
+              name: '采购计划'
+            },
+          ]
+        }, {
+          iconCls: 'el-icon-menu',
+          index: '/home',
+          title: '销售管理',
+          name: '销售管理',
+          leaf: false,
+          hidden: false,
+          children: [{
+              path: '/sale',
+              name: '销售管理'
+            },
+
+          ]
+        }, {
+          iconCls: 'el-icon-menu',
+          index: '/home',
+          title: '生产管理',
+          name: '生产管理',
+          leaf: false,
+          hidden: false,
+          children: [{
+              path: '/productsFinished',
+              name: '成品管理'
+            },
+            {
+              path: '/productMid',
+              name: '半成品库'
+            },
+            {
+              path: '/material',
+              name: '原材料库'
+            },
+
+          ]
+        }, {
+          iconCls: 'el-icon-menu',
+          index: '/home',
+          title: '系统管理',
+          name: '系统管理',
+          leaf: false,
+          hidden: false,
+          children: [{
+              path: '/sysRole',
+              name: '角色管理'
+            },
+            {
+              path: '/users',
+              name: '用户管理'
+            },
+            {
+              path: '/sysUnit',
+              name: '单位管理'
+            },
+          ]
+
+        }]
+      }
+    },
+    mounted: function () {
+      this.loadNF();
+    },
+    methods: {
+      loadNF() {
+        var _this = this;
+
+        this.getRequest("/chat/sysmsgs").then(resp => {
+          var isDot = false;
+          resp.data.data.forEach(msg => {
+            if (msg.msgState == 1) {
+              isDot = true;
+            }
+          })
+          _this.$store.commit('toggleNFDot', isDot);
+        })
+      },
+
+      handleCommand(cmd) {
+        var _this = this;
+        if (cmd == 'logout') {
+          this.$confirm('注销登录, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            _this.getRequest("/logout");
+            _this.$store.commit('logout');
+            _this.$router.replace({
+              path: '/'
+            });
+          }).catch(() => {
+            _this.$message({
+              type: 'info',
+              message: '取消'
+            });
+          });
+        }
+      },
+      goChat() {
+        this.$router.push({
+          path: '/chat'
+        });
+      },
+      emptyEmpData() {
+        this.employee = {
+          name: '',
+          phone: '',
+          address: '',
+          email: '',
+          birthday: '',
+          entryDate: '',
+          gender: ''
+        }
+      }
+    },
+
+    computed: {
+
+      user() {
+        return this.$store.state.user;
+      },
+      routes() {
+        return this.$store.state.routes
+      }
+
+    }
+  }
+
+</script>
+<style>
+  .home-container {
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+  }
+
+  .home-header {
+    background-color: #20a0ff;
+    color: #333;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-sizing: content-box;
+    padding: 0px;
+  }
+
+  .home-aside {
+    background-color: #ECECEC;
+    width: 60px;
+  }
+
+  .home-main {
+    background-color: #fff;
+    color: #000;
+    text-align: center;
+    margin: 0px;
+    padding: 0px;
+    ;
+  }
+
+  .home_title {
+    color: #fff;
+    font-size: 22px;
+    display: inline;
+    margin-left: 8px;
+  }
+
+  .home_userinfo {
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .home_userinfoContainer {
+    display: inline;
+    margin-right: 20px;
+  }
+
+  .el-submenu .el-menu-item {
+    width: 180px;
+    min-width: 175px;
+  }
+
+</style>

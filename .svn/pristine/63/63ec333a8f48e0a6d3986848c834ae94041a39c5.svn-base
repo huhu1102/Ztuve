@@ -1,0 +1,34 @@
+<!--<template>-->
+<!--  <div>-->
+<!--    <el-tabs v-model="actives" type="border-card"  @tab-click="handleClick" style="margin-top: 10px">-->
+<!--&lt;!&ndash;       <el-tab-pane label="生产计划" name=" plan"><mp></mp></el-tab-pane> &ndash;&gt;-->
+<!--&lt;!&ndash;      <el-tab-pane label="汇总" name="plan"><mp ref="plan"></mp></el-tab-pane>&ndash;&gt;-->
+<!--&lt;!&ndash;      <el-tab-pane label="生产计划" name="planed"><mps ref="planed"></mps></el-tab-pane>&ndash;&gt;-->
+<!--&lt;!&ndash;      <el-tab-pane label="生产进度" name="planedManager"><mpm ref="planed"></mpm></el-tab-pane>&ndash;&gt;-->
+<!--&lt;!&ndash;      <el-tab-pane label="物料周转" name="midTransform"lazy>&ndash;&gt;-->
+<!--&lt;!&ndash;        <mptrans  ref="child"></mptrans>&ndash;&gt;-->
+<!--&lt;!&ndash;      </el-tab-pane>&ndash;&gt;-->
+<!--    </el-tabs>-->
+<!--  </div>-->
+<!--</template>-->
+<!--<script>-->
+<!--  // import pmanage from '@/components/sale/ProductionManger';-->
+<!--  export default {-->
+<!--    data() {-->
+<!--      return {-->
+<!--        // actives: 'plan'-->
+<!--      };-->
+<!--    },-->
+<!--    methods: {-->
+<!--      handleClick(tab, event) {-->
+<!--        console.log(tab, event);-->
+<!--        if(this.$refs.plan){-->
+<!--          this.$refs.plan.initData();-->
+<!--        }-->
+<!--      }-->
+<!--    },-->
+<!--    components:{-->
+<!--      // 'mp':pmanage,-->
+<!--    }-->
+<!--  };-->
+<!--</script>-->

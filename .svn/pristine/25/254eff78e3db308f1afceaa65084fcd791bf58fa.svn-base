@@ -1,0 +1,2816 @@
+<template>
+  <!--  销售计划-->
+  <div>
+    <el-container style="display: flex;flex-direction: column;justify-content: flex-start;">
+      <div style="margin: 0;padding: 0;">
+        <el-tabs style="background-color: #ffffff" v-model="activePanel" type="card" tab-position="top"
+                 @tab-click="handleClick">
+          <el-tab-pane label="新订单" name='1'></el-tab-pane>
+          <el-tab-pane label="进行中" name='2'></el-tab-pane>
+          <el-tab-pane label="完成" name='3'></el-tab-pane>
+        </el-tabs>
+      </div>
+      <div class="divce-mode">
+        <!--销售计划 -->
+        <div style="padding: 0;margin: 0;display: flex;flex-direction: row;justify-content: space-between;">
+          <div>
+            <el-button slot="reference" type="primary" size="mini" class="send-head-right-btn"
+                       @click="showAdvanceSearchView"><i class="fa fa-lg send-head-left-btn"
+                                                         v-bind:class="[advanceSearchViewVisible ? faangledoubleup:faangledoubledown]"
+            ></i>高级搜索
+            </el-button>
+            <el-button size="mini" type="primary" @click="showChanges">批量选择</el-button>
+            <el-button size="mini" type="primary" @click="isbatch=true">批量修改</el-button>
+          </div>
+          <div class="send-head-right-btn">
+            <el-button type="success" v-if="showDetaillist" size="mini" icon="el-icon-back" @click="back">返回</el-button>
+          </div>
+        </div>
+        <el-main class="send-main">
+          <transition name="slide-fade">
+            <div class="send-main-div" v-show="advanceSearchViewVisible">
+              <el-row>
+                <el-col :span='8'>
+                  产品:
+                  <el-input prefix-icon="el-icon-edit" v-model="keyproductName" size="mini" class="send-input"
+                            placeholder="产品名称。。。">
+                  </el-input>
+                </el-col>
+                <el-col :span='8'>
+                  客户:
+                  <el-input prefix-icon="el-icon-edit" v-model="keyClientName" size="mini" class="send-input"
+                            placeholder="客户。。。">
+                  </el-input>
+                </el-col>
+                <el-col :span='8'>
+                  操作人:
+                  <el-input prefix-icon="el-icon-edit" v-model="keyempName" size="mini" style="width: 200px"
+                            placeholder="员工名。。。">
+                  </el-input>
+                </el-col>
+              </el-row>
+              <div class="block">
+                <el-date-picker v-model="value5"
+                                type="datetimerange"
+                                :picker-options="pickerOptions2"
+                                range-separator="至"
+                                start-placeholder="开始日期"
+                                end-placeholder="结束日期"
+                                align="right"
+                                clearable
+                                @clear="clearDates">
+                </el-date-picker>
+              </div>
+            </div>
+          </transition>
+          <div v-show="!showDetaillist">
+<!--            //销售计划-->
+            <div  v-if="activePanel==='1'||activePanel==='3'" >
+              <div class="flex-sales">
+                <div class="item-sales" v-if="activePanel==1" @click="addAndFlushData">
+                  <div class="add">
+                    <el-tooltip effect="light" content="新建" placement="top-start">
+                      <i>+</i>
+                    </el-tooltip>
+                    <!--<span style="font-size: 12px;">新建</span>-->
+                  </div>
+                </div>
+                <div class="item-sales"
+                     v-for="(plandetail,index) in plansList"
+                     @mouseover="plandetail.onhover=true"
+                     @mouseout="plandetail.onhover=false"
+                     v-bind:key=" 'p'+plandetail.id ">
+                  <div class="in-sales-show">
+                    <div class="compay-ifor ">
+                      <div>
+                        <div>
+                          <!--                        {{plandetail.serialNumber}}-->
+                          <div style="padding: 6px 0 0 5px;">{{plandetail.serialNumber.substring(3)}}</div>
+
+                          <div class="plan-num-companyName" v-if="plandetail.clientName">
+                            {{plandetail.clientName}}
+                          </div>
+                          <div
+                            style="padding: 0 16px;color: #2E2E2F;text-align: right; text-overflow: ellipsis;overflow: hidden; white-space: nowrap;" v-if="plandetail.parentName">
+                            ┈┈{{plandetail.parentName}}
+                          </div>
+                        </div>
+                        <div style="text-align: center;padding-top: 10px;" v-if="plandetail.productName">
+                          {{plandetail.productName}}
+                        </div>
+                      </div>
+                      <el-checkbox style="padding-left: 10px;" v-show="plandetail.toChange"
+                                   v-model="plandetail.checked"></el-checkbox>
+                    </div>
+                    <div class="plan-num">
+                      <div class="plan-num-left">
+                        <div class="sale-mid-box">
+                          <div class="sale-box-head">
+                            <tooltip content="订单信息">
+                              <div style="width: 16px;margin-left: 10px"
+                                   :class="[plandetail.forOrder==true?'forOrders':'forSend']"
+                                   @click="plandetail.forOrder=true" class="fa fa-list"></div>
+                            </tooltip>
+                            <tooltip content="物流信息">
+
+                              <div style="width: 16px;margin-left: 10px"
+                                   :class="[plandetail.forOrder==false?'forOrders':'forSend']"
+                                   @click="plandetail.forOrder=false" class="fa fa-send-o"></div>
+                            </tooltip>
+                          </div>
+                          <!--                        :class="[plandetail.forOrder==true?'forOrders':'forSend']"-->
+                          <div class="sale-box-body" :class="[plandetail.forOrder==true?'forOrders':'forSend']">
+                            <div class="sales-box">
+                              <div v-if="plandetail.forOrder" class="sales-order">
+                                <div class="sales-box-face">
+
+                                  <div class="plan-num-detail">
+                                    <span class="detail-text detail-left">总数:</span>
+                                    <tooltip placement="right">
+                                      <div slot="content">
+                                        <div v-if="plandetail.createDate"> {{plandetail.createDate|formatDateTime}}</div>
+                                      </div>
+                                      <span class="detail-text send detail-right"v-if="plandetail.expecNum">{{plandetail.expecNum}}</span>
+                                    </tooltip>
+                                  </div>
+                                  <div class="plan-num-detail">
+                                    <span class="detail-text detail-left">已下发:</span>
+                                    <tooltip placement="right">
+                                      <div slot="content">
+                                        <div v-if="plandetail.planString.length">
+                                          <div v-for="(record,cindex) in plandetail.planString" :key="cindex">{{record}}
+                                          </div>
+                                        </div>
+                                        <div v-else>
+                                          未下发
+                                        </div>
+                                      </div>
+                                      <span class="detail-text send detail-right">{{plandetail.sendNum==null?0:plandetail.sendNum}}</span>
+                                    </tooltip>
+                                  </div>
+                                  <div class="plan-num-detail">
+                                    <span class="detail-text detail-left">未下发:</span>
+                                    <span class="detail-text send detail-right"v-if="plandetail.expecNum">{{plandetail.expecNum-plandetail.sendNum}}</span>
+                                  </div>
+                                  <div class="plan-num-detail" v-if="plandetail.shippingQuantity">
+                                    <span class="detail-text">已发货:</span>
+                                    <span class="detail-text send">{{plandetail.shippingQuantity}}</span>
+                                  </div>
+                                  <div class="plan-num-detail" v-if="plandetail.resendNo">
+                                    <span class="detail-text">发货请求:</span>
+                                    <tooltip placement="right">
+                                      <div slot="content">
+                                        <div v-for="walk in plandetail.resendStr" :key="walk">{{walk}}</div>
+                                      </div>
+                                      <span class="detail-text send detail-right">{{plandetail.resendNo}}</span>
+                                    </tooltip>
+                                  </div>
+                                </div>
+                                <div style="width: 280px; padding-left:10px; ">
+                                  <div class="plan-note-area">
+                                    <div calss="plan-note-area-head">
+                                      备注：
+                                    </div>
+                                    <div class="plan-note">
+                                      {{plandetail.note==='null'?'暂无':plandetail.note===''?'暂无':plandetail.note}}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div v-if="!plandetail.forOrder" class="sales-delivery">
+                                <div class="plan-num-detail-send">
+                                  <span class="detail-text">总数:</span>
+                                  <tooltip placement="right">
+                                    <div slot="content">
+                                      <div> {{plandetail.createDate|formatDateTime}}</div>
+                                    </div>
+                                    <span class="detail-text send detail-right">{{plandetail.expecNum}}</span>
+                                  </tooltip>
+                                </div>
+                                <div class="plan-num-detail-send ">
+                                  <span class="detail-text">已发货:</span>
+                                  <tooltip placement="right">
+                                    <div slot="content">
+                                      <div v-if="plandetail.shippingStr.length">
+                                        <div v-for="(record,sindex) in plandetail.shippingStr" :key="sindex">{{record}}
+                                        </div>
+                                      </div>
+                                      <div v-else>
+                                        未发货
+                                      </div>
+                                    </div>
+                                    <span class="detail-text send num-aline detail-right">{{plandetail.shippingQuantity}}</span>
+                                  </tooltip>
+                                </div>
+                                <div class="plan-num-detail-send ">
+                                  <span class="detail-text">未发货:</span>
+                                  <span
+                                    class="detail-text send num-aline">{{plandetail.expecNum-plandetail.shippingQuantity}}</span>
+                                </div>
+                                <!--                            <div class="plan-num-detail" v-if="plandetail.resendNo">-->
+                                <!--                              <span class="detail-text">发货请求:</span>-->
+                                <!--                              <tooltip placement="right">-->
+                                <!--                                <div slot="content">-->
+                                <!--                                  <div v-for="walk in plandetail.resendStr" :key="walk">{{walk}}</div>-->
+                                <!--                                </div>-->
+                                <!--                                <span class="detail-text send">{{plandetail.resendNo}}</span>-->
+                                <!--                              </tooltip>-->
+                                <!--                            </div>-->
+                              </div>
+                              <!--                          <div v-if="plandetail.recordStr">{{plandetail.recordStr}}</div>-->
+                            </div>
+
+                          </div>
+
+
+                        </div>
+                        <div class="tip-tab">
+                          <div class="trapezoid"
+                               v-if="plandetail.expectLevel&&(plandetail.expectLevel===2||plandetail.expectLevel===3)">
+                            <div class="part1"
+                                 :style="{borderBottomColor:plandetail.expectLevel===2?'green':'red'}"></div>
+                            <el-tooltip  effect="dark" placement="top-start" >
+                              <div  slot="content">
+                              请求时间：  {{plandetail.upsDate|simpleFormatTime}}
+                              </div>
+                            <div class="part2" :style="{backgroundColor:plandetail.expectLevel===2?'green':'red'}">
+                              {{plandetail.expectLevel===2?'急需':'加急'}}
+                            </div>
+                            </el-tooltip>
+                            <div class="part3"
+                                 :style="{borderBottomColor:plandetail.expectLevel===2?'green':'red'}"></div>
+                          </div>
+                          <!--                        //操作列-->
+                          <div
+                            style="flex-direction: row; display: flex;justify-content: flex-end; height: 18px;line-height: 20px;width: auto;">
+                            <div>
+                              <el-tooltip class="item" effect="dark" content="发货记录" placement="top-start">
+                              <span
+                                v-if="plandetail.shippingQuantity"
+                                class="fa fa-list"
+                                @click="deliverySendRecord(index,plandetail)"
+                                style="padding: 2px;margin: 4px"
+                              ></span>
+                              </el-tooltip>
+                              <el-tooltip class="item" effect="dark" content="发货请求" placement="top-start">
+                              <span
+                                class="fa fa-send"
+                                @click="deliveryRequest(index,plandetail)"
+                                style="padding: 2px;margin: 4px"
+                              ></span>
+                              </el-tooltip>
+                              <el-tooltip class="item" effect="dark" content="编辑" placement="top-start">
+                        <span
+                          class="fa fa-edit"
+                          @click="showEditEmpView(index,plandetail)"
+                          style="padding: 2px;margin: 4px"
+                        >
+                        </span></el-tooltip>
+
+                            </div>
+                            <div>
+                              <el-tooltip class="item" effect="dark" content="删除" placement="top-start">
+                        <span
+                          class="fa fa-trash"
+                          @click="cancelPlan(plandetail)"
+                          style="padding: 2px;margin: 4px"
+                        >
+                        </span></el-tooltip>
+                            </div>
+                            <div>
+                              <el-tooltip class="item" effect="dark" content="查看" placement="top-start">
+                        <span
+
+                          class="fa fa-eye"
+                          @click="showplanDetail(plandetail)"
+                          style="padding:2px;margin: 4px"
+                          size="mini">
+                        </span>
+                              </el-tooltip>
+
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+                <div style="text-align: center;width: 100%;" v-if="plansList.length===0">
+                  暂无数据
+                </div>
+              </div>
+              <div class="page-tool">
+                <el-pagination background :page-size="10" :pager-count="11" :current-page="currentPage"
+                               @current-change="currentChange" layout="prev, pager, next" :total="totalCount">
+                </el-pagination>
+              </div>
+            </div>
+<!--            //生产计划-->
+             <div  v-if="activePanel==='2'">
+                <div class="flex-plan">
+                  <div class="item-sales"
+                       v-for="(plandetail,index) in productionPlans"
+                       @mouseover="plandetail.onhover=true"
+                       @mouseout="plandetail.onhover=false"
+                       :key="plandetail.id ">
+                    <div class="in-sales-show">
+                      <div>
+                        <div style="display:flex;flex-direction: row;justify-content: start;width: 100%;">
+                          <div class="pro-plan-head">
+                            <!--                            <div v-if="plandetail&&plandetail.salesPlan&&plandetail.salesPlan.client">-->
+                            <!--                              <div class="text-alight">{{plandetail.salesPlan.client.name}}</div>-->
+                            <!--                              <div class="text-alight"-->
+                            <!--                                   v-if="plandetail&&plandetail.salesPlan&&plandetail.salesPlan.product&&plandetail.salesPlan.product.producteName">-->
+                            <!--                                {{plandetail.salesPlan.product.producteName}}-->
+                            <!--                              </div>-->
+                            <!--                            </div>-->
+                            <div class="compay-ifor " style="background-color: #A9DC90;">
+                              <div class="text-alight">
+                                <div style="text-align:left;"
+                                     v-if="plandetail.planNo">
+                                  {{plandetail.planNo}}
+                                </div>
+
+                                <div class="plan-num-companyName"
+                                     v-if="plandetail&&plandetail.salesPlan&&plandetail.salesPlan.client">
+                                  {{plandetail.salesPlan.client.name}}
+                                </div>
+                                <div class="abandon"
+                                  style="width: 140px; padding: 0 16px;text-align: right; text-overflow: ellipsis;overflow: hidden; white-space: nowrap;"
+                                  v-if="plandetail.salesPlan&&plandetail.salesPlan.client&&plandetail.salesPlan.client.parentName">
+                                  ┈┈{{plandetail.salesPlan.client.parentName}}
+                                </div>
+                              </div>
+                              <div class="text-alight abandon" style="text-align: center;padding-top: 10px;"
+                                   v-if="plandetail.salesPlan&&plandetail.salesPlan.product&&plandetail.salesPlan.product.producteName">
+                                {{plandetail.salesPlan.product.producteName}}
+                              </div>
+                              <div style="text-align: right;padding-right: 10px;" class="abandon"
+                                   v-if="plandetail.salesPlan&&plandetail.salesPlan.editer&&plandetail.salesPlan.editer.name">
+                               {{plandetail.salesPlan.serialNumber.substring(3)}}     {{plandetail.salesPlan.editer.name}}
+                              </div>
+                              <el-checkbox style="padding-left: 10px;" v-show="plandetail.toChange"
+                                           v-model="plandetail.checked"></el-checkbox>
+                            </div>
+                            <div class="plan-num">
+                              <div class="plan-num-left">
+                                <div class="plan-item-right">
+                                  <div style="width: 140px;padding: 0 0 0 5px;height: 100px;display: flex;flex-direction: column;justify-content: flex-end;">
+                                    <div >
+                                      <div class="plan-num-detail">
+                                        <span class="detail-text detail-left" >本次计划:</span>
+                                        <span class="detail-text detail-right">{{plandetail.actualQuantity}}</span>
+                                      </div>
+                                      <div class="plan-num-detail abandon">
+                                        <span class="detail-text">已生产:</span>
+                                        <el-tooltip placement="top">
+                                          <div slot="content">
+                                            <div style="display: flex;flex-direction: column;width: auto;">
+                                              <div>
+                                                下发时间:{{plandetail.createDate|formatDateTime}}
+                                              </div>
+                                            </div>
+                                          </div>
+                                          <span class="detail-text send detail-right">{{plandetail.accomplishNO==null?0:plandetail.accomplishNO}}</span>
+                                        </el-tooltip>
+                                      </div>
+                                      <div class="plan-num-detail ">
+                                        <span class="detail-text detail-left" >&nbsp</span>
+                                        <span class="detail-text detail-right"></span>
+                                      </div>
+                                      <hr style="width: 86px;">
+                                      <div class="plan-num-detail abandon">
+                                        <span class="detail-text detail-left">未生产:</span>
+                                        <span class="detail-text detail-right"
+                                              v-if="plandetail.salesPlan">{{plandetail.actualQuantity-plandetail.accomplishNO}}</span>
+                                      </div>
+                                    </div>
+                                    <div v-if="plandetail.recordStr">{{plandetail.recordStr}}</div>
+                                  </div>
+                                  <div style="width: 280px;height:100px;flex-direction: row;display: flex;justify-content: flex-start;">
+                                    <div style="width: 100px;padding: 0 5px; display: flex;flex-direction: column;justify-content: flex-end;">
+                                      <div style="display: flex;flex-direction: column;justify-content: flex-end">
+                                        <div class="plan-num-detail abandon">
+                                          <span class="detail-text detail-left">已生产:</span>
+                                          <span class="detail-text detail-right">{{plandetail.accomplishNO}}</span>
+                                        </div>
+                                        <div class="plan-num-detail abandon">
+                                          <span class="detail-text detail-left">已发货:</span>
+
+                                          <span class="detail-text send detail-right">{{plandetail.sendQuantity==null?0:plandetail.sendQuantity}}</span>
+
+                                        </div>
+                                        <hr style="width: 86px;">
+                                        <div class="plan-num-detail abandon last-send">
+                                          <span class="detail-text detail-left">未发货:</span>
+                                          <span class="detail-text detail-right"
+                                                v-if="plandetail.accomplishNO&&plandetail.sendQuantity">{{plandetail.accomplishNO-plandetail.sendQuantity}}</span>
+                                          <span class="detail-text detail-right" v-else>0</span>
+                                        </div>
+                                      </div>
+                                    </div>
+                                    <div style="width: 180px;display: flex;flex-direction: column;justify-content: flex-end;">
+                                       <div>
+                                        <div class="plan-num-detail last-send abandon">
+                                          <span class="detail-text detail-left">需求总数:</span>
+                                          <span class="detail-text detail-right" v-if="plandetail.salesPlan">{{plandetail.salesPlan.quantity}}</span>
+                                        </div>
+                                        <div class="plan-num-detail last-send abandon">
+                                          <span class="detail-text detail-left">计划总量:</span>
+                                          <span class="detail-text detail-right" v-if="plandetail.salesPlan">{{plandetail.salesPlan.nextQuantity}}</span>
+                                        </div>
+                                        <div class="plan-num-detail last-send abandon">
+                                          <span class="detail-text detail-left">累计完成:</span>
+                                          <el-tooltip  placement="top">
+                                            <div slot="content">
+                                              发货记录：
+                                              <div v-if="plandetail.produtRecordStr&&plandetail.produtRecordStr.length"
+                                                   style="display: flex;flex-direction: column;width: auto;">
+                                                <div v-for=" (item,indexAt) in  plandetail.produtRecordStr" :key="indexAt">
+                                                  {{item}}
+                                                </div>
+                                              </div>
+                                            </div>
+
+                                            <span
+                                              class="detail-text send detail-right" v-if="plandetail.salesPlan">{{plandetail.salesPlan.endQuantity}}</span>
+                                          </el-tooltip>
+                                        </div>
+                                        <hr style="width: 100px;">
+                                        <div class="plan-num-detail abandon last-send">
+                                          <span class="detail-text ">未生产量:</span>
+                                          <span class="detail-text detail-right"
+                                                v-if="plandetail.salesPlan&&plandetail.salesPlan.nextQuantity!=null&&plandetail.salesPlan.endQuantity!=null">{{plandetail.salesPlan.nextQuantity-plandetail.salesPlan.endQuantity}}</span>
+                                        </div>
+                                        <!--                                        <div class="plan-num-detail">-->
+                                        <!--                                          <span class="detail-text">未下计划:</span>-->
+                                        <!--                                          <span class="detail-text detail-right"-->
+                                        <!--                                                v-if="plandetail.salesPlan&&plandetail.salesPlan.nextQuantity">{{plandetail.salesPlan.quantity-plandetail.salesPlan.nextQuantity}}</span>-->
+                                        <!--                                        </div>-->
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div
+                                  style="width:420px;display: flex;flex-direction: column;justify-content: start; padding:0 8px; ">
+                                  <div class="trapezoid"
+                                       v-if="plandetail.expectLevel&&(plandetail.expectLevel===3||plandetail.expectLevel===2)">
+                                    <div class="part1"
+                                         :style="{borderBottomColor:plandetail.expectLevel===2?'green':'red'}"></div>
+                                    <el-tooltip  effect="dark" placement="top-start" >
+                                      <div slot="content">
+                                          {{plandetail.upsDate|simpleFormatTime}}
+                                      </div>
+                                      <div class="part2"
+                                           :style="{backgroundColor:plandetail.expectLevel===2?'green':'red'}">
+                                        {{plandetail.expectLevel===2?'急需':'加急'}}
+                                      </div>
+                                    </el-tooltip>
+
+                                    <div class="part3"
+                                         :style="{borderBottomColor:plandetail.expectLevel===2?'green':'red'}"></div>
+                                  </div>
+                                  <div
+                                    style="flex-direction: row; display: flex;justify-content: flex-end; height: 18px;line-height: 20px;width: auto;">
+                                    <div>
+                                      <el-tooltip class="item" effect="dark" content="发货请求" placement="top-start">
+                                          <span
+                                            class="fa fa-send-o"
+                                            @click="deliveryRequest(index,plandetail)"
+                                            style="padding: 2px;margin: 4px;color: #2fc5da;"
+                                          > </span>
+                                      </el-tooltip>
+<!--                                      <el-tooltip class="item" effect="dark" content="编辑" placement="top-start">-->
+<!--                                          <span-->
+<!--                                            class="fa fa-pencil"-->
+<!--                                            @click="editeDetail(plandetail,index)"-->
+<!--                                            style="padding: 2px;margin: 4px;color: #2fc5da;"-->
+<!--                                          > </span>-->
+<!--                                      </el-tooltip>-->
+                                      <!--                            <el-tooltip class="item" effect="dark" content="编辑" placement="top-start">-->
+                                      <!--                              <span-->
+                                      <!--                                class="fa fa-edit"-->
+                                      <!--                                @click="showEditEmpView(index,plandetail)"-->
+                                      <!--                                style="padding: 2px;margin: 4px">-->
+                                      <!--                              </span>-->
+                                      <!--                            </el-tooltip>-->
+
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                  <div style="text-align: center;" v-if="productionPlans.length==0">
+                    暂无数据
+                  </div>
+                </div>
+
+               <div style="display: flex;justify-content: flex-end;margin: 2px">
+                 <el-pagination background :page-size="10" :pager-count="11" :current-page="currentPage"
+                                @current-change="currentChange" layout="prev, pager, next" :total="totalCount">
+                 </el-pagination>
+               </div>
+             </div>
+          </div>
+          <div v-show="showDetaillist">
+            <el-table :data="plandetaillist" highlight-current-row fit border style="width: 100%">
+              <el-table-column align="left" label="客户名">
+                <template slot-scope="scope">
+                  <div v-if="scope.row.salesPlan.client">
+                    {{scope.row.salesPlan.client.name}}
+                  </div>
+                  <div v-else>
+                    无
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column align="left" label="产品名称">
+                <template slot-scope="scope">
+                  {{scope.row.salesPlan.product.producteName}}
+                </template>
+              </el-table-column>
+              <el-table-column align="left" label="计划量/完成量">
+                <template slot-scope="scope">{{ scope.row.actualQuantity}}/{{scope.row.accomplishNO}}枚
+                </template>
+              </el-table-column>
+              <el-table-column prop="status" :formatter="statusFormat" align="left" label="状态">
+              </el-table-column>
+              <el-table-column prop="note" align="left" label="备注">
+              </el-table-column>
+            </el-table>
+            <div style="display: flex;justify-content: flex-end;margin: 2px">
+              <el-pagination background :page-size="10" :pager-count="11" :current-page="currentDetailPage"
+                             @current-change="currentDetailChange" layout="prev, pager, next" :total="totalDatailPage">
+              </el-pagination>
+            </div>
+          </div>
+        </el-main>
+      </div>
+      <!-- 模块展示   -->
+      <!--      <el-container v-else class="product-model-base">-->
+      <!--        <div class="product-model-item" v-for="item in typeItems" :key="item.value" @click="used(item)">-->
+      <!--          <span class="fa fa-bomb"></span>-->
+      <!--          <span>{{item.name}}</span>-->
+      <!--          &lt;!&ndash;          <span>（{{item.num}}）</span>&ndash;&gt;-->
+      <!--        </div>-->
+      <!--      </el-container>-->
+    </el-container>
+    <!--    title="销售计划信息"-->
+    <!--    ZtDialog-->
+    <zt-dialog :is-show="showDialog" height-num='590' wid-num='450' left-site='400' zt-dialog-class="myDialogStyle"
+               @on-close="closeDialog">
+      <div slot="header" class="zt-dialog-head">
+        <span style="line-height: 24px;box-sizing: border-box;text-align: left;">销售计划信息</span>
+        <span @click="closeDialog" class="colosBtn">×</span>
+      </div>
+      <div class="zt-dialog-main" slot="main">
+
+
+        <!--        这里是内容插入到子组件的slot的name为main里面，可以在父组件中添加class定义样式，事件类型等各种操作-->
+        <div style="width: 100% ">
+          <div style="text-align: left;">
+          </div>
+          <el-form :model="detail" :rules="rules" class="sale-form" ref="addEmpForm" size="mini" label-width="120px">
+            <!--            总公司列表-->
+            <el-form-item style="margin-top: 10px;" label="选择客户:"
+            >
+              <el-select v-model="detail.shopId"
+                         size="mini"
+                         style="width: 100%;"
+                         filterable
+                         clearable
+                         @change="currentSelectShop"
+                         placeholder="请选择客户">
+                <!--                       @clear="clearShops"-->
+                <el-option
+                  v-for="item in shoplist"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <!--关联分公司列表-->
+            <el-form-item style="margin-top: 10px;" label="作业区:"
+            >
+              <el-select v-model="detailIDs"
+                         size="mini"
+                         no-data-text="无作业区"
+                         style="width: 100%;"
+                         clearable
+                         @change="currentSelectChild"
+                         placeholder="请选择作业区">
+                <el-option
+                  v-for="child in shopchildren"
+                  :key="child.value"
+                  :label="child.label"
+                  :value="child.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <!--            <Cascader-->
+            <!--              :data="clients"-->
+            <!--              trigger="hover"-->
+            <!--              :filterable="true"-->
+            <!--              change-on-select-->
+            <!--              :not-found-text="conName"-->
+            <!--              v-model="detail.clientId"-->
+            <!--              size="small"-->
+            <!--              @on-change="handleClientChange">-->
+            <!--              <div-->
+            <!--                style="font-size: 12px; width: 100%;min-height: 60px; display:inline-flex;flex-direction: row;justify-content:space-between;">-->
+            <!--                <div class="company-head-item head-item-left">-->
+            <!--                  <div>-->
+            <!--                    <a class="a-single"-->
+            <!--                       href="javascript:void(0)">选择客户:</a>-->
+            <!--                  </div>-->
+            <!--                  <div>-->
+            <!--                    <a class="a-single"-->
+            <!--                       href="javascript:void(0)">作业区:</a>-->
+            <!--                  </div>-->
+            <!--                </div>-->
+            <!--                <div class="company-head-item head-item-right">-->
+
+            <!--                  <div class="item-lable" v-for="item in noClient"-->
+            <!--                       :key="item.value"> {{item.label}}-->
+            <!--                  </div>-->
+            <!--                </div>-->
+            <!--              </div>-->
+            <!--            </Cascader>-->
+            <!--            <zt-cascader  v-model="detail.clientId" :organization="clients">-->
+            <!--            </zt-cascader>-->
+            <el-form-item style="margin-top: 10px;" label="数量:"
+                          prop="quantity">
+              <el-input type='number'
+                        placeholder="原料数量(枚/kg)"
+                        size="mini"
+                        refix-icon="el-icon-edit"
+                        min="0" step="1000"
+                        v-model="detail.quantity"
+                        style="background: #fff;">
+              </el-input>
+            </el-form-item>
+            <el-form-item label="型号:" prop="productNo">
+              <el-input prefix-icon="el-icon-edit"
+                        v-model="detail.productNo"
+                        size="mini"
+                        @focus="showMaterial"
+                        placeholder="型号"></el-input>
+            </el-form-item>
+
+            <el-form-item label="规格:" prop="specsId">
+              <el-select v-model="detail.specsId"
+                         size="mini"
+                         style="width: 100%;"
+                         placeholder="请选择规格">
+                <el-option
+                  v-for="item in specslist"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item style="margin-top: -5px;" label="颜色:" prop="colorId">
+              <el-select v-model="detail.colorId"
+                         style="width: 100%;"
+                         size="mini"
+                         placeholder="--请选择色彩--">
+                <el-option
+                  v-for="item in colorlist"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <div style="height: 10px;text-align: center;line-height: 10px;">
+              <hr>
+            </div>
+            <!--            <el-form-item label="等级:" prop="expectLevel">-->
+            <!--              <el-select v-model="detail.expectLevel"-->
+            <!--                         filterable-->
+            <!--                         style="width: 100%;"-->
+            <!--                         placeholder="&#45;&#45;请选择等级&#45;&#45;">-->
+            <!--                <el-option-->
+            <!--                  v-for="item in options"-->
+            <!--                  :key="item.value"-->
+            <!--                  :label="item.label"-->
+            <!--                  :value="item.value">-->
+            <!--                </el-option>-->
+            <!--              </el-select>-->
+            <!--            </el-form-item>-->
+            <el-form-item style="margin-top: -5px;" label="备注:" prop="notes">
+              <el-input prefix-icon="el-icon-edit" v-model="detail.notes" size="mini"
+                        style="width: 200px;"
+                        :rows="5"
+                        type="textarea" placeholder="备注。。。"></el-input>
+            </el-form-item>
+            <div>
+            </div>
+          </el-form>
+        </div>
+        <div class="zt-dialog-footer">
+          <el-button @click="closeDialog">取 消</el-button>
+          <el-button type="primary" @click="add('addEmpForm')">确 定</el-button>
+        </div>
+      </div>
+    </zt-dialog>
+    <zt-dialog :is-show="isbatch" height-num='400' wid-num='450' left-site='400' zt-dialog-class="myDialogStyle"
+               @on-close="closeDialog">
+      <div slot="header" class="zt-dialog-head">
+        <span style="line-height: 24px;box-sizing: border-box;text-align: left;">批量修改</span>
+        <span @click="closeDialog" class="colosBtn">×</span>
+      </div>
+      <div class="zt-dialog-main" slot="main">
+        <div style="width: 100% " v-if="isbatch">
+          <div style="text-align: left;">
+          </div>
+
+          <div style="height: 10px;text-align: center;line-height: 10px;">
+          </div>
+          <div style=" font-size:12px;width: 100%; display: inline-flex;flex-direction: row;">
+            等级:
+            <el-select size="mini" v-model="expectLevel"
+                       filterable
+
+                       style="width:200px;"
+                       placeholder="--请选择订单等级--">
+              <el-option
+                v-for="item in options2"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </div>
+
+          <div>
+          </div>
+        </div>
+        <div class="zt-dialog-footer">
+          <el-button style="font-size: 12px;" @click="isbatch=false">取 消</el-button>
+          <el-button style="font-size: 12px;" type="primary" @click="batchEdit">确 定</el-button>
+        </div>
+      </div>
+    </zt-dialog>
+    <el-dialog :title="dialogMaterialTitle" style="padding: 0px;" :close-on-click-modal="false"
+               :visible.sync="dialogMaterialVisible" @close="cancelchoose" width="650px">
+      <div style="width: 100% " v-if="dialogMaterialVisible">
+        <div style="padding: 0px;display:flex;justify-content:space-between;align-items: center">
+          <!-- 产品的搜索   -->
+          <div style="display: inline">
+            <el-input placeholder="通过名称搜索,记得回车哦..." clearable @change="keywordsMaterialChange"
+                      style="width: 300px;margin: 0px;padding: 0px;" size="mini"
+                      @keyup.enter.native="searchMaterialData"
+                      prefix-icon="el-icon-search" v-model="keyMaterialwords">
+            </el-input>
+            <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search"
+                       @click="searchMaterialData">搜索
+            </el-button>
+          </div>
+        </div>
+        <!-- 产品表 -->
+        <el-table :data="materialList" highlight-current-row fit border style="width: 100%" @row-click="showRow">
+          <el-table-column align="center" fixed label="当前" width="80">
+            <template slot-scope="scope">
+              <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>
+            </template>
+          </el-table-column>
+          <el-table-column prop="producteName" align="left" fixed label="名称">
+          </el-table-column>
+          <el-table-column prop="specName" align="left" fixed label="规格">
+          </el-table-column>
+          <el-table-column prop="proType" align="left" fixed label="型号">
+          </el-table-column>
+          <el-table-column prop="colorName" align="left" fixed label="颜色">
+          </el-table-column>
+
+        </el-table>
+        <div style="display: flex;justify-content: flex-end;margin: 2px">
+          <el-pagination background :page-size="10" :pager-count="11" :current-page="currentMaterialPage"
+                         @current-change="currentMaterialChange" layout="prev, pager, next" :total="totalMaterialCount">
+          </el-pagination>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogMaterialVisible=false">取 消</el-button>
+        <el-button type="primary" @click="chooseMaterial()">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog
+      title="记录集"
+      :close-on-click-modal="false"
+      :visible.sync="dialogRecordVisible"
+      @close.stop="cancelRecord"
+      width="450px">
+      <div style="width: 100% " v-if="dialogRecordVisible"></div>
+      <div v-if="recordStr.length">
+        <div style="padding: 0 16px;" v-for="record in recordStr" :key="record">
+          <span>{{record}}</span>
+        </div>
+      </div>
+      <div v-else>暂无记录</div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogRecordVisible=false">取 消</el-button>
+        <!--        <el-button type="primary" @click="add('addEmpForm')">确 定</el-button>-->
+      </div>
+    </el-dialog>
+    <!--    :title="dialogsendTitle" :close-on-click-modal="false"-->
+    <!--    :visible.sync="dialogSendVisible" @close="cancelOpt"  width="550px"-->
+    <zt-dialog
+      :is-show="dialogSendVisible"
+      height-num='260'
+      wid-num='450'
+      @on-close="cancelSenddetail"
+      left-site='400'>
+      <div slot="header" class="zt-dialog-head">
+        <span style="line-height: 24px;box-sizing: border-box;text-align: left;">发货请求</span>
+        <span @click="cancelSenddetail" class="colosBtn">×</span>
+      </div>
+      <div slot="main" style="font-size: 12px;">
+        <el-form :model="sendDetail"
+                 ref="addSend" size="mini" label-width="90px">
+          <div style="border: 1px solid #eeeeee;">
+            <!-- 客户信息 -->
+            <el-row>
+              <el-form-item label="数量:">
+                <el-input
+                  prefix-icon="el-icon-edit"
+                  type="number"
+                  min="0"
+                  size="mini"
+                  style="width: 200px"
+                  step="1000"
+                  placeholder="发货数量"
+                  v-model="sendDetail.planNumber">
+                </el-input>
+              </el-form-item>
+            </el-row>
+            <el-row >
+              <el-form-item label="等级:">
+                <el-select size="mini" style="width: 200px;" v-model="sendDetail.expectLevel">
+                  <el-option
+                    v-for="item in options"
+                    :key="item.value"
+                    :label="item.label"
+                    :value="item.value">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-row>
+            <el-row >
+              <el-form-item label='备注'>
+                <el-input
+                  prefix-icon="el-icon-edit"
+                  type="textarea"
+                  size="mini"
+                  style="width: 200px"
+                  placeholder="备注。。"
+                  v-model="sendDetail.note">
+                </el-input>
+              </el-form-item>
+            </el-row>
+
+          </div>
+        </el-form>
+        <div class="dialog-footer">
+          <el-button @click="cancelSenddetail" size="mini">取 消</el-button>
+          <el-button type="warning" size="mini" @click="revokeBeg">撤销</el-button>
+          <el-button type="primary" size="mini" @click="addSend('addSend')">发送请求</el-button>
+        </div>
+      </div>
+    </zt-dialog>
+  </div>
+
+</template>
+<script>
+  import {
+    Message
+  } from 'element-ui'
+  import ZtDialog from "../ZtDialog/index";
+  import send from "@/components/sale/ProductionSend.vue";
+  import ZtCascader from "../ZtDialog/ZtCascade";
+
+  export default {
+    components: {ZtCascader, ZtDialog},
+    data() {
+
+      return {
+        rules: {
+          productNo: [{required: true, message: '必选:产品', trigger: 'blur'}],
+          quantity: [{required: true, message: '必填:数量', trigger: 'blur'}],
+          colorId: [{required: true, message: '必选:颜色', trigger: 'blur'}],
+          specsId: [{required: true, message: '必选:规格', trigger: 'blur'}],
+        },
+        shoplist: [],//总公司
+        shopchildren: [],//作业区
+        CurrentSalesId: 0,
+        dialogsendTitle: '',
+        //收货方式
+        sendOptions: [{
+          value: '自提',
+          label: '自提'
+        }, {
+          value: '送货上门',
+          label: '送货上门'
+        }, {
+          value: '其他(备注)',
+          label: '其他(备注)'
+        }],
+        //发货请求详情
+        sendDetail: {
+          id: 0,
+          planNumber: '',//发货亲求数量
+          note: '',//备注
+          expectLevel: '',//请求等级
+          salePlanId:'',
+        },
+
+        dialogSendVisible: false,
+        isbatch: false,//批量对话框
+        showDialog: false,
+        recordStr: [],
+        typeItems: [{
+          value: 1,
+          name: '新订单'
+        }, {
+          value: 2,
+          name: '进行中'
+        }, {
+          value: 3,
+          name: '完成'
+        }, {
+          value: 4,
+          name: '撤销'
+        }, {
+          value: 5,
+          name: '汇总'
+        }],
+        tap: 1,
+        options: [{
+          value: 1,
+          label: '普通'
+        }, {
+          value: 2,
+          label: '急需'
+        }, {
+          value: 3,
+          label: '加急'
+        }],
+        options2: [{
+          value: 1,
+          label: '普通'
+        }, {
+          value: 2,
+          label: '急需'
+        }, {
+          value: 3,
+          label: '加急'
+        }],
+        conName: '选择公司',
+        selectedStep: {},
+        lastPlanDetail: {
+          startNo: 'J00000001',
+          endNo: "J00000100"
+        },
+        myDialog: {
+          'height': '800px'
+        },
+        lastPlanmarketPlanDetails: [{
+          startNo: 'J00000001',
+          endNo: "J00000100"
+        }, {
+          startNo: 'K00000001',
+          endNo: "K00000100"
+        }],
+        // 月份使用？
+        pickerOptions2: {
+          shortcuts: [{
+            text: '最近一周',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+              picker.$emit('pick', [start, end]);
+            }
+          }, {
+            text: '最近一个月',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+              picker.$emit('pick', [start, end]);
+            }
+          }, {
+            text: '最近三个月',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+              picker.$emit('pick', [start, end]);
+            }
+          }]
+        },
+        value4: [new Date(2000, 10, 10, 10, 10), new Date(2000, 10, 11, 10, 10)],
+        value5: '',
+        //***********************************________*******************************
+        keywords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        types: 2,
+        midProduct: [],
+        plans: [],
+        plansList:[],
+        clients: [],
+        units: [],
+        dialogTitle: '',
+        currentPage: 1,
+        currentDetailPage: 1,
+        totalDatailPage: -1,
+        totalCount: -1,
+        // 原材料
+        totalMaterialCount: -1,
+        keyMaterialwords: '',
+        currentMaterialPage: 1,
+        detail: {
+          id: 0,
+          clientId: [],
+          productNo: '',
+          notes: '',
+          quantity: '',
+          proId: '', //产品Id
+          specsId: '',//规格Id
+          colorId: '',
+          shopId: '',
+          shopchildId: '',
+        },
+        currentAllClients: [],
+        dialogFormVisible: false,
+        currentRowData: {}, //当前选中行数据
+        currentIndex: '', //当前选中行号
+        depTextColor: '',
+        showOrHidePop: false,
+        showHidePop: false,
+        defaultProps: {
+          value: 'id',
+          label: 'name',
+          children: 'child',
+          expandTrigger: 'click'
+        },
+
+        maxSid: 0,
+        currentDeleteData: [],
+        materials: [],
+        materialList: [],
+        products: [],
+        dialogMaterialVisible: false,
+        dialogMaterialTitle: '请选择产品',
+        selectMaterial: {}, //当前选择的原料
+        selectedM: {},
+        filterText: '',
+        crrentSelectShop: {}, //当前选中的公司；
+        isCurrentShop: true,
+        isprarent: false,
+        sugestParentstartNo: '', //..公司
+        sugestParentEndNo: '', //公司结束编号
+        sugestSelfEndNumbers: '',
+        sugestSelfNumbers: '', //仅子公司
+        currentParentShop: {},
+        currentShop: {},
+        lastPlanDetail: {
+          startNo: '',
+          endNo: '',
+        },
+        noClient: [],
+        serialNuberDeleted: [], //删除编号集合
+        serialNuberUpdate: [], //更新编号集合
+        serialNuberList: [], //编号集合
+        specslist: [],
+        colorlist: [],
+        selectPreStep: {},
+        selectSteps: [],
+        activePanel: '1',
+        manageStatus: '1',
+        plandetaillist: [],
+        showDetaillist: false,
+        showPlan: true,
+        detailPage: 1,
+        currentPlanId: '',
+        //搜索
+        advanceSearchViewVisible: false,
+        faangledoubleup: 'fa-angle-double-up',
+        faangledoubledown: 'fa-angle-double-down',
+        keyproductName: '',
+        keyClientName: '',
+        keyempName: '',
+        startDate: '',
+        endDate: '',
+        dialogRecordVisible: false,
+        showOrHidePop2: false,
+        clientNamelist: [],
+        checked: true,
+        expectLevel: '',
+        detailIDs: '',//作业区Id
+        productionPlans:[],
+      }
+    },
+    mounted: function () {
+      this.initData();
+    },
+
+    filters: {
+      filterContent: function (content) {
+        return content.length ? content.map(i => i.label).join('/') : ''
+      }
+    },
+    methods: {
+
+      /**
+       * 发货请求记录i
+       * 查看发货请求记录所用
+       */
+      deliverySendRecord(index, row) {
+        this.$router.replace({
+          path: '/productionsend'
+        });
+        // productionsend
+      },
+      /**
+       * 发货请求
+       * @param index
+       * @param detail
+       */
+      deliveryRequest(index, detail) {
+        let that=this;
+        this.dialogsendTitle = "发货请求";
+        this.sendDetail.salePlanId = detail.id;
+        this.CurrentSalesId = detail.id;
+        if(detail.resendId){
+        this.getRequest("/shippingrequestdetails/findById?id="+detail.resendId).then(resp => {
+          if (resp && resp.status === 200) {
+            var data=resp.data.root.shipdetail;
+            that.sendDetail={
+              id:data.id,
+              planNumber:data.planNumber,
+              expectLevel:data.expectLevel,
+              note:data.note,
+              salePlanId:data.salePlanId,
+            };
+            that.dialogSendVisible = true;
+         }else{
+            that.$message({
+              title:'查询失败'
+            })
+          }
+        })
+        }else{
+          this.dialogSendVisible = true;
+        }
+
+
+      },
+      cancelSenddetail(){
+         this.clearSendDetail();
+         this.dialogSendVisible=false;
+      },
+      //撤销发货请求
+      revokeBeg() {
+       let  _this=this;
+
+        this.getRequest("/shippingrequestdetails/revokebeg?id="+this.sendDetail.id).then(resp => {
+          if (resp && resp.status === 200&&resp.data.success) {
+            _this.cancelSenddetail()
+            _this.loadData();
+
+          }
+        })
+
+      },
+        clearSendDetail(){
+          this.sendDetail={
+            id: 0,
+            planNumber: '',//发货亲求数量
+            note: '',//备注
+            expectLevel: '',//请求等级
+            salePlanId:'',
+          }
+        },
+      //发货请求
+        addSend(addForm) {
+        console.log('fastsong');
+        let _this = this;
+        let detail = _.cloneDeep(this.sendDetail);
+        console.log(detail);
+
+        this.$refs[addForm].validate((valid) => {
+          if (valid) {
+            if (_this.sendDetail.id) {
+              //更新
+              this.tableLoading = true;
+              this.postRequest("/shippingrequestdetails/update", detail).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200) {
+                  _this.dialogSendVisible = false;
+                  _this.loadData();
+                  _this.clearSendDetail();
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              this.postRequest("/shippingrequestdetails/add?salesPlanId=" + _this.CurrentSalesId, detail).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200 && resp.data.success) {
+                  _this.dialogSendVisible = false;
+                  _this.loadData();
+                  _this.clearSendDetail();
+                } else {
+                  Message("添加失败")
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+
+
+      batchEdit() {
+        // 批量修改方法
+        var ids = [];
+        this.plansList.map(function (v, k) {
+          if (v.checked) {
+            ids.push(v.id);
+          }
+        })
+        if (ids.length) {
+          ids = ids.join(',')
+          //批量修改
+          if (this.expectLevel === '') {
+            this.$message({
+              type: 'info',
+              message: '请选择等级!'
+            })
+            return false;
+          }
+
+          this.batchimp(ids, this.expectLevel);
+        } else {
+
+        }
+
+      },
+      batchimp(ids, expect) {
+        let that = this;
+        this.getRequest("/sales/batchEdit?ids=" + ids + "&important=" + expect).then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+            that.isbatch = false;
+            that.loadData();
+          } else {
+            that.$message({type: 'info ', message: '修改失败！'})
+            return false;
+          }
+        })
+      },
+      handleClientChange(value, selectedData) {
+        console.log(selectedData);
+
+        this.noClient = selectedData;
+      },
+      chooseShop(item) {
+        item.checked = !item.checked;
+      },
+      showDepTree2() {
+        console.log('clickd');
+        this.showOrHidePop2 = !this.showOrHidePop2;
+      },
+      closeDialog() {
+        // this.status.isShowPublish=false;
+        //把绑定的弹窗数组 设为false即可关闭弹窗
+        this.showDialog = false;
+        this.emptyData();
+        this.loadData();
+      },
+
+      cancelRecord() {
+        this.recordStr = [];
+      },
+      //展示已发送的计划
+      showSend(item) {
+        console.log(item);
+        if (item.planString) {
+          this.recordStr = item.planString.split(';');
+        } else {
+          this.recordStr = []
+        }
+        this.dialogRecordVisible = true;
+      },
+      used(item) {
+        //跳转 查询
+        this.handleClick('', '', item.value + "")
+      },
+      showAdvanceSearchView() {
+        this.advanceSearchViewVisible = !this.advanceSearchViewVisible;
+        this.keywords = '';
+        if (!this.advanceSearchViewVisible) {
+          this.emptyData();
+          // this.beginDateScope = '';
+          this.loadData();
+        }
+      },
+      cancelSearch() {
+        this.keyproductName = '',
+          this.keyClientName = '',
+          this.keyempName = '',
+          this.advanceSearchViewVisible = false;
+        this.loadData();
+      },
+      getArray(data) {
+        let that = this;
+        let temp = [];
+        let fts = Array.from(data).forEach(function (record) {
+          // 如果有父元素
+          temp.push(record);
+          if (record.child && record.child.length > 0) {
+            const child = that.getArray(record.child);
+            temp = temp.concat(child);
+          }
+        });
+        return temp;
+      },
+
+      handleClick(e, cli, status) {
+        console.log(status);
+        let code;
+        if (status && status !== '') {
+          code = status;
+          this.activePanel = status;
+          this.tap = 2;
+        } else {
+          code = this.activePanel;
+        }
+        switch (code) {
+          case "1":
+            this.manageStatus = "1";
+            break;
+          case "2":
+            this.manageStatus = "2";
+            break;
+          case "3":
+            this.manageStatus = "3";
+            break;
+          case "4":
+            this.manageStatus = "4";
+            break;
+          case "7":
+            this.manageStatus = "";
+            break;
+          default:
+            break;
+        }
+        if(this.manageStatus==="2"){
+          this.loadPlans();
+        }else{
+          this.loadData();
+        }
+      },      //撤销销售计划
+      cancelPlan(row) {
+        this.$confirm('此操作将撤销该销售计划, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doCancel(row.id);
+        }).catch(() => {
+        });
+
+      },
+      showplanDetail(row) {
+        this.currentPlanId = row.id;
+        this.showPlanDe();
+
+      },
+      showPlanDe() {
+        let _this = this;
+        this.getRequest("/productionplandetails/findPlan?salesPlanId=" + this.currentPlanId + "&page=" + this.currentDetailPage + "&size=10").then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status === 200 && resp.data.success) {
+            _this.plandetaillist = resp.data.data || [];
+            _this.totalDatailPage = resp.data.total;
+            if (_this.plandetaillist.length) {
+              _this.showDetaillist = true;
+              _this.showPlan = false;
+            } else {
+              _this.$message({type: 'info ', message: '未开始生产！'})
+              return false;
+            }
+
+          }
+        })
+      },
+      doCancel(ids) {
+        let _this = this;
+        this.tableLoading = true;
+        this.getRequest("/sales/annul?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status === 200) {
+            _this.loadData();
+          }
+        })
+      },
+      statusFormat(row) {
+        let str = '';
+        switch (row.status) {
+          case 1:
+            str = "新建";
+            break;
+          case 2:
+            str = "开始生产";
+            break;
+          case 3:
+            str = "生产完成";
+            break;
+          case 4:
+            str = "生产撤销";
+            break;
+
+          default :
+
+            break;
+        }
+        return str;
+      },
+
+
+      filterNode(value, data) {
+        if (!value) return true;
+        return data.label.indexOf(value) !== -1;
+      },
+      showRow(row) {
+        this.selectedM = this.materialList.indexOf(row);
+        this.selectMaterial = row;
+        console.log(this.selectMaterial);
+      },
+      //选择产品；
+      showMaterial() {
+        console.log('showMaterial');
+        this.loadMaterial();
+      },
+      chooseMaterial() {
+        console.log('选择原料了！');
+        let vm = this;
+        if (this.selectMaterial.id > 0) {
+          const msg = this.selectMaterial.producteName + "" + this.selectMaterial.specName + ";";
+          this.$confirm('您当前选择了' + msg + "确认选择该产品吗？", '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            vm.setDetailData(vm);
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消'
+            });
+          });
+        } else {
+          this.$message({
+            type: 'info',
+            message: '请选择原材料！'
+          })
+        }
+
+      },
+      setDetailData() {
+        let that = this;
+        let v = that.selectMaterial;
+        console.log(v);
+
+        that.detail.productName = v.producteName;
+        that.detail.proId = v.id; //选取的物料Id
+        that.detail.specification = '';
+        that.specslist = v.specs || [];
+        if (that.specslist.length) {
+
+          that.detail.specsId = that.specslist[0].id;
+        }
+
+        that.colorlist = v.colors || [];
+        if (that.colorlist.length) {
+          that.detail.colorId = that.colorlist[0].id;
+        }
+        that.detail.productNo = v.proType
+        this.dialogMaterialVisible = false;
+      },
+      cancelchoose: function () {
+        console.log('选择框关闭')
+        this.selectMaterial = {};
+        this.selectedM = {};
+      },
+      formatStatus: function (row, column) {
+        return row.materialType == 1 ? '已确认' : '未确认';
+      },
+      //materials: [["手套", 1, 38]]
+      selectType(e, v, icon) {
+        let that = this;
+        console.log('changne'); //products  materials
+        this.types = e;
+        if (e === 2) {
+          this.midProduct = [];
+          this.midProduct = this.materials.concat(this.midProduct);
+          this.emptyDetail()
+        } else {
+          this.midProduct = [];
+          this.midProduct = this.products.concat(this.midProduct);
+          this.emptyDetail()
+        }
+      },
+      matterSelect(e) {
+        console.log(e);
+        let that = this;
+        this.midProduct.forEach(function (v, i, arr) {
+          if (v.id === e && that.detail) {
+            that.detail.unitId = v.unitId;
+            that.detail.unitName = v.unitName;
+            that.detail.name = v.name;
+            that.detail.materialId = v.id; //选取的物料Id
+            that.detail.specifications = v.specs;
+
+          }
+        })
+      },
+
+
+      // editeDetail(index, row) {
+      //   this.detail = row;
+      //   this.
+      // },
+      deleteDetail(index, row) {
+        console.log('delete');
+        let deletes = this.marketPlanDetails.splice(index, 1);
+        if (deletes[0].type === "odd") {
+          deletes[0].type = 'delete'
+          this.currentDeleteData.push(deletes[0]);
+        }
+        this.maxSid -= 1;
+      },
+      emptyDetail() {
+        this.detail = {
+          sid: 0,
+          id: 0,
+          name: '',
+          quantity: '',
+          unitId: '',
+          notes: '',
+          unitName: '',
+          specifications: '',
+          type: '',
+        };
+      },
+      initData() {
+        let _this = this;
+        _this.loadData();
+        console.log('销售initData');
+        this.getRequest("/productionplan/basedata").then(resp => {
+          if (resp && resp.status === 200) {
+            let data = resp.data;
+            this.currentAllClients = data.root.clients;
+            _this.clients = _this.toTree(data.root.clients);
+            // 初始化时赋值
+            _this.shoplist = _this.clients;
+            console.log(_this.shoplist);
+            _this.midProduct = [];
+            _this.midProduct = _this.materials.concat(_this.midProduct);
+            let pro = [];
+            let p = data.root.products;
+            p.forEach(function (v, i, arr) {
+              pro.push({
+                id: v[0],
+                producteName: v[1],
+                specification: v[2],
+                proType: v[3],
+                mark: v[4],
+                color: v[5],
+              })
+            });
+            _this.products = pro;
+          }
+        })
+
+      },
+      //当选择当前的数据时 给与当前选择的子集
+      currentSelectShop(e) {
+        console.log(e);
+        let _this = this;
+        if (this.shoplist.length) {
+          this.shoplist.forEach(function (v) {
+            if (v.value === e) {
+              _this.shopchildren = v.children || [];
+              // if(_this.shopchildren.length){
+              // _this.detail.shopchildId=_this.shopchildren[0].value;
+              // }
+            }
+          })
+        }
+
+      },
+      //清除选择
+      // clearShops(){
+      //  this.shoplist=[];
+      //  this.shopchildren=[];
+      // },
+      keywordsChange(val) {
+        if (val === '') {
+          this.loadData();
+        }
+      },
+      keywordsMaterialChange(val) {
+        if (val === '') {
+          this.loadMaterial();
+        }
+      },
+      handleNodeClick(data) {
+        let that = this;
+        that.tableLoading = true;
+        this.crrentSelectShop = data;
+        if (this.detail) {
+          this.detail.clientId = data.id;
+          this.detail.clientName = data.name;
+          this.detail.abbrName = data.abbreviation;
+        }
+        this.showOrHidePop = false;
+        this.depTextColor = '#606266';
+
+      },
+      showCurrentNo() {
+        if (this.isprarent) {
+          this.isprarent = false;
+        } else {
+          this.isprarent = true;
+        }
+      },
+      // 切换编号;
+      changeNO() {
+        let that = this;
+        if (that.isCurrentShop) {
+          that.lastPlanDetail = that.currentShop;
+          that.isCurrentShop = false;
+        } else {
+          that.lastPlanDetail = that.currentParentShop;
+          that.isCurrentShop = true;
+        }
+      },
+
+      getCurrentPlans() {
+        let that = this;
+        if (this.crrentSelectShop.id === undefined) {
+          this.$message({
+            type: 'info',
+            message: '请选择公司'
+          })
+        } else if (this.detail.proId === undefined || this.detail.proId === '') {
+          this.$message({
+            type: 'info',
+            message: '请选择产品'
+          })
+        } else {
+          this.getRequest("/sales/getPlanDetails?clientId=" + this.crrentSelectShop.id + "&productId=" + this
+            .detail.proId).then(resp => {
+            that.tableLoading = false;
+            if (resp && resp.status === 200) {
+              let data = resp.data;
+              that.currentParentShop = data.root.parent;
+              if (that.currentParentShop.length) {
+                let n = that.currentParentShop.length - 1;
+                that.currentParentShop = that.currentParentShop[n]
+                let lastMaxNumber = that.currentParentShop[n].endNo;
+                that.sugestParentstartNo = that.sugestStartNo(lastMaxNumber, 1);
+              } else { //设置为起始的000001;
+                that.sugestParentstartNo = '00000001';
+                that.currentParentShop = {};
+              }
+              if (that.detail.quantity !== '') {
+                that.sugestParentEndNo = that.sugestStartNo(that.currentParentShop[n].endNo, parseInt(that.detail
+                  .quantity) + 1)
+              }
+              that.setStartSerialNo(that.sugestParentstartNo, that.sugestParentEndNo.endNo, "parent");
+              that.lastPlanDetail = that.currentParentShop;
+              that.currentShop = data.root.self;
+
+              if (that.currentShop.length) {
+
+                let m = that.currentShop.length - 1;
+                that.currentShop = that.currentShop[m];
+                let lastMisNumber = that.currentShop[m].endNo;
+                that.sugestSelfNumbers = that.sugestStartNo(lastMisNumber, 1);
+              } else { //设置为起始的000001;
+                that.sugestSelfNumbers = "00000001"
+                that.currentShop = {};
+              }
+            }
+          })
+        }
+      },
+      setEndNumber: function (e) {
+        console.log(e);
+        // e.target.value
+        let that = this;
+        if (that.isCurrentShop) {
+          that.lastPlanDetail = that.currentShop;
+          if (that.currentShop.length) {
+
+            let m = that.currentShop.length - 1;
+            that.sugestSelfEndNumbers = that.sugestStartNo(that.currentShop[m].endNo, parseInt(e) + 1);
+            this.marketPlanSerialNumber[0].startNo = that.sugestSelfNumbers;
+            this.marketPlanSerialNumber[0].endNo = that.sugestSelfEndNumbers;
+            this.marketPlanSerialNumber[0].note = '';
+            this.marketPlanSerialNumber[0].clientId = this.crrentSelectShop.id;
+            this.marketPlanSerialNumber[0].productId = this.detail.proId;
+
+
+          } else {
+            let baseData = that.sugestSelfNumbers
+            that.setCurrentEndData(baseData, e);
+          }
+        } else {
+          that.lastPlanDetail = that.currentParentShop;
+          if (that.currentParentShop.length) {
+            let n = that.currentParentShop.length - 1;
+            that.sugestParentEndNo = that.sugestStartNo(that.currentParentShop[n].endNo, parseInt(e) + 1);
+            this.marketPlanSerialNumber[0].startNo = that.sugestParentstartNo;
+            this.marketPlanSerialNumber[0].endNo = that.sugestParentEndNo;
+            this.marketPlanSerialNumber[0].note = '';
+            this.marketPlanSerialNumber[0].clientId = this.crrentSelectShop.id;
+            this.marketPlanSerialNumber[0].productId = this.detail.proId;
+          } else {
+            let baseData = that.currentParentShop
+            that.setCurrentEndData(baseData, e);
+          }
+        }
+      },
+      setCurrentEndData(baseData, e) {
+        let baseLen = baseData.length;
+        let currentData = parseInt(baseData) + parseInt(e);
+        let currentDataLen = currentData.toString().length;
+        let zerolen = baseLen - currentDataLen;
+        if (zerolen) {
+          for (let i = 0; i < zerolen; i++) {
+            currentData = "0" + currentData;
+          }
+        }
+
+        this.marketPlanSerialNumber[0].endNo = currentData;
+      },
+
+      //生成起始编号:
+      sugestStartNo(str, nu) {
+        let that = this;
+        // let str = "ox002VtII0000UUY";
+        let getNum = function (Str, isFilter) {
+          isFilter = isFilter || false;
+          if (typeof Str === "string") {
+            // let arr = Str.match(/(0\d{2,})|([1-9]\d+)/g);
+            //"/[1-9]\d{1,}/g",表示匹配1到9,一位数以上的数字(不包括一位数).
+            //"/\d{2,}/g",  表示匹配至少二个数字至多无穷位数字
+            let arr = Str.match(isFilter ? /[0-9]\d{1,}/g : /\d{1,}/g);
+            console.log(arr);
+            return arr.map(function (item) {
+              //转换为整数，
+              //但是提取出来的数字，如果是连续的多个0会被改为一个0，如000---->0，
+              //或者0开头的连续非零数字，比如015，会被改为15，这是一个坑
+              // return parseInt(item);
+              //字符串，连续的多个0也会存在，不会被去掉
+              return item;
+            });
+          } else {
+            return [];
+          }
+        };
+        let startIndex = str.indexOf(getNum(str)[0]);
+        let startStr = str.substr(0, startIndex);
+        let endStr = str.substr(startIndex + getNum(str)[0].length, str.length - 1);
+        //中间数字的长度;
+        let noLength = getNum(str)[0].length;
+        let currentNumber = parseInt(getNum(str)[0]) + nu;
+        let cNo = currentNumber.toString().length;
+        let subNo = (currentNumber - cNo);
+        if (subNo) {
+          // 位数不够的补零
+          for (let i = 0; i < subNo; i++) {
+            currentNumber += "0";
+          }
+        }
+        return startStr + currentNumber + endStr;
+
+      },
+      // 设置起始编号:type ;self  parent
+      setStartSerialNo(sugestNo, endNo, type) {
+        if (this.marketPlanSerialNumber.length) {
+          this.marketPlanSerialNumber[0].startNo = sugestNo;
+          this.marketPlanSerialNumber[0].endNo = endNo;
+          this.marketPlanSerialNumber[0].note = '';
+        }
+
+      },
+
+      clearChoose() {
+        this.detail.clientId = 0;
+        this.detail.clientName = "";
+      },
+      showDepTree() {
+        this.showHidePop = !this.showHidePop;
+      },
+      selectChange(e) {
+        let that = this;
+        console.log(e);
+        if (that.units) {
+          that.units.forEach(function (v, arr) {
+            if (v.id === e && that.detail) {
+              console.log(v.id);
+              that.detail.unitName = v.name;
+
+            }
+          })
+        }
+
+      },
+      currentChange(currentChange) {
+        this.currentPage = currentChange;
+        console.log(this.currentPage);
+        this.loadData();
+      },
+      currentDetailChange(currentChange) {
+        this.currentDetailPage = currentChange;
+        console.log(this.currentPage);
+        this.showPlanDe();
+      },
+      currentMaterialChange(currentChange) {
+        this.currentMaterialPage = currentChange;
+        this.loadMaterial();
+      },
+      addAndFlushData() {
+        console.log("add");
+        this.dialogTitle = "郑铁公司销售单";
+        let that = this;
+        that.marketPlanSerialNumber = [];
+        this.detail.clientId = [];
+        this.setShopNames();
+        // that.marketPlanSerialNumber.push(this.serialNumber);
+
+        that.showDialog = true;
+
+      },
+      searchData() {
+        if (this.value5 && this.value5.length) {
+          this.startDate = this.formatDateTime(this.value5[0]);
+          this.endDate = this.formatDateTime(this.value5[1]);
+          console.log(this.startDate);
+        }
+        this.loadData();
+      },
+      searchMaterialData() {
+        this.loadMaterial();
+      },
+      showEditEmpView(index, row) {
+        console.log(row);
+        let that = this;
+        that.dialogTitle = "编辑信息";
+        that.detail = {
+          id: row.id,
+          productNo: row.productName,
+          quantity: row.expecNum,
+          specsId: row.specsId,
+          expectLevel: row.expectLevel,
+          notes: row.note,
+          proId: row.productId,
+          colorId: row.colorId,
+          editerId: row.editerId,
+          createDate: row.createDate,
+          clientId: [],
+        }
+
+        if (row.clientIds) {
+          that.detail.clientId = Array.from(row.clientIds.split(","), item => parseInt(item));
+          that.detail.shopId = that.detail.clientId[0];
+          that.currentSelectShop(that.detail.shopId);
+          that.detailIDs = that.detail.clientId[1];
+
+        }
+
+
+        // this.setShopNames();
+        this.getRequest("/sales/findProductById?salesPlanId=" + row.id).then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+            let data = resp.data.root.product;
+            if (data) {
+              that.colorlist = data.colors || [];
+              that.specslist = data.specs || [];
+            }
+            that.showDialog = true;
+          }
+        })
+      },
+      currentSelectChild(e) {
+        if (e) {
+          this.detail.shopchildId = e;
+          console.log(e);
+        }
+      },
+      setShopNames() {
+        let that = this;
+        this.noClient = [];
+        // this.currentAllClients//所有客户、公司
+        if (that.detail.clientId && that.detail.clientId.length) {
+          for (let i = 0, m = that.currentAllClients.length; i < m; i++) {
+            let shopAll = that.currentAllClients[i];
+            for (let j = 0, n = that.detail.clientId.length; j < n; j++) {
+              let shop = that.detail.clientId[j];
+              if (that.detail.clientId[j] === shopAll.id) {
+                that.noClient.push({
+                  'label': shopAll.name,
+                  'value': shopAll.id,
+                });
+              }
+            }
+          }
+
+        }
+      },
+      add(addEmpForm) {
+        let _this = this;
+        let plans = _.cloneDeep(this.detail);
+         if(!plans.id){
+           plans.clientId = [];
+           if (this.detail.shopId && this.detail.shopchildId) {
+             plans.clientId.push(this.detail.shopId);
+             plans.clientId.push(this.detail.shopchildId);
+           }
+         }
+
+
+        plans.pcCode = plans.clientId.join(",");
+        console.log("编辑"+plans.clientId);
+        plans.clientId = plans.clientId.pop();
+        this.$refs[addEmpForm].validate((valid) => {
+          if (valid) {
+            if (plans.id) {
+              //更新
+              this.tableLoading = true;
+              console.log(_this.plan);
+              this.postRequest("/sales/update", plans).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200) {
+                  _this.showDialog = false;
+                  _this.loadData();
+                  _this.emptyData();
+                  _this.emptyDetail();
+
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              console.log(plans);
+              this.postRequest("/sales/add", plans).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200) {
+                  _this.showDialog = false;
+                  _this.loadData();
+                  _this.emptyData();
+                  _this.emptyDetail();
+                  // _this.clearSerialNumbers();
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      loadMaterial() {
+        let _this = this;
+        this.tableLoading = true;
+        this.getRequest("/product/findbypage?page=" + this.currentMaterialPage + "&size=10&queryName=" + this
+          .keyMaterialwords).then(resp => {
+          this.tableLoading = false;
+          if (resp && resp.status === 200) {
+            let data = resp.data.data;
+            _this.materialList = data;
+            _this.totalMaterialCount = resp.data.total;
+            _this.dialogMaterialVisible = true;
+            // _this.emptyData();
+            // 清除选择的行
+          }
+        })
+      },
+      cancelOpt() {
+        this.showDialog = false;
+        this.loadData();
+        this.emptyData();
+      },
+      doDelete(ids) {
+        this.tableLoading = true;
+        let _this = this;
+        this.getRequest("/sales/delete?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status === 200) {
+            let data = resp.data;
+            _this.loadData();
+          }
+        })
+      },
+      clearDates() {
+        this.startDate = '';
+        this.endDate = '';
+      },
+      loadData() {
+        let _this = this;
+        this.tableLoading = true;
+        this.getRequest("/sales/find?page="
+          + this.currentPage
+          + "&size=10&status=" + this.manageStatus
+          + "&start=" + this.startDate
+          + "&end=" + this.endDate
+          + "&clientName=" + this.keyClientName
+          + "&productName=" + this.keyproductName
+          + "&empName=" + this.keyempName
+        )
+          .then(resp => {
+            this.tableLoading = false;
+            if (resp && resp.status === 200 && resp.data.success) {
+              console.log('dfanfasf');
+              _this.plansList = _this.preDataSale(resp.data.data);
+              console.log(_this.plansList);
+              _this.totalCount = resp.data.total;
+              _this.emptyData();
+            }
+          })
+      },
+      emptyData() {
+        // this.marketPlanDetails = [];
+        // this.plan = {
+        //   materialType: '',
+        //   notes: '',
+        //   serialNumber: '',
+        //   clientId: 0,
+        //   clientName: ''
+        // };
+        this.detail = {
+          id: 0,
+          clientId: [],
+          productNo: '',
+          notes: '',
+          quantity: '',
+          proId: '', //产品Id
+          specsId: '',//规格Id
+          colorId: '',
+          shopId: '',
+          shopchildId: '',
+        };
+      this.detailIDs='';
+      },
+      back() {
+        if (this.showDetaillist) {
+          this.showDetaillist = false;
+          this.showPlan = true;
+        } else {
+          this.showDetaillist = true;
+          this.showPlan = false;
+        }
+
+
+      },
+      //加载页面
+      loadPlans() {
+        let _this = this;
+        this.tableLoading = true;
+        this.getRequest("/productionplandetails/findbypage?page="
+          + this.currentPage
+          + "&size=10&status=" + this.manageStatus
+          + "&productName=" + this.keyproductName
+          + "&empName=" + this.keyempName
+          + "&clientName=" + this.keyClientName
+          + "&startDate=" + this.startDate
+          + "&endDate=" + this.endDate
+        )
+          .then(
+            resp => {
+              _this.tableLoading = false;
+              if (resp && resp.status === 200 && resp.data.success) {
+                let list = resp.data.data || [];
+                _this.productionPlans = list;//_this.preForData(list);//
+                //没有当天的
+                _this.totalCount = resp.data.total;
+              } else {
+                this.$message({type: 'infor', message: '查询失败'})
+              }
+            })
+      },
+      // 数据模式改变
+      preDataSale(data) {
+        let arr = [];
+        if (data.length) {
+          for (let i = 0, n = data.length; i < n; i++) {
+            let e = data[i];
+            let color = e[18] + '';
+            let resendStr = this.string2Arr(e[22]);
+            //下发记录显示
+            //下发记录显示
+            let planString = this.string2Arr(e[10]);
+            let shippingStr = this.string2Arr(e[24]);
+            let produtRecordStr=this.string2Arr(e[26]);
+            console.log("发货请求" + resendStr)
+            arr.push({
+              id: e[0],
+              state: e[1],
+              clientName: e[2],
+              productName: e[3],
+              empName: e[4],
+              specName: e[5],
+              createDate: e[6],
+              expecNum: e[7],
+              completeNum: e[8],
+              sendNum: e[9],
+              planString: planString,
+              note: e[11],
+              colorName: e[12],
+              parentName: e[13],
+              clientIds: e[14],//父子关系Id保存
+              productId: e[15],//产品
+              colorId: e[16],//颜色
+              specsId: e[17],//规格
+              expectLevel: e[18],//重要程度
+              shippingQuantity: e[19],//已发货到 数量
+              resendNo: e[20],//已发货到 数量
+              serialNumber: e[21],//编号
+              resendStr: resendStr,//编号[22]
+              editerId: e[23],//编号
+              shippingStr: shippingStr,//编号
+              resendId: e[25],//编号
+              produtRecordStr:produtRecordStr,
+              upsDate:e[27],
+              checked: false,
+              forOrder: true,
+              toChange: false,//xian
+            });
+
+          }
+        }
+        return arr;
+      },
+      //将固定格式的字符串转换为数组；
+      string2Arr(str) {
+        return (str === null || str == undefined || str === '') ? [] : str.split(';');
+      },
+
+      toTree(data) {
+        console.log('toTree');
+        let that = this;
+        let result = [];
+        if (!Array.isArray(data)) {
+          return result
+        }
+        var treeData = [];
+        data.forEach(item => {
+          treeData.push({
+            'value': item.id,
+            'label': item.name,
+            'parentId': item.parentClientId
+          })
+        });
+        let map = {};
+        treeData.forEach(item => {
+          map[item.value] = item;
+        });
+        treeData.forEach(item => {
+          let parent = map[item.parentId];
+          if (parent) {
+            (parent.children || (parent.children = [])).push(item);
+          } else {
+            result.push(item);
+          }
+        });
+        result = that.getResult(result)
+        console.log(result);
+        //将父parentId 删除掉
+        return result;
+      },
+
+
+      getResult(reusult) {
+        let that = this;
+        reusult.map(item => {
+          delete item.parentId;
+          if (item.children && item.children.length) {
+            that.getResult(item.children)
+          }
+        });
+        return reusult;
+      },
+      showChanges() {
+        this.plansList.map(item => item.toChange = !item.toChange)
+      }
+    },
+    computed: {
+      routes() {
+        return this.$store.state.routes
+      }
+    },
+
+
+  }
+
+</script>
+<style scoped>
+
+  .el-step__title.is-process {
+    color: #13ce66;
+  }
+
+  .el-step__description.is-process {
+    color: #13ce66;
+  }
+
+  .el-step__head.is-process {
+    color: #13ce66;
+    border-color: #13ce66;
+  }
+
+  .el-step__title.is-finish {
+    color: #C0C4CC;
+  }
+
+  .el-step__description.is-finish {
+    color: #C0C4CC;
+  }
+
+  .el-step__head.is-finish {
+    color: #C0C4CC;
+    border-color: #C0C4CC;
+  }
+
+  .demo-table-expand label {
+    width: 50px;
+    color: #2974df;
+  }
+
+  .flex-sales {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+  }
+
+  .item-sales {
+    display: block;
+    box-sizing: border-box;
+    /*width: 48%;*/
+    overflow: hidden;
+    width: 560px;
+    height: 140px;
+    /*margin-left: -4px;*/
+    /*margin-top: -4px;*/
+    /*line-height: 100px;*/
+    text-align: center;
+    list-style: none;
+    font-size: 12px;
+    padding: 5px;
+    position: relative;
+    justify-content: stretch;
+  }
+
+  .in-sales-show:hover {
+    border: 1px solid red;
+    cursor: pointer;
+    /*position: relative;*/
+  }
+
+
+  .in-sales-show {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    text-align: start;
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+  }
+
+  .compay-ifor {
+    height: 100%;
+    width: 140px;
+    background-color: #2FC5DA;
+  }
+
+  .plan-num {
+    flex-direction: column;
+    width: 420px;
+    justify-content: space-between;
+    background-color: #F0F0F0;
+  }
+
+
+  .plan-num-detail {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .detail-text {
+    text-align: right;
+    display: block;
+    width: 70px;
+  }
+
+
+  .plan-num-companyName {
+    padding: 14px 0 0 2px;
+    font-size: 12px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+
+  .send-input {
+    width: 160px;
+  }
+
+
+  .send-head-right-btn {
+    margin-left: 5px;
+    margin-right: 20px;
+    display: inline
+  }
+
+  .send-head-left-btn {
+    margin-left: 5px
+  }
+
+  .send-main {
+    padding-left: 0;
+    padding-top: 0;
+
+  }
+
+  .send-main-div {
+    margin-bottom: 10px;
+    border-radius: 5px;
+    padding: 5px 0;
+    box-sizing: border-box;
+    border: 1px solid #20a0ff;
+  }
+
+  .page-tool {
+    display: flex;
+    justify-content: flex-end;
+    margin: 2px;
+  }
+
+  /*——————————————————————————模块——————————————————————————————————————————————————*/
+  .stamp {
+    color: #2783ca;
+  }
+
+  .divce-mode {
+    display: flex;
+    flex-direction: column;
+    /*padding: 0 20px;*/
+  }
+
+  .product-model-base {
+    width: 100%;
+    height: auto;
+    display: flex;
+    padding: 0 20px 20px 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+    box-sizing: border-box;
+    background-color: #E5EFF1;
+  }
+
+  .product-model-item {
+    box-sizing: border-box;
+    height: 140px;
+    width: 140px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 10px;
+    color: #ffffff;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    background-color: #2fc5da;
+    margin-left: 25px;
+    padding: 30px;
+    box-shadow: 2px 4px 20px #005377;
+    cursor: pointer;
+  }
+
+  /***************************输入框**********************************/
+  .el-input__inner {
+    -webkit-appearance: none;
+    background-color: #FFF;
+    background-image: none;
+    border-radius: 4px;
+    /*border: 1px solid #DCDFE6;*/
+    border: none;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #606266;
+    display: inline-block;
+    font-size: inherit;
+    height: 40px;
+    line-height: 40px;
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    width: 100%;
+  }
+
+  .el-input__inner:focus {
+    -webkit-appearance: none;
+    background-color: #FFF;
+    background-image: none;
+    border-radius: 4px;
+    border: 1px solid #66B1FF;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #606266;
+    display: inline-block;
+    font-size: inherit;
+
+
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    width: 100%;
+  }
+
+  .el-input--prefix .el-input__inner:focus {
+    padding-left: 30px;
+  }
+
+  .el-textarea__inner {
+    width: 200px;
+    border: none;
+  }
+
+  .el-textarea__inner:focus {
+    display: block;
+    resize: vertical;
+    padding: 5px 15px;
+    line-height: 1.5;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    font-size: inherit;
+    color: #606266;
+    background-color: #FFF;
+    background-image: none;
+    border: 1px solid #66B1FF;
+    border-radius: 4px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+  }
+
+  .el-input__icon:after {
+    display: none;
+  }
+
+
+  /*备注*/
+  .plan-note {
+    word-wrap: break-word;
+    overflow: hidden;
+    height: 70px;
+    width: 180px;
+    padding: 0 12px;
+    border: 1px solid #e4e4e4;
+    background-color: #F0F0F0;
+  }
+
+  .myDialogStyle {
+    width: 450px;
+    height: 590px;
+  }
+
+  .zt-dialog-head {
+    text-align: left;
+    height: 60px;
+    padding: 5px 0 20px 90px;
+    line-height: 40px;
+    font-size: 14px;
+  }
+
+  .zt-dialog-main {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+
+  .zt-dialog-footer {
+    margin-bottom: 10px;
+    width: 100%;
+    height: 20px;
+  }
+
+  .sale-form {
+    height: 20px;
+  }
+
+  .el-form-item__label {
+    font-size: 12px;
+  }
+
+  .colosBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 0;
+    background: 0 0;
+    border: none;
+    outline: 0;
+    color: #C0CFE3;
+    cursor: pointer;
+    font-size: 20px;
+  }
+
+  .compay-show {
+    width: 200px;
+    min-height: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    font-size: 13px;
+    border: 1px solid #dcdfe6;
+    border-radius: 5px;
+    padding-left: 13px;
+    box-sizing: border-box;
+    cursor: pointer;
+    align-items: flex-start;
+  }
+
+  .compay-show-item {
+    height: 20px;
+    text-align: left;
+  }
+
+  .add:hover {
+    color: #6b9cde;
+    cursor: pointer;
+  }
+
+  .add {
+    border: 1px dashed #6b9cde;
+    color: #6b9cde;
+    font-size: 30px;
+    text-align: center;
+    line-height: 130px;
+    align-items: center;
+  }
+
+
+  .part1 {
+    height: 0px;
+    width: 0px;
+    border-top: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-bottom: 25px solid red;
+    display: inline-block;
+    /*-webkit-transform: translate(104px);*/
+    transform: translate(74px, -25px);
+  }
+
+  .part2 {
+    height: 25px;
+    width: 51px;
+    background-color: red;
+    display: inline-block;
+  }
+
+  .part3 {
+    height: 0px;
+    width: 0px;
+    /*border-style:solid;*/
+    /*border-top-width:25px ;*/
+    /*border-left-width:25px ;*/
+    /*border-bottom-width:25px ;*/
+    /*border-top-color: transparent;*/
+    /*border-left-color: transparent;*/
+    /*border-bottom-color: green;*/
+    border-top: 25px solid transparent;
+    border-left: 25px solid transparent;
+    border-bottom: 25px solid red;
+    display: inline-block;
+    transform: translate(-74px, -25px);
+  }
+
+  .trapezoid {
+    opacity:0.5;
+    width: 100px;
+    height: 60px;
+    position: absolute;
+    left: 466px;
+    top: 14px;
+    z-index: 22;
+    color: white;
+    display: inline-flex;
+    -moz-transform: rotate(45deg); /*FF浏览器*/
+    -webkit-transform: rotate(45deg); /*chrome浏览器*/
+    -o-transform: rotate(45deg); /*oprea浏览器*/
+    -ms-transform: rotate(45deg); /*IE浏览器*/
+  }
+
+  .company-head-item {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 100px;
+  }
+
+  .company-head-item .a-single {
+    padding: 13px 13px 0 0;
+    text-align: right;
+    display: inline-block;
+    width: 100px;
+  }
+
+  .company-head-item .item-lable {
+    width: 100%;
+    padding: 13px 13px 0 0px;
+    text-align: left;
+  }
+
+  .head-item-left {
+    width: 100px;
+  }
+
+  .head-item-right {
+    width: 200px;
+  }
+
+  .send:hover {
+    color: #66b1ff;
+    cursor: pointer;
+  }
+
+  .plan-note-area {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+
+  }
+
+  .plan-note-area-head {
+    width: 60px;
+    height: 100%;
+    text-align: right;
+  }
+
+  /*标签颜色*/
+  .forOrders {
+    color: #66B1FF;
+
+    background-color: #F0F0F0;
+
+  }
+
+  .forSend {
+    color: #112943;
+    background-color: #a6a9ad;
+  }
+
+  /*.sales-order {*/
+  /*  background: red;*/
+  /*}*/
+
+  .num-aline {
+    text-align: left;
+  }
+
+  .sales-box {
+
+    width: 140px;
+    height: 85px;
+  }
+
+  .plan-num-detail-send {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    color: #112943;
+  }
+
+  .sales-box .sales-order {
+    width: 418px;
+    height: auto;
+    text-decoration: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    font-size: 12px;
+    color: #82848a;
+    transition: all 2s;
+    backface-visibility: hidden;
+  }
+
+  .sales-delivery {
+    width: 418px;
+    height: auto;
+    transition: all 2s;
+  }
+
+  .sales-box-face {
+    width: 140px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+
+
+  .sale-box-head {
+    height: 20px;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start
+  }
+
+  .sale-mid-box {
+    border: 1px solid #e4e4e4;
+    width: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+  }
+
+
+
+  .sale-box-body {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+
+  }
+
+  .tip-tab {
+    width: 420px;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    padding: 0 8px;
+  }
+  .flex-plan{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  .plan-item-right {
+    border: 1px solid #e4e4e4;
+    width: 400px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+  .pro-plan-head {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    width: 130px;
+    height: 130px;
+    text-align: center;
+  }
+   .last-send{
+     justify-content: flex-start;
+   }
+  .detail-right {
+    text-align: left;
+  }
+  .detail-left{
+    text-align: right;
+  }
+  .abandon {
+    color: #7F7FAB;
+  }
+</style>

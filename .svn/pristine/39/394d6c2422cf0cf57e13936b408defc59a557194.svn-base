@@ -1,0 +1,270 @@
+<!-- 生产进度-->
+<template>
+  <div>
+    <el-container class="prog-head-grees">
+      <div style="width: 100%;text-align: right;padding-right:40px; ">
+        <span class="fa fa-backward" style="color: #2fc5da" @click="backToMain">返回</span>
+      </div>
+      <div class="prog">
+        <div class="prog-up">
+          <div class="prog-up-left">
+            生产计划详情：
+          </div>
+          <div class="prog-up-right">
+            生产进度总览：
+            <span class="fa fa-list prog-up-right-detail">
+             查看详情
+            </span>
+            <div style="width: 200px;height: 300px;background-color: #2fc5da" id="mannagePie">
+
+            </div>
+
+          </div>
+        </div>
+        <div class="prog-down">
+          <div class="echcart" id="mannageChart"></div>
+        </div>
+      </div>
+    </el-container>
+
+
+    <el-dialog v-dialogDrag :title="dialogfinishedTitle" :close-on-click-modal="false"
+               :visible.sync="dialogFinshVisible" @close="cancelUpdate" width="450px">
+      <div v-if="dialogFinshVisible">
+        <el-form ref="stepFinish" label-width="80px" v-model="stepRecord">
+          <!--            detailRules-->
+          <div class="confirm-text">生产计划目标数量{{maxQuantity}}</div>
+          <el-form-item label="数量：" prop="qualifiedNo">
+            <el-input
+              placeholder="生产合格数量..."
+              size="mini"
+              type="number"
+              min="0"
+              step="1000"
+              v-model.number="stepRecord.qualifiedNo">
+              clearable
+            </el-input>
+          </el-form-item>
+          <el-form-item label=" 备注：" prop="notes">
+            <el-input
+              placeholder="备注..."
+              size="mini"
+              type="textarea"
+              clearable
+              v-model="stepRecord.notes">
+            </el-input>
+          </el-form-item>
+
+        </el-form>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFinshVisible=false">取 消</el-button>
+        <el-button type="primary" @click="updateFinishStep('stepFinish')">完成</el-button>
+        <!--        addSteps-->
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+  import SalesPlan from "../SalesPlan";
+
+  var echart = require('echarts')
+  export default {
+    name: 'manage-chart',
+    components: {SalesPlan},
+    props: {
+      proDetial: {
+        type: Object,
+        default: {},
+      }
+    },
+    data() {
+      return {
+
+        maxQuantity: 2000,
+        dialogfinishedTitle: '修改记录',
+        dialogFinshVisible: false,
+        currentFinishPage: 1,
+        totalFinishCount: -1,
+
+      }
+    },
+    mounted() {
+      this.initData();
+    },
+    methods: {
+
+      initData() {
+        var mychart = echart.init(document.getElementById('mannageChart'));
+        var mypie = echart.init(document.getElementById('mannagePie'));
+
+        let self = this;
+        this.getRequest("/pmDetails/findByMangeId?manageId="
+          + this.proDetial.id
+          + "&page=" + this.currentFinishPage
+          + "&size=100"
+        ).then(
+          resp => {
+            if (resp && resp.status === 200 && resp.data.success) {
+              self.planFinishRecord = resp.data.data || [];
+              self.totalFinishCount = resp.data.total;
+              var xData = [], yData = [];
+              self.planFinishRecord.map(item => {
+                let mouth = new Date(item.createDate).getMonth() + 1;
+                let day = new Date(item.createDate).getDate();
+                let time = mouth + "月" + day + "日";
+                xData.push(time);
+                yData.push(item.qualifiedNo);
+              });
+              self.chartShow(mychart, xData, yData);
+              self.pieShow(mypie);
+            } else {
+              self.$message({message: '查询失败', type: 'info'})
+            }
+          }
+        )
+
+      },
+      pieShow(mypie) {
+        mypie.setOption = {
+          title: {
+            text: '某站点用户访问来源',
+            subtext: '纯属虚构',
+            left: 'center'
+          },
+          tooltip: {
+            trigger: 'item',
+            formatter: '{a} <br/>{b} : {c} ({d}%)'
+          },
+          legend: {
+            orient: 'vertical',
+            left: 'left',
+            data: ['未完成', '已完成']
+          },
+          series: [
+            {
+              name: '访问来源',
+              type: 'pie',
+              radius: '55%',
+              center: ['50%', '60%'],
+              data: [
+                {value: 335, name: '未完成'},
+                {value: 310, name: '已完成'},
+
+              ],
+              emphasis: {
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowOffsetX: 0,
+                  shadowColor: 'rgba(0, 0, 0, 0.5)'
+                }
+              }
+            }
+          ]
+        };
+      },
+      chartShow(mychart, xData, yData) {
+        mychart.setOption({
+          title: {text: '该生产详细进度'},
+          tooltip: {},
+          xAxis: {
+            data: xData,// ['yms', 'xiaohe', 'doang', 'yms', 'xiaohe','yms', 'xiaohe', 'doang', 'yms', 'xiaohe','yms', 'xiaohe', 'doang', 'yms', 'xiaohe','yms', 'xiaohe', 'doang', 'yms', 'xiaohe','yms', 'xiaohe', 'doang', 'yms', 'xiaohe','yms', 'xiaohe', 'doang', 'yms', 'xiaohe'],
+          },
+          yAxis: {},
+          series: [{
+            name: '数量',
+            type: 'bar',
+            data: yData,//[5, 89, 6, 5, 89, 6,5, 89, 6, 5, 89, 6,5, 89, 6, 5, 1500, 6,5, 89, 6, 5, 89, 6,5, 89, 6, 5, 89, 6]
+          }],
+        })
+      },
+      backToMain() {
+        this.$emit('backToMain')
+      },
+
+      //返回前一页面
+      goPreManage() {
+        this.detailProduct = false;
+      },
+      //编辑生产进度详情
+
+
+      //更新记录方法
+      updateFinishStep() {
+        let that = this;
+        let manageId = this.proDetial.id;
+        let param = this.stepRecord;
+
+
+      },
+
+      // 删除详情
+
+
+    }
+  }
+</script>
+<style scoped>
+  .prog-head-grees {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding-right: 10px;
+
+  }
+
+  .echcart {
+    height: 380px;
+    width: 900px;
+  }
+
+  .prog {
+    height: 1000px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    /*border: 1px solid red;*/
+  }
+
+  .prog-up {
+    height: 180px;
+    width: 100%;
+    border: 1px solid greenyellow;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+  }
+
+  .prog-up-left {
+    height: 100%;
+    width: 50%;
+    border: 1px solid gold;
+    padding: 10px;
+  }
+
+  .prog-up-right {
+    height: 100%;
+    width: 50%;
+    border: 1px solid darkgreen;
+    padding: 10px;
+  }
+
+  .prog-down {
+    height: 400px;
+    width: 100%;
+    border: 1px solid salmon;
+    padding-left: 20px;
+  }
+
+  .prog-up-right-detail {
+    cursor: pointer;
+    color: #2fc5da;
+    margin-left: 20px;
+  }
+
+  .prog-up-right-detail:hover {
+    opacity: 0.6;
+  }
+
+</style>

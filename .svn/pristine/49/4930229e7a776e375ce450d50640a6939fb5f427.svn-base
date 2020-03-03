@@ -1,0 +1,34 @@
+<template>
+    <div>
+      <el-tabs v-model="activeName"type="border-card"  @tab-click="handleClick" style="margin-top: 10px">
+        <!-- <el-tab-pane label="生产计划" name=" plan"><mp></mp></el-tab-pane> -->
+        <el-tab-pane label="销售计划" name="plan"><mp></mp></el-tab-pane>
+        <el-tab-pane label="生产计划" name="planed"><mps></mps></el-tab-pane>
+        <el-tab-pane label="生产进度" name="planedManager"><mpm></mpm></el-tab-pane>
+       
+      </el-tabs>
+    </div>
+  </template>
+  <script>
+    import SalesPlan from '@/components/sale/SalesPlan';
+    import ProductionPlan from '@/components/sale/ProductionPlan';
+    import ProductionManger from '@/components/sale/ProductionManger';
+    export default {
+      data() {
+        return {
+          activeName: 'plan'
+        };
+      },
+      methods: {
+        handleClick(tab, event) {
+          console.log(tab, event);
+        }
+      },
+      components:{
+        'mp':SalesPlan,
+        'mps':ProductionPlan,
+        'mpm':ProductionManger
+      }
+    };
+  </script>
+  

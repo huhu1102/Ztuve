@@ -1,0 +1,129 @@
+// The Vue build version to load with the `import` command
+// (runtime-only or standalone) has been set in webpack.base.conf with an alias.
+import Vue from 'vue'
+import App from './App'
+import router from './router'
+import ElementUI from 'element-ui'
+import 'element-ui/lib/theme-chalk/index.css'
+import store from './store'
+import 'font-awesome/css/font-awesome.min.css'
+import {getRequest} from './utils/api'
+import {postRequest} from './utils/api'
+import {deleteRequest} from './utils/api'
+import {putRequest} from './utils/api'
+import {uploadFileRequest} from './utils/api'
+import {jsonToString} from './utils/api'
+import {formatDateTime} from './utils/api'
+import {toTreeData} from './utils/api'
+import {uploadImgToBase64} from './utils/utils'
+
+import {initMenu} from './utils/utils'
+import {isNotNullORBlank} from './utils/utils'
+import './utils/filter_utils'
+import './utils/directives';
+import dragTreeTable from 'drag-tree-table'
+import _ from "lodash";
+import ZtDialog from './components/ZtDialog/index.vue'
+// import ZtCascade from './components/ZtDialog/ZtCascade'
+
+import 'vx-easyui/dist/themes/default/easyui.css';
+import 'vx-easyui/dist/themes/icon.css';
+import 'vx-easyui/dist/themes/vue.css';
+import EasyUI from 'vx-easyui';
+import ViewUI from 'view-design';
+import 'view-design/dist/styles/iview.css';
+Vue.use(ViewUI);
+Vue.use(EasyUI);
+Vue.use(ZtDialog);
+// Vue.use(ZtCascade);
+
+
+Vue.prototype.getRequest = getRequest;
+Vue.prototype.postRequest = postRequest;
+Vue.prototype.deleteRequest = deleteRequest;
+Vue.prototype.putRequest = putRequest;
+Vue.prototype.jsonToString = jsonToString;
+Vue.prototype.isNotNullORBlank = isNotNullORBlank;
+Vue.prototype.formatDateTime = formatDateTime;
+Vue.prototype.uploadFileRequest = uploadFileRequest;
+Vue.prototype.toTreeData = toTreeData;
+Vue.prototype.uploadImgToBase64 = uploadImgToBase64;
+
+
+Vue.config.productionTip = false;
+Vue.use(ElementUI);
+Vue.use(dragTreeTable);
+/* eslint-disable no-new */
+let routeList = [];
+router.beforeEach((to, from, next) => {
+  console.log('beforeEach');
+  if (to.name === 'Login') {
+    next();
+    return;
+  }
+  var name = store.state.user.name;
+  if (name === '未登录') {
+    if (to.meta.requireAuth || to.name == null) {
+      next({
+        path: '/',
+        query: {
+          redirect: to.path
+        }
+      })
+    } else {
+      next();
+    }
+  } else {
+
+    if (to.path === '/chat') {
+      store.commit("updateMsgList", []);
+    }
+    console.log("toto"+to);
+     if (to.matched.length === 0) {
+       next('/home')
+     } else {
+      next(); //如果匹配到正确跳转
+     }
+  }
+  var index = -1;
+  for (var i = 0; i < routeList.length; i++) {
+    if (routeList[i].name === to.name) {
+      index = i;
+      break;
+    }
+  }
+  if (index !== -1) {
+//如果存在路由列表，则把之后的路由都删掉
+    routeList.splice(index + 1, routeList.length - index - 1);
+  } else if (to.name != '登录') {
+    routeList.push({"name": to.name, "path": to.fullPath});
+  }
+  to.meta.routeList = routeList;
+  initMenu(router, store);
+});
+Vue.directive('enterNumber', {
+  inserted: function (el) {
+    el.addEventListener("keypress", function (e) {
+      e = e || window.event;
+      let charcode = typeof e.charCode == 'number' ? e.charCode : e.keyCode;
+      let re = /\d/;
+      if (!re.test(String.fromCharCode(charcode)) && charcode > 9 && !e.ctrlKey) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        } else {
+          e.returnValue = false;
+        }
+      }
+    });
+  }
+});
+
+new Vue({
+  el: '#app',
+  router,
+  store,
+  components: {
+    App
+  },
+  template: '<App/>'
+});

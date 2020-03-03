@@ -1,0 +1,46 @@
+<template>
+    <div>
+      <el-tabs v-model="activeName"type="border-card"  @tab-click="handleClick" style="margin-top: 10px">
+        <!-- <el-tab-pane label="生产计划" name=" plan"><mp></mp></el-tab-pane> -->
+        <el-tab-pane label="销售计划" name="plan"><mp ref="plan"></mp></el-tab-pane>
+        <el-tab-pane label="生产计划" name="planed"><mps ref="planed"></mps></el-tab-pane>
+        <el-tab-pane label="生产进度" name="planedManager"><mpm ref="planed"></mpm></el-tab-pane>
+        <el-tab-pane label="物料周转" name="midTransform"lazy>
+          <mptrans  ref="child"></mptrans>
+        </el-tab-pane>
+      </el-tabs>
+    </div>
+  </template>
+  <script>
+    import SalesPlan from '@/components/sale/SalesPlan';
+    import ProductionPlan from '@/components/sale/ProductionPlan';
+    import ProductionManger from '@/components/sale/ProductionManger';
+    import productMidRecieving from '@/components/produce/productMidRecieving'
+    export default {
+      data() {
+        return {
+          activeName: 'plan'
+        };
+      },
+      methods: {
+        handleClick(tab, event) {
+          console.log(tab, event);
+          if(this.$refs.plan){
+            this.$refs.plan.initData();
+          }
+          if(this.$refs.planed){
+            this.$refs.planed.initData();
+          }
+          if(this.$refs.planed){
+            this.$refs.planed.initData();
+          }
+        }
+      },
+      components:{
+        'mp':SalesPlan,
+        'mps':ProductionPlan,
+        'mpm':ProductionManger,
+        'mptrans': productMidRecieving,
+      }
+    };
+  </script>

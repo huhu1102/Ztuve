@@ -1,0 +1,282 @@
+<template>
+  <div>
+    <div style="display: inline">
+      <el-input placeholder="通过名称搜索,记得回车哦..." clearable @change="recordKeywordsChange"
+        style="width: 300px;margin: 0px;padding: 0px;" size="mini" :disabled="advanceSearchViewVisible"
+        @keyup.enter.native="searchRecordData" prefix-icon="el-icon-search" v-model="RecordKeywords">
+      </el-input>
+      <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search" @click="searchRecordData">搜索
+      </el-button>
+      <el-button size="mini" type="success" @click="initData" icon="el-icon-refresh"></el-button>
+    </div>
+    <el-table :data="materialsReceives" border style="width: 100%">
+      <el-table-column type="selection" align="left" v-loading="tableLoading" width="30">
+      </el-table-column>
+      <el-table-column align="left" fixed label="名称" width="120">
+        <template slot-scope="scope">
+          {{ scope.row.materail.materialName}}
+        </template>
+      </el-table-column>
+      <el-table-column align="left" label="数量" width="120">
+        <template slot-scope="scope">
+          {{ scope.row.quantity}} {{ scope.row.unitName}}
+        </template>
+      </el-table-column>
+      <el-table-column align="left" prop='operatorName' label="记录人" width="120">
+        <template slot-scope="scope">
+          {{ scope.row.operator.name}}
+        </template>
+      </el-table-column>
+      <el-table-column align="left" label="操作时间" width="120">
+        <template slot-scope="scope">
+          {{ scope.row.createDate|formatDate}}
+        </template>
+      </el-table-column>
+      <el-table-column prop="notes" align="left" label="备注" width="120">
+      </el-table-column>
+      <el-table-column prop="verifyStatus;" align="left" label="状态" :formatter="formatStatus" width="120">
+      </el-table-column>
+      <el-table-column align="left" label="操作" width="250">
+        <template slot-scope="scope">
+          <div style="margin-top: 10px;">
+            <el-button type="danger" v-if="scope.row.verifyStatus==1" style="padding: 3px 4px 3px 4px;margin: 2px"
+              size="mini" @click="cancelRecordData(scope.row)">撤销
+            </el-button>
+          </div>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div style="display: flex;justify-content: flex-end;margin: 2px">
+      <el-pagination background :page-size="10" :pager-count="11" :current-page="currentReceivePage"
+        @current-change="currentReceiveChange" layout="prev, pager, next" :total="receiveTotalCount">
+      </el-pagination>
+    </div>
+  </div>
+</template>
+<script>
+  import {Message} from 'element-ui'
+
+  export default {
+    data() {
+      let numbervalidate = (rule, value, callback) => {
+        const reg = /^\d+$/;
+        if (reg.test(value)) {
+          callback()
+        } else {
+          callback("数字格式错误!")
+        }
+      }
+      return {
+        outRecive: {
+          quantity: '',
+          note: '',
+          materialId: ''
+        },
+        dialogInTitle: '采购数量',
+        dialogFormInVisible: false,
+        activeName: 'material',
+        confirmDialogTitle: '采购确认单',
+        tempPlan: [],
+        materialsReceives: [],
+        confirms: {},
+        nowMaterial: {
+          quantity: '',
+          notes: '',
+          complete: '',
+        },
+   
+
+        confirmFormVisible: false,
+        dialogVisible: false,
+        showOrHidePop: false,
+        depTextColor: '#c0c4cc',
+        keywords: '',
+        RecordKeywords: '',
+        confirmKewords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        rules: {
+          materialName: [{
+            required: true,
+            message: '必填:原料名称',
+            trigger: 'blur'
+          }],
+          quantity: [{
+            required: true,
+            message: '必填:数量',
+            trigger: 'blur'
+          }, {
+            validator: numbervalidate,
+            message: '数字格式错误',
+            trigger: 'blur'
+          }],
+          clientId: [{
+            required: true,
+            message: '必选:公司',
+            trigger: 'change'
+          }],
+          unitId: [{
+            required: true,
+            message: '必选:单位',
+            trigger: 'change'
+          }]
+        },
+        materials: [],
+        defaultProps: {
+          label: 'name',
+          isLeaf: 'leaf',
+          children: 'child'
+        },
+        dialogTitle: '',
+        currentPage: 1,
+        confirmCurrentPage: 1,
+        currentReceivePage: 1,
+        formLabelWidth: '120px',
+        totalCount: -1,
+        receiveTotalCount: -1,
+
+        material: {
+          materialName: '',
+          unitId: '',
+          specs: '',
+        },
+        clients: [],
+        units: [],
+        dialogTableVisible: false,
+        dialogFormVisible: false,
+        // currentRowData:{},//当前选中行数据
+        currentIndex: '', //当前选中行号
+        matriallist: []
+      }
+    },
+    mounted: function () {
+      this.initData();
+      // this.formatGender(row);
+    },
+
+    methods: {
+
+
+      formatStatus(row, column) {
+        return row.verifyStatus == 1 ? '新建' : '已撤销';
+      },
+
+
+      //采购确认 
+      searchRecordData() {
+        this.loadReceivedData();
+      },
+
+      //撤销采购确认单
+
+      doDelete(row) {
+        let that = this;
+        this.getRequest("/materialInReceiveRecord/withdraw?id=" +
+          row.id).then(resp => {
+          if (resp && resp.status == 200) {
+            var data = resp.data;
+            that.loadReceivedData();
+
+            // _this.posts = data.root.position;
+
+          }
+        })
+      },
+
+ 
+      initData() {
+        var _this = this;
+        _this.loadReceivedData();
+
+      },
+      keywordsChange(val) {
+        if (val == '') {
+          this.loadReceivedData();
+        }
+      },
+      recordKeywordsChange(val) {
+        if (val == '') {
+          this.searchRecordData();
+        }
+      },
+
+      currentReceiveChange(currentChange) {
+        this.currentReceivePage = currentChange;
+        console.log(this.currentReceivePage);
+        this.loadReceivedData();
+      },
+
+
+
+
+      showEditDataView(index, row) {
+        this.dialogTitle = "编辑";
+        console.log(row);
+        console.log(index);
+        this.material = row;
+        // this.currentRowData=JSON.parse(JSON.stringify(row));
+        // this.currentIndex=index;
+        this.material.createDate = row.createDate;
+        delete this.material.unit;
+        this.dialogFormVisible = true;
+      },
+
+      cancelOptIn() {
+        this.dialogFormInVisible = false;
+        this.loadReceivedData();
+      },
+      cancelOpt() {
+        this.dialogFormVisible = false;
+        this.loadReceivedData();
+        // this.emps[this.currentIndex] =this.currentRowData;
+      },
+      cancelRecordData(row) {
+        this.$confirm('此操作将删除该条记录, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doDelete(row);
+        }).catch(() => {});
+      },
+
+
+      loadReceivedData() {
+        var _this = this;
+        this.tableLoading = true;
+        this.getRequest("/materialInReceiveRecord/findbypage?page=" + this.currentReceivePage + "&size=10&queryName=" +
+          this.RecordKeywords).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data.data;
+            _this.materialsReceives = data;
+            _this.receiveTotalCount = resp.data.total;
+
+          }
+        })
+      },
+
+    }
+  }
+
+</script>
+<style>
+  .el-submenu .el-menu-item {
+    width: 180px;
+    min-width: 175px;
+  }
+
+  .el-table .warning-row {
+    background: #e3e3e3ee;
+  }
+
+  .item {
+    margin-top: 10px;
+    margin-right: 40px;
+  }
+
+  .el-table .success-row {
+    background: #ffffff;
+  }
+
+</style>

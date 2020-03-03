@@ -1,0 +1,862 @@
+<template>
+  <div>
+    <div style="padding: 0px;display:flex;justify-content:space-between;align-items: center">
+
+      <div style="display: inline">
+        <el-input placeholder="通过车牌搜索,记得回车哦..." clearable @change="keywordsChange"
+                  style="width: 300px;margin: 0px;padding: 0px;" size="mini" :disabled="advanceSearchViewVisible"
+                  @keyup.enter.native="searchEmp" prefix-icon="el-icon-search" v-model="keywords">
+        </el-input>
+        <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search" @click="searchEmp">搜索
+        </el-button>
+      </div>
+      <div style="margin-left: 5px;margin-right: 20px;display: inline">
+        <el-button type="primary" @click="addAndFlushEmp" size="mini" icon="el-icon-plus">添加</el-button>
+      </div>
+    </div>
+    <el-form :model="product" :rules="rules" ref="addEmpForm" size="small" label-width="90px">
+      <el-dialog v-dialogDrag :title="dialogTitle" style="padding: 0px;" :close-on-click-modal="false"
+                 :visible.sync="dialogFormVisible" @close="cancelOpt" width="650px">
+        <div style="width: 100% " v-if="dialogFormVisible">
+
+          <el-row>
+            <el-col :span='12'>
+              <div>
+                <el-form-item label="名称:" prop="producteName">
+                  <el-input prefix-icon="el-icon-edit" v-model="product.producteName" size="mini" style="width: 200px"
+                            placeholder="名称"></el-input>
+                </el-form-item>
+              </div>
+            </el-col>
+            <el-col :span='12'>
+              <div>
+                <el-form-item label="型号:" prop="proType">
+                  <el-input prefix-icon="el-icon-edit" v-model="product.proType" size="mini" style="width: 200px"
+                            placeholder="产品型号"></el-input>
+                </el-form-item>
+              </div>
+            </el-col>
+
+          </el-row>
+          <el-row>
+            <el-col :span='12'>
+              <el-form-item label="颜色:" prop="color">
+                <el-select v-model="product.color" multiple style="width: 200px" size="mini" placeholder="请选择产品颜色">
+                  <el-option v-for="item in colors" :key="item.id" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+            <el-col :span='12'>
+              <el-form-item label="规格:" prop="specification">
+                <el-select v-model="product.specification" multiple style="width: 200px" size="mini"
+                           placeholder="请选择规格">
+                  <el-option v-for="item in specs" :key="item.id" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+
+          </el-row>
+          <el-row>
+            <el-col :span='12'>
+              <el-form-item label="单位:" prop="sysUnitId">
+                <el-select v-model="product.sysUnitId" style="width: 200px" size="mini" placeholder="请选择产品颜色">
+                  <el-option v-for="item in units" :key="item.id" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
+            </el-col>
+          </el-row>
+
+
+          <div style="text-align: left;padding:0 0 12px 0;">
+            消耗原料清单:
+          </div>
+          <div style='width:100%;border:1px solid #eeeeee;box-shadow:darkgrey 3px 3px 2px 2px;'>
+            <el-row>
+              <el-col :span='12'>
+                <div>
+                  <el-form-item label="名称:" prop="name">
+                    <el-select v-model="detail.name" @change='matterSelect' @clear='emptyDetail' style="width: 200px"
+                               clearable size="mini" placeholder="请选择">
+                      <el-option v-for="item in midProduct" :key="item.name" :label="item.name" :value="item.id">
+                      </el-option>
+                    </el-select>
+                  </el-form-item>
+                </div>
+              </el-col>
+              <el-col :span='12'>
+                <div>
+                  <el-form-item label="数量:" prop="quantity">
+                    <el-input placeholder="原料数量" size="mini" prefix-icon="el-icon-edit" v-model="detail.quantity"
+                              type='number' style="width: 200px;background: #fff;">
+                    </el-input>
+                  </el-form-item>
+                </div>
+              </el-col>
+            </el-row>
+            <div style="text-align: end;">
+              <el-button size="mini" type="primary" @click="addBox">添加</el-button>
+            </div>
+            <el-table :data="details" border height="150" style="width: 100%;">
+              <el-table-column prop="sid" align="left" label="序号" width="100">
+              </el-table-column>
+              <el-table-column prop="name" align="left" label="原料名称" width="100">
+              </el-table-column>
+              <el-table-column align="left" label="比例数量" width="80">
+                <template slot-scope="scope">{{ scope.row.quantity}}个</template>
+              </el-table-column>
+              <el-table-column align="left" label="操作" width="195">
+                <template slot-scope="scope">
+                  <el-button @click="editeDetail(scope.$index,scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px"
+                             size="mini">编辑
+                  </el-button>
+
+                  <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
+                             @click="deleteDetail(scope.$index,scope.row)">删除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </div>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="dialogFormVisible=false">取 消</el-button>
+          <el-button type="primary" @click.prevent="add('addEmpForm')">确 定</el-button>
+        </div>
+      </el-dialog>
+    </el-form>
+    <!-- 选择工序 -->
+    <el-dialog v-dialogDrag :title="dialogMaterialTitle" style="padding: 0px;" :close-on-click-modal="false"
+               :visible.sync="dialogMaterialVisible" @close="cancelchoose" width="480px">
+      <div style="width: 100% " v-if="dialogMaterialVisible">
+        <div style="padding: 0px;display:flex;justify-content:space-between;align-items: center">
+          <!-- 原材料的搜索   -->
+          <div style="display: inline">
+            <el-input placeholder="通过名称搜索,记得回车哦..." clearable @change="keywordsMaterialChange"
+                      style="width: 300px;margin: 0px;padding: 0px;" size="mini" @keyup.enter.native="searchMaterialData"
+                      prefix-icon="el-icon-search" v-model="keyMaterialwords">
+            </el-input>
+            <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search"
+                       @click="searchMaterialData">搜索
+            </el-button>
+          </div>
+        </div>
+
+
+        <el-table :data="materialList" border style="width: 100%" @row-click="showRow">
+          <el-table-column align="center" fixed label="当前" width="80">
+            <template slot-scope="scope">
+              <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>
+            </template>
+          </el-table-column>
+          <el-table-column align="left" fixed label="名称" width="120">
+            <template slot-scope="scope">
+              {{scope.row.name}}
+            </template>
+          </el-table-column>
+          <el-table-column align="left" label="流程">
+            <template slot-scope="scope">
+              <el-steps space="20%" align-center>
+                <el-step :title="step.name" v-for="(step,index)  in   scope.row.process" :key="index" class="detail">
+                </el-step>
+              </el-steps>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="display: flex;justify-content: flex-end;margin: 2px">
+          <el-pagination background :page-size="10" :pager-count="11" :current-page="currentMaterialPage"
+                         @current-change="currentMaterialChange" layout="prev, pager, next" :total="totalMaterialCount">
+          </el-pagination>
+        </div>
+      </div>.
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogMaterialVisible=false">取 消</el-button>
+        <el-button type="primary" @click="chooseMaterial()">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!--添加工序-->
+    <el-form :model="process" :rules="rules" ref="processForm" size="small" label-width="90px">
+      <el-dialog :title="dialogTitle" style="padding: 0px;" :close-on-click-modal="false" :visible.sync="processVisible"
+                 @close="cancelpre" width="600px">
+        <div style="width: 100% " v-if="processVisible">
+          <div style="text-align: end; ">
+
+            <el-button @click="selcetSteps" type="success" style="padding: 6px 8px 6px 8px;margin: 2px" size="mini">
+              +工序步骤
+            </el-button>
+          </div>
+          <el-table :data="selectSteps" fit border style="width: 100%">
+            <el-table-column align="left" label="操作" width="160">
+              <template slot-scope="scope">
+
+                <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
+                           @click="deleteSelected(scope.$index, scope.row)">删除
+                </el-button>
+              </template>
+            </el-table-column>
+            <el-table-column align="left" label="工序名" width="120">
+              <template slot-scope="scope">
+                {{ scope.row.name}}
+              </template>
+            </el-table-column>
+            <el-table-column align="left" label="流程">
+              <template slot-scope="scope">
+                <el-steps space="20%" align-center>
+                  <el-step :title="step.name" v-for="(step,index)  in   scope.row.process" :key="index" class="detail">
+                  </el-step>
+                </el-steps>
+              </template>
+            </el-table-column>
+          </el-table>
+        </div>
+        <div slot="footer" class="dialog-footer">
+          <el-button @click="processVisible=false">取 消</el-button>
+          <el-button type="primary" @click="addProcess('processForm')">确 定</el-button>
+        </div>
+      </el-dialog>
+    </el-form>
+    <el-table :data="products" fit style="width: 100%">
+      <el-table-column type="selection" align="left" v-loading="tableLoading" width="30">
+      </el-table-column>
+      <el-table-column prop="producteName" align="left" fixed label="产品名称" width="120">
+      </el-table-column>
+      <el-table-column prop="specName" width="220" align="left" label="产品规格">
+      </el-table-column>
+      <el-table-column prop="proType" width="120" align="left" label="产品型号">
+      </el-table-column>
+      <el-table-column prop="colorName" width="120" align="left" label="产品颜色">
+      </el-table-column>
+      <el-table-column align="left" label="操作">
+        <template slot-scope="scope">
+          <el-button @click="showProcessView(scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini">查看工序
+          </el-button>
+          <el-button @click="showEditEmpView(scope.$index,scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px"
+                     size="mini">编辑
+          </el-button>
+          <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
+                     @click="deleteData(scope.row)">删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div style="display: flex;justify-content: flex-end;margin: 2px">
+      <el-pagination background :page-size="10" :pager-count="11" :current-page="currentPage"
+                     @current-change="currentChange" layout="prev, pager, next" :total="totalCount">
+      </el-pagination>
+    </div>
+  </div>
+
+</template>
+<script>
+  import {
+    Message
+  } from 'element-ui'
+  export default {
+    data() {
+
+      return {
+        keywords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        colors: [],
+        units: [],
+        rules: {
+          producteName: [{
+            required: true,
+            message: '必填:名称',
+            trigger: 'blur'
+          }],
+        },
+        selectSteps: [], //产品相关的工序 步骤
+        steps: [],
+        products: [],
+        dialogTitle: '',
+        currentPage: 1,
+        totalCount: -1,
+        process: {
+          name: '',
+        },
+        currentRowData: [],
+        product: {
+          producteName: '',
+          specification: '',
+          proType: '',
+          color: '',
+          clientName: '',
+          clientId: '',
+          sysUnitId: 0,
+        },
+        processModel: {
+          currentSteps: '',
+          productId: 0,
+          processName: ''
+        },
+        productId: '',
+        currentProgress: [],
+        addProgress: [],
+        updateProgress: [],
+        deleteProgress: [],
+        olderProgress: [],
+        midProduct: [],
+        dialogTableVisible: false,
+        dialogFormVisible: false,
+        processVisible: false,
+        currentRowData: {}, //当前选中行数据
+        currentIndex: '', //当前选中行号
+        renderFunc(h, option) {
+          console.log(option);
+          console.log(h);
+          return option.workstepName;
+        },
+        detail: {
+          id: 0,
+          sid: 0,
+          midProductId: 0,
+          name: '',
+          quantity: '',
+          mtype: '',
+        },
+        details: [],
+        currentDeleteData: [],
+        maxSid: 0,
+        clients: [],
+        specs: [],
+        depTextColor: '',
+        showOrHidePop: false,
+        showHidePop: false,
+        defaultProps: {
+          label: 'name',
+          isLeaf: 'leaf',
+          children: 'child'
+        },
+        dialogMaterialTitle: '',
+        dialogMaterialVisible: false,
+        keyMaterialwords: '',
+        selectedM: {},
+        totalMaterialCount: -1,
+        currentMaterialPage: 1,
+        selectMaterial: {},
+        currentSelectStepIds: [],
+      }
+    },
+    mounted: function () {
+      this.initData();
+    },
+
+    methods: {
+      // 选择工序：
+      selcetSteps() {
+        this.loadMaterial();
+      },
+      cancelchoose() {
+        this.selectMaterial = {};
+        this.selectedM = {};
+      },
+      deleteSelected(index, row) {
+        this.selectSteps.splice(index, 1);
+      },
+      //工序的搜索(按名称)
+      searchMaterialData() {
+        this.loadMaterial();
+      },
+      keywordsMaterialChange(val) {
+        if (val == '') {
+          this.loadMaterial();
+        }
+      },
+      showRow(row) {
+        this.selectedM = this.materialList.indexOf(row);
+        this.selectMaterial = row;
+        console.log(this.selectMaterial);
+      },
+      currentMaterialChange() {
+        this.currentMaterialPage = currentChange;
+        this.loadMaterial();
+      },
+      //确定选择的数据
+      chooseMaterial() {
+        console.log('选择原料了！')
+        let vm = this;
+        if (this.selectMaterial.id > 0) {
+          const msg = this.selectMaterial.name + ";"
+          this.$confirm('您当前选择了' + msg + "确认选择该工序吗？", '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            vm.setDetailData(vm);
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消'
+            });
+          });
+        } else {
+          this.$message({
+            type: 'info',
+            message: '请选择原材料！'
+          })
+        }
+
+
+      },
+      setDetailData() {
+        let that = this;
+        var v = that.selectMaterial;
+        console.log(v);
+        var flag = false;
+        if (this.selectSteps.length) {
+          this.selectSteps.forEach(function (val, i, arr) {
+            if (val.id == v.id) {
+              flag = true;
+            }
+          })
+        }
+        if (!flag) {
+          this.selectSteps.push(v);
+
+        }
+        this.dialogMaterialVisible = false;
+      },
+      loadMaterial() {
+        var _this = this;
+        this.tableLoading = true;
+        this.getRequest("/productpreprocess/findbypage?page=" + this.currentMaterialPage + "&size=10&queryName=" + this
+          .keyMaterialwords).then(resp => {
+          this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data.data;
+            _this.materialList = data;
+            _this.totalMaterialCount = resp.data.total;
+            _this.dialogMaterialVisible = true;
+            // _this.emptyData();
+            // 清除选择的行
+          }
+        })
+      },
+      handleNodeClick(data) {
+        this.product.clientId = data.id;
+        this.product.clientName = data.name;
+        this.showOrHidePop = false;
+        this.depTextColor = '#606266';
+      },
+      clearChoose() {
+        this.product.clientId = 0;
+        this.product.clientName = "";
+      },
+      showDepTree() {
+        this.showHidePop = !this.showHidePop;
+      },
+
+      matterSelect(e) {
+        console.log(e);
+        let that = this;
+        this.midProduct.forEach(function (v, i, arr) {
+          if (v.id == e) {
+            that.detail.name = v.name;
+            that.detail.midProductId = v.id;
+
+            // that.detail.id=v.id;//选取的物料Id
+          }
+        })
+      },
+      addBox() {
+        let that = this;
+        console.log("asdfadsfasdfasd");
+        if (this.detail.quantity == '' || this.detail.quantity == undefined) {
+          Message('请输入数量');
+          return false;
+        }
+        if (this.detail.name == '' || this.detail.name == undefined) {
+          Message('请选择物料');
+          return false;
+
+        }
+        if (this.detail.sid === "" || this.detail.sid === 0) {
+          if (this.details.length > 0) {
+            //this.types 选择的类型原料/半成品
+            //有之前相同的。。增加数量
+            var flag = false;
+            that.details.forEach(function (v, i, arr) {
+              if (v.midProductId == that.detail.midProductId) {
+                flag = true
+                v.quantity = parseFloat(that.detail.quantity) + parseFloat(v.quantity);
+              }
+            });
+            if (!flag) {
+              this.maxSid += 1;
+              this.detail.sid = this.maxSid;
+              this.detail.mtype = 'new'
+              this.details.push(this.detail);
+            }
+
+          } else {
+            this.detail.sid = 1;
+            this.detail.mtype = 'new'
+            // this.detail.mtype=this.types;
+            this.maxSid += 1;
+            this.details.push(this.detail);
+          };
+        } else {
+          if (this.details.length) {
+            for (let index = 0, n = this.details.length; index < n; index++) {
+              var e = this.details[index];
+              if (e.type === 'odd') {
+                this.detail.mtype = 'update'
+                if (e.sid == this.detail.sid) {
+                  this.details.splice(index, 1);
+                  this.details.push(this.detail);
+                }
+              } else {
+                if (e.sid == this.detail.sid) {
+                  this.details.splice(index, 1);
+                  this.details.push(this.detail);
+                }
+              }
+
+            }
+          }
+        }
+
+        this.emptyDetail();
+
+
+      },
+
+      editeDetail(index, row) {
+        this.detail = row;
+      },
+      deleteDetail(index, row) {
+        console.log('delete');
+        var deletes = this.details.splice(index, 1);
+        if (deletes[0].mtype === "odd") {
+          deletes[0].type = 'delete'
+          this.currentDeleteData.push(deletes[0]);
+        }
+        this.maxSid -= 1;
+
+      },
+      emptyDetail: function () {
+        this.detail = {
+          id: 0,
+          sid: 0,
+          midProductId: 0,
+          name: '',
+          quantity: '',
+          mtype: '',
+        }
+      },
+      cancelOpt() {
+        this.dialogFormVisible = false;
+        this.loadData();
+        // this.products[this.currentIndex] =this.currentRowData;
+      },
+      cancelpre() {
+        this.emptypressData()
+        this.processVisible = false;
+      },
+      initData() {
+        var _this = this;
+        _this.loadData();
+        this.getRequest("/product/basicdata").then(resp => {
+          if (resp && resp.status === 200) {
+            var data = resp.data;
+           console.log('hehehe');
+            _this.steps = data.root.steps;
+            _this.colors = data.root.colors;
+            _this.units = data.root.units;
+            _this.specs = data.root.specs;
+            var midp = data.root.midProducts;
+            var materials = [];
+            midp.forEach(function (v) {
+              materials.push({
+                name: v[0],
+                id: v[1]
+              })
+
+
+            })
+            _this.midProduct = materials;
+
+            console.log(_this.steps)
+
+          }
+        })
+      },
+
+      keywordsChange(val) {
+        if (val == '') {
+          this.loadData();
+        }
+      },
+      handleChange() {
+
+      },
+      currentChange(currentChange) {
+        this.currentPage = currentChange;
+        console.log(this.currentPage);
+        this.loadData();
+      },
+      addAndFlushEmp() {
+        this.dialogTitle = "添加";
+        this.dialogFormVisible = true;
+        this.emptyData();
+
+      },
+      addProcess(processForm) {
+        let _this = this,
+          stepIds = '';
+        if (this.selectSteps.length) {
+          this.selectSteps.forEach(function (v, i, arr) {
+            _this.currentSelectStepIds.push(v.id);
+          })
+          stepIds = this.currentSelectStepIds.join(",");
+        }
+        var currentProductId = this.product.id;
+        this.getRequest("/product/addProcess?productId=" + currentProductId + "&stepIds=" + stepIds).then(
+          resp => {
+            this.tableLoading = false;
+            if (resp && resp.status == 200) {
+              var data = resp.data.data;
+              _this.processVisible = false;
+              _this.loadData();
+              _this.emptyData();
+
+            }
+          })
+
+
+
+      },
+      //清空数据
+      emptypressData() {
+        this.processModel = {
+          currentSteps: '',
+          productId: 0,
+          processName: ''
+        };
+        this.currentProgress = [],
+          this.addProgress = [],
+          this.updateProgress = [],
+          this.deleteProgress = [],
+          this.olderProgress = [],
+          this.selectSteps = [];
+      },
+      searchData() {
+        this.loadData();
+      },
+      showEditEmpView(index, row) {
+        console.log(row);
+        this.dialogTitle = "编辑信息";
+        this.product = row;
+        this.currentRowData = _.cloneDeep(row);
+        this.currentIndex = index;
+        delete this.product.clienteleid;
+        var details = this.currentRowData.midMaterials;
+        if (details != undefined && details.length > 0) {
+          details.forEach(function (v, i, arr) {
+            v.mtype = 'odd';
+            v.sid = i + 1;
+          })
+          this.details = details;
+          this.maxSid = details.length;
+        }
+        var specsList = [],
+          colorList = [];
+        if (this.product.specs.length) {
+          this.product.specs.forEach(function (v) {
+            specsList.push(v.id)
+          })
+        }
+        if (this.product.colors.length) {
+          this.product.colors.forEach(function (v) {
+            colorList.push(v.id)
+          })
+        }
+        this.product.specification = specsList;
+        this.product.color = colorList;
+
+        this.dialogFormVisible = true;
+      },
+      add(addEmpForm) {
+        this.dialogFormVisible = true;
+        var _this = this;
+        var cache = [];
+        if (this.details.length == 0) {
+          this.$message({
+            type: 'info',
+            message: '详情不能为空！'
+          });
+          return false;
+        }
+        var productModel = _.cloneDeep(this.product);
+        this.details.forEach(function (v, i, arr) {
+          if (v.createDate == undefined) {
+            v.createDate = _this.formatDate(new Date());
+          }
+        });
+        var currentDetail = _this.details.concat(_this.currentDeleteData);
+        var str = this.jsonToString(currentDetail);
+        productModel.midMaterials = str;
+        productModel.clientId = 0;
+        if (productModel.preprosessId == null) {
+          productModel.preprosessId = 0;
+        }
+        console.log('productModel++' + productModel);
+        if (productModel.specs) {
+          // productModel.specs.forEach(function (v) {
+          //   productModel.specification.push(v.id);
+          // })
+        }
+        productModel.specification = productModel.specification.join(',')
+        productModel.colors = productModel.color.join(',')
+        //   productModel.colors.forEach(elemet => {
+        //     productModel.color.push(elemet.id)
+        //   });
+
+
+
+        this.$refs[addEmpForm].validate((valid) => {
+          if (valid) {
+            if (this.product.id) {
+              //更新
+              this.tableLoading = true;
+              console.log(this.product);
+              this.postRequest("/product/posAdd", productModel).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status == 200) {
+                  _this.dialogFormVisible = false;
+                  _this.loadData();
+                  _this.emptyData();
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              console.log(_this.product);
+              this.postRequest("/product/addNew", productModel).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status == 200) {
+                  var data = resp.data;
+                  _this.dialogFormVisible = false;
+                  _this.loadData();
+                  _this.emptyData();
+
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      processCancel() {
+        this.processVisible = false;
+      },
+
+      showProcessView(row) {
+        let that = this;
+        this.productId = row.id;
+        this.product = row;
+        console.log(row);
+        this.selectSteps = [];
+
+        this.olderProgress = [];
+        //更新
+        var steplist = row.preprosess;
+        if (steplist.length) {
+          for (var i = 0; i < steplist.length; i++) {
+            var step = steplist[i];
+            that.selectSteps.push(step)
+          }
+        }
+
+        this.processVisible = true;
+      },
+      deleteData(row) {
+        this.$confirm('此操作将删除[' + row.producteName + '], 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doDelete(row.id);
+        }).catch(() => {});
+      },
+      doDelete(ids) {
+        this.tableLoading = true;
+        var _this = this;
+        this.getRequest("/product/deletPro?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data;
+            _this.loadData();
+          }
+        })
+      },
+      loadData() {
+        var _this = this;
+        console.log("insts");
+        this.tableLoading = true;
+        this.getRequest("/product/findbypage?page=" + this.currentPage + "&size=10&queryName=" + this.keywords).then(
+          resp => {
+            this.tableLoading = false;
+            if (resp && resp.status == 200) {
+              var data = resp.data.data;
+              _this.products = data;
+              _this.totalCount = resp.data.total;
+              _this.emptyData();
+            }
+          })
+      },
+      searchEmp() {
+        this.loadData();
+      },
+      handleCommand(cmd) {
+        var _this = this;
+        if (cmd == 'logout') {
+          this.$confirm('注销登录, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            // _this.getRequest("/logout");
+            // _this.$store.commit('logout');
+            _this.$router.replace({
+              path: '/'
+            });
+          }).catch(() => {
+            _this.$message({
+              type: 'info',
+              message: '取消'
+            });
+          });
+        }
+      },
+      emptyData() {
+        this.product = {
+          producteName: '',
+          specification: '',
+          proType: '',
+          color: '',
+        };
+        this.currentSelectStepIds = []
+      }
+    },
+
+    computed: {
+      routes() {
+        return this.$store.state.routes
+      }
+    }
+  }
+
+</script>
+<style>
+  .el-submenu .el-menu-item {
+    width: 180px;
+    min-width: 175px;
+  }
+
+</style>

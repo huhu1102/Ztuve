@@ -1,0 +1,392 @@
+<template>
+  <div>
+    <div style="text-align: left" v-loading="loading">
+      <el-input placeholder="请输入角色英文名称..."
+                size="mini"
+                style="width: 250px"
+                v-model="newRole">
+        <template slot="prepend">ROLE_</template>
+      </el-input>
+      <el-input
+        placeholder="请输入角色中文名称..."
+        size="mini"
+        style="width: 250px"
+        v-model="newRoleZh">
+      </el-input>
+      <el-button type="primary" size="mini" style="margin-left: 5px" @click="addNewRole">添加角色</el-button>
+    </div>
+    <div style="margin-top: 10px;text-align: left">
+      <el-collapse v-model="activeColItem" accordion style="width: 600px;" @change="collapseChange">
+        <el-collapse-item v-for="(item,index) in roles" :title="item.roleName" :name="item.id" :key="item.id">
+          <el-card class="box-card">
+            <div slot="header">
+              <span>可访问的资源</span>
+              <el-button type="text"
+                         style="color: #f6061b;margin: 0;float: right; padding: 3px 0;width: 15px;height:15px"
+                         icon="el-icon-delete" @click="deleteRole(item.id,item.roleName)"></el-button>
+            </div>
+            <div >
+              <el-tree :props="props"
+                       :key="item.id"
+                       :data="treeData"
+                       :default-checked-keys="checkedKeys"
+                       :default-expand-all="true"
+                       :expand-on-click-node="false"
+                       node-key="id"
+                       ref="tree"
+                       show-checkbox
+                       :check-strictly="false"
+                       check-on-click-node
+                       highlight-current
+                       @check-change="handleCheckChange">
+<!--                  <span class="custom-tree-node" slot-scope="{ node, treeData }"   >-->
+<!--                          <div v-if="!node.children">{{ node.label }}</div>-->
+<!--                          <div v-if="!node.children">-->
+<!--                         <el-checkbox-group v-model="checkList">-->
+<!--                          <el-checkbox label="新增"></el-checkbox>-->
+<!--                          <el-checkbox label="修改"></el-checkbox>-->
+<!--                          <el-checkbox label="删除"></el-checkbox>-->
+<!--                        </el-checkbox-group>-->
+<!--                          </div>-->
+
+<!--                  </span>-->
+              </el-tree>
+            </div>
+            <div style="display: flex;justify-content: flex-end;margin-right: 10px">
+              <el-button size="mini" @click="cancelUpdateRoleMenu">取消修改</el-button>
+              <el-button type="primary" size="mini" @click="updateRoleMenu(index)">确认修改</el-button>
+            </div>
+          </el-card>
+        </el-collapse-item>
+      </el-collapse>
+    </div>
+  </div>
+</template>
+<script>
+  import {isNotNullORBlank} from '../../utils/utils'
+
+  export default {
+    mounted: function () {
+      this.loading = true;
+      this.initRoles();
+    },
+    methods: {
+      deleteRole(rid, rname) {
+        var _this = this;
+        this.$confirm('删除角色[' + rname + '], 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          _this.loading = true;
+          _this.deleteRequest("/system/basic/role/" + rid).then(resp => {
+            if (resp && resp.status == 200) {
+              _this.initRoles();
+            } else {
+              _this.loading = false;
+            }
+          })
+        }).catch(() => {
+          _this.$message({
+            type: 'info',
+            message: '已取消删除'
+          });
+        });
+      },
+      addNewRole() {
+        if (isNotNullORBlank(this.newRole, this.newRoleZh)) {
+          this.loading = true;
+          var _this = this;
+          this.postRequest("/system/basic/addRole", {
+            role: this.newRole,
+            roleZh: this.newRoleZh
+          }).then(resp => {
+            if (resp && resp.status == 200) {
+              var data = resp.data;
+              _
+              _this.initRoles();
+              _this.newRole = '';
+              _this.newRoleZh = '';
+            } else {
+              _this.loading = false;
+            }
+          })
+        }
+      },
+      //有五个树，但是五个树用的同一个数据源
+      updateRoleMenu(index) {
+        console.log('update');
+        var checkedKeys = this.$refs.tree[index].getCheckedKeys(false);
+        var _this = this;
+        this.postRequest("/sysrole/updateMenuRole", {
+          rid: this.activeColItem,
+          mids: checkedKeys
+        }).then(resp => {
+          if (resp && resp.status == 200) {
+            _this.activeColItem = -1;
+          }
+        })
+      },
+      collapseChange(activeName) {
+        if (activeName === '') {
+          return;
+        }
+        console.log(activeName);
+        var _this = this;
+        this.getRequest("/sysrole/treeRole?roleid=" + activeName).then(resp => {
+          if (resp && resp.status === 200) {
+            var data = resp.data;
+            _this.treeData = data.data;
+            _this.checkedKeys = data.root.menus;
+          }
+        })
+      },
+      handleCheckChange(data, checked, indeterminate) {
+       console.log(data,checked,indeterminate)
+      },
+      initRoles() {
+        var _this = this;
+        console.log(' role_init');
+        this.getRequest("/sysrole/findbypage").then(resp => {
+          _this.loading = false;
+          if (resp && resp.status === 200 && resp.data.success) {
+            _this.roles = resp.data.data;
+            _this.activeColItem = -1
+          }
+        })
+      },
+      cancelUpdateRoleMenu() {
+        this.activeColItem = -1;
+      }
+    },
+    data() {
+      return {
+        props: {
+          label: 'name',
+          children: 'children'
+        },
+        newRole: '',
+        newRoleZh: '',
+        roles: [],
+        treeData: [],
+        checkedKeys: [],
+        loading: false,
+        activeColItem: -1,
+        checkList:['选中且禁用','复选框 A'],
+      };
+
+    }
+  }
+
+</script>
+<style scoped>
+  .custom-tree-node {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 14px;
+    padding-right: 8px;
+  }
+</style>
+
+<!--<script>
+    export default{
+      data() {
+        let   phonevalidate= (rule, value, callback) => {
+          //后台方法
+          const reg = /^ROLE_[a-zA-Z]+$/;
+          if(reg.test(value)){
+            callback()
+          }else{
+            callback("角色格式错误!")
+            // this.getRequest("/emp/uniqetel?telphone="+value).then(res => {
+            //   if (res && res.data.success === 'true') {
+            //     callback()
+            //   } else if (res && res.data.success === 'false') {
+            //     callback('电话号码已存在!')
+            //   }
+            // })
+          }
+        }
+        return {
+          dialogVisible: false,
+          showOrHidePop: false,
+          depTextColor: '#c0c4cc',
+          keywords: '',
+          tableLoading: false,
+          advanceSearchViewVisible: false,
+          rules: {
+            roleName: [{required: true, message: '必填:中文名', trigger: 'blur'}],
+            name: [{required: true, message: '必填:英文名称', trigger: 'blur'},
+              {
+                validator:phonevalidate,
+                message: '名称错误',
+                trigger: 'blur'
+              }]
+          
+          },
+          roles:[],
+          defaultProps: {
+            label: 'name',
+            isLeaf: 'leaf',
+            children: 'children'
+          },
+          dialogTitle: '',
+          currentPage:1,
+          formLabelWidth: '120px',
+          totalCount: -1,
+          role: {
+            name: '',
+            roleName:''
+          },
+          deps: [],
+         
+          dialogTableVisible: false,
+          dialogFormVisible: false,
+          currentRowData:{},//当前选中行数据
+          currentIndex:'',//当前选中行号
+        }
+      },
+      mounted: function () {
+        this.initData();
+        // this.formatGender(row);
+      },
+      methods: {
+
+        initData(){
+          var _this = this;
+          _this.loadDatas();
+    
+        },
+        keywordsChange(val){
+          if (val == '') {
+            this.loadDatas();
+          }
+        },
+        currentChange(currentChange){
+          this.currentPage = currentChange;
+          console.log(this.currentPage);
+          this.loadDatas();
+        },
+        addAndFlushEmp(){
+          this.dialogTitle = "添加员工";
+          this.emptyEmpData();
+          this.dialogFormVisible = true;
+  
+        },
+  
+        searchEmp(){
+          this.loadDatas();
+        },
+        showEditEmpView(index,row){
+          this.dialogTitle = "编辑";
+          console.log(row);
+          console.log(index);
+          this.role=row;
+           delete  this.role.sysMenu;
+           delete this.role.users;
+          this.dialogFormVisible = true;
+        },
+        addEmp(addEmpForm){
+          this.dialogFormVisible=true;
+          var _this = this;
+  
+          this.$refs[addEmpForm].validate((valid) => {
+            if (valid) {
+              if (this.role.id) {
+                //更新
+                this.tableLoading = true;
+                console.log(this.role);
+                this.postRequest("/sysrole/addAndUpdate", this.role).then(resp=> {
+                  _this.tableLoading = false;
+                  if (resp && resp.status == 200) {
+                    // var data = resp.data;
+                    _this.dialogFormVisible = false;
+                    _this.loadDatas();
+                    _this.emptyEmpData();
+  
+                  }
+                })
+              } else {
+                //添加
+                this.tableLoading = true;
+                console.log(_this.role);
+                this.postRequest("/sysrole/addAndUpdate", this.role).then(resp=> {
+                  _this.tableLoading = false;
+                  if (resp && resp.status == 200) {
+                    var data = resp.data;
+                    _this.dialogFormVisible = false;
+                    _this.loadDatas();
+                    _this.emptyEmpData();
+  
+                  }
+                })
+              }
+            } else {
+              return false;
+            }
+          });
+        },
+        cancelOpt(){
+          this.dialogFormVisible=false;
+          this.loadDatas();
+          // this.emps[this.currentIndex] =this.currentRowData;
+        },
+        deleteEmp(row){
+          this.$confirm('此操作将删除[' + row.name + '], 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.doDelete(row.id);
+          }).catch(() => {
+          });
+        },
+        doDelete(ids){
+          this.tableLoading = true;
+          var _this = this;
+          this.getRequest("/sysrole/delete?id=" + ids).then(resp=> {
+            _this.tableLoading = false;
+            if (resp && resp.status == 200) {
+              var data = resp.data;
+              _this.loadDatas();
+            }
+          })
+        },
+        loadDatas(){
+          var _this = this;
+          this.tableLoading = true;
+          this.getRequest("/sysrole/findbypage?page=" + this.currentPage + "&size=10&queryName="+this.keywords).then(resp=> {
+            this.tableLoading = false;
+            if (resp && resp.status == 200) {
+              var data = resp.data.data;
+              _this.roles = data;
+              _this.totalCount=resp.data.total;
+              _this.emptyEmpData();
+            }
+          })
+        },
+      
+        emptyEmpData(){
+          console.log('+++++_+++++_')
+          this.role = {
+            name: '',
+            roleName: '', 
+          }
+        }
+      },
+  
+      computed: {
+        routes(){
+          return this.$store.state.routes
+        }
+      }
+    }
+  </script>
+  <style>
+    .el-submenu .el-menu-item {
+      width: 180px;
+      min-width: 175px;
+    }
+  </style>-->

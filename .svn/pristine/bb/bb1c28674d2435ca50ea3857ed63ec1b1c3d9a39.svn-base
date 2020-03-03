@@ -1,0 +1,66 @@
+<template>
+  <div>
+    <el-tabs v-model="activeName" type="border-card" @tab-click="handleClick" style="margin-top: 10px">
+      <el-tab-pane label='产品管理' name="product" lazy>
+        <Products ref="child"></Products>
+      </el-tab-pane>
+      <el-tab-pane label="工序设置" name="gress" lazy>
+        <gress ref="grow"></gress>
+      </el-tab-pane>
+      <el-tab-pane label="工序词典" name="step" lazy>
+        <step ref="step"></step>
+      </el-tab-pane>
+      <el-tab-pane label="规格设置" name="specs" lazy>
+        <specs ref="specs"></specs>
+      </el-tab-pane>
+      <el-tab-pane label="颜色设置" name="color" lazy>
+        <color ref="color"></color>
+      </el-tab-pane>
+
+    </el-tabs>
+  </div>
+</template>
+<script>
+  import Product from '@/components/produce/Product'
+  import ProductSpec from '@/components/produce/ProductSpec'
+  import ProductColor from '@/components/produce/ProductColor'
+  import ProductStep from '@/components/produce/ProductStep'
+  import ProductProgress from '@/components/produce/ProductProgress'
+
+  export default {
+    data() {
+      return {
+        activeName: 'product',
+      };
+    },
+    methods: {
+      handleClick(tab, event) {
+        console.log(tab, event);
+        console.log('被点了');
+        if(this.$refs.child){
+        this.$refs.child.initData();
+        }
+        if(this.$refs.grow){
+        this.$refs.grow.initData();
+        }
+        if(this.$refs.step){
+        this.$refs.step.initData();
+        }
+        if( this.$refs.specs){
+        this.$refs.specs.initData();
+        }
+        if( this.$refs.specs){
+        this.$refs.color.initData();
+        }
+      }
+    },
+    components: {
+      'Products': Product,
+      'specs': ProductSpec,
+      'color': ProductColor,
+      'step': ProductStep,
+      'gress': ProductProgress,
+    }
+  };
+
+</script>

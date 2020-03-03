@@ -1,0 +1,324 @@
+<template>
+  <div>
+    <el-container>
+      <el-header class="product-spec-header">
+        <div class="product-spec-header-left">
+<!--          <div style=" margin-left:20px;border-left: 4px solid red;text-align: left;">-->
+<!--            <span style="margin-left: 10px;">工序步骤</span>-->
+<!--          </div>-->
+          <div style="margin-left: 20px;margin-top: 10px;">
+            <el-input
+              placeholder="通过名称搜索,记得回车哦..."
+              clearable
+              @change="keywordsChange"
+              style="width: 300px;margin: 0px;padding: 0px;"
+              size="mini"
+              :disabled="advanceSearchViewVisible"
+              @keyup.enter.native="searchEmp"
+              prefix-icon="el-icon-search"
+              v-model="keywords">
+            </el-input>
+            <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search" @click="searchEmp">搜索
+            </el-button>
+
+          </div>
+        </div>
+
+        <div class="product-spec-header-right">
+        </div>
+      </el-header>
+      <el-main style="margin: 0 20px;">
+        <div v-if="stepOpt.add" style="display:flex;flex-direction: row; justify-content: flex-start; text-align: left" >
+          <el-input
+            placeholder="请输入步骤..."
+            size="mini"
+            style="width: 250px"
+            v-model="step.workstepName">
+          </el-input>
+          <el-button type="primary" size="mini" style="margin-left: 5px" @click="addAndFlushEmp">添加</el-button>
+          <el-button size="mini" type="success" @click="initData" icon="el-icon-refresh"></el-button>
+        </div>
+        <el-table :data="steps" :cell-style="{padding:'2px',fontSize:'12px'}" fit style="width: 100%">
+          <el-table-column
+            type="selection"
+            align="left"
+            v-loading="tableLoading"
+            width="30">
+          </el-table-column>
+          <el-table-column
+            prop="workstepName"
+            align="left"
+            fixed
+            label="工序名称"
+            width="120">
+          </el-table-column>
+          <el-table-column
+            prop="intro"
+            width="220"
+            align="left"
+            label="介绍">
+          </el-table-column>
+          <el-table-column
+            align="left"
+            label="操作"
+            width="195" v-if="stepOpt.opt">
+            <template slot-scope="scope">
+              <el-button v-if="stepOpt.update" @click="showEditEmpView(scope.$index,scope.row)"
+                         style="padding: 3px 4px 3px 4px;margin: 2px"
+                         size="mini">编辑
+              </el-button>
+
+              <el-button v-if="stepOpt.del" type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
+                         @click="deleteData(scope.row)">删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="display: flex;justify-content: flex-end;margin: 2px">
+          <!--          <el-button type="danger" size="mini" v-if="emps.length>0" :disabled="multipleSelection.length==0"-->
+          <!--                     @click="deleteManyEmps">批量删除-->
+          <!--          </el-button>-->
+          <el-pagination
+            background
+            :page-size="10"
+            :pager-count="11"
+            :current-page="currentPage"
+            @current-change="currentChange"
+            layout="prev, pager, next"
+            :total="totalCount">
+          </el-pagination>
+        </div>
+      </el-main>
+
+    </el-container>
+  </div>
+
+</template>
+<script>
+  export default {
+    data() {
+
+
+      return {
+        keywords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        rules: {
+          workstepName: [{required: true, message: '必填:工序名称', trigger: 'blur'}],
+        },
+        steps: [],
+        dialogTitle: '',
+        currentPage: 1,
+        totalCount: -1,
+        step: {
+          workstepName: '',
+          intro: ''
+        },
+        unit:{
+          name:'',
+        },
+        currentRowData: {},//当前选中行数据
+        currentIndex: '',//当前选中行号
+      }
+    },
+    mounted: function () {
+      this.initData();
+    },
+
+    methods: {
+      searchEmp() {
+        this.loadData();
+      },
+      initData() {
+        var _this = this;
+
+        _this.loadData();
+      },
+      keywordsChange(val) {
+        if (val === '') {
+          this.loadData();
+        }
+      },
+      currentChange(currentChange) {
+        this.currentPage = currentChange;
+        console.log(this.currentPage);
+        this.loadData();
+      },
+      searchData() {
+        this.loadData();
+      },
+      showEditEmpView(index, row) {
+        console.log(row)
+        this.dialogTitle = "编辑信息";
+        this.step = row;
+        // this.step.createDate = this.formatDate(row.createDate);
+        // this.employee.departmentId = row.department.id;
+        delete this.step.noteMaker;
+        // delete this.emp.notWorkDate;
+        this.currentRowData = JSON.parse(JSON.stringify(row));
+        this.currentIndex = index;
+
+        this.dialogFormVisible = true;
+      },
+      addAndFlushEmp() {
+        var _this = this;
+
+        // this.step.buyedDate=new Date(this.step.buyedDate);
+        if (this.step.id) {
+          //更新
+          this.tableLoading = true;
+          console.log(this.step);
+          this.postRequest("/workStep/stepAdd", this.step).then(resp => {
+            _this.tableLoading = false;
+            if (resp && resp.status === 200 && resp.data.success) {
+              _this.loadData();
+              _this.emptyData();
+
+            }
+          })
+        } else {
+          //添加
+          this.tableLoading = true;
+          console.log(_this.step);
+          this.postRequest("/workStep/stepAdd", this.step).then(resp => {
+            _this.tableLoading = false;
+            if (resp && resp.status === 200 && resp.data.success) {
+              _this.loadData();
+              _this.emptyData();
+            }
+          })
+        }
+      },
+      deleteData(row) {
+        this.$confirm('此操作将删除该记录, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doDelete(row.id);
+        }).catch(() => {
+        });
+      },
+      doDelete(ids) {
+        this.tableLoading = true;
+        var _this = this;
+        this.getRequest("/workStep/delet?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data;
+            _this.loadData();
+          }
+        })
+      },
+      loadData() {
+        var _this = this;
+        this.tableLoading = true;
+        this.getRequest("/workStep/findbypage?page=" + this.currentPage + "&size=10&queryName=" + this.keywords).then(resp => {
+          this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data.data;
+            _this.steps = data;
+            _this.totalCount = resp.data.total;
+            _this.emptyData();
+          }
+        })
+      },
+      handleCommand(cmd) {
+        var _this = this;
+        if (cmd == 'logout') {
+          this.$confirm('注销登录, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            // _this.getRequest("/logout");
+            // _this.$store.commit('logout');
+            _this.$router.replace({path: '/'});
+          }).catch(() => {
+            _this.$message({
+              type: 'info',
+              message: '取消'
+            });
+          });
+        }
+      },
+      emptyData() {
+        this.step = {
+          workstepName: '',
+          intro: ''
+        };
+      }
+    },
+    computed: {
+      stepOpt() {
+        let opt = {
+          add: false,
+          update: false,
+          del: false,
+        };
+        let currentCmp = {};
+        console.log(this.$store.state.routes);
+        this.$store.state.routes.forEach(function (va) {
+          if (va.path === '/workStep') {
+            currentCmp = va;
+          }
+        });
+        console.log(currentCmp.id);
+        let currentlist = [];
+        this.$store.state.routes.forEach(function (va) {
+          if (va.parentId === currentCmp.id) {
+            currentlist.push(va);
+          }
+        });
+        console.log(currentlist);
+        if (currentlist) {
+          currentlist.forEach(function (value, index, array) {
+            switch (value.path) {
+              case "update":
+                opt.update = true;
+                break;
+              case "del":
+                opt.del = true;
+                break;
+              case "add":
+                opt.add = true;
+                break;
+              default :
+                break;
+            }
+          })
+        }
+
+        return opt;
+
+      }
+    },
+
+  }
+</script>
+<style>
+
+  .el-submenu .el-menu-item {
+    width: 180px;
+    min-width: 175px;
+  }
+
+  .product-spec-header {
+    padding: 0px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+  }
+
+  .product-spec-header-right {
+    margin-left: 5px;
+    margin-right: 20px;
+    display: inline
+  }
+
+  .product-spec-header-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: start
+  }
+</style>

@@ -1,0 +1,18 @@
+<template>
+  <section>
+    欢迎登录
+  </section>
+</template>
+
+<script>
+  export default {
+    data(){
+      return {}
+    }
+  }
+
+</script>
+
+<style scoped>
+
+</style>

@@ -1,0 +1,1022 @@
+<template>
+  <div>
+    <el-container>
+      <el-header>
+        <div style=" text-align:center; ">
+          <strong>客户管理</strong>
+        </div>
+        <div style="text-align: left;margin-left: 20px;">
+          <div class="fa fa-window-restore" :class="{stamp:tap===2}" @click="tap=2" style="cursor: pointer;">客户流派
+          </div>
+
+          <span class="fa fa-list-ul" :class="{stamp:tap===1}" @click="tap=1"
+                style="margin-left: 30px;cursor: pointer;"> 列表展示</span> <span
+          style="cursor: pointer;font-weight: 400;color: blueviolet;margin-left: 20px;" @click="andCode">添加客户流派</span>
+
+        </div>
+      </el-header>
+      <el-container>
+        <el-container class="divce-mode" v-if="tap===1">
+
+          <el-header style="padding: 0px;display:flex;justify-content:space-between;align-items: center">
+            <div style="display: inline">
+              <el-input
+                placeholder="通过客户名称搜索,记得回车哦..."
+                clearable
+                @change="keywordsChange"
+                style="width: 300px;margin: 0;padding: 0;"
+                size="mini"
+                :disabled="advanceSearchViewVisible"
+                @keyup.enter.native="searchData"
+                prefix-icon="el-icon-search"
+                v-model="keywords">
+              </el-input>
+              <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search" @click="searchData">
+                搜索
+              </el-button>
+            </div>
+            <div style="margin-left: 5px;margin-right: 20px;display: inline">
+
+              <el-button type="primary" @click="addAndFlushData('companyRef')" size="mini" icon="el-icon-plus">添加总公司
+              </el-button>
+            </div>
+
+          </el-header>
+          <el-main>
+
+            <el-tabs v-model="activeName" type="border-card" @tab-click="handleClick">
+              <el-tab-pane label="下游客户" name="down"></el-tab-pane>
+              <el-tab-pane label="上游企业" name="up"></el-tab-pane>
+            </el-tabs>
+            <div>
+
+              <TreeGrid style="height:auto;"
+                        :data="companys" lines="true" idField="id" treeField="name">
+                <GridColumn field="name" title="公司名"></GridColumn>
+                <GridColumn field="phone" title="电话"></GridColumn>
+                <GridColumn field="address" title="地址"></GridColumn>
+                <GridColumn field="progress" title="操作">
+                  <template slot="cell" slot-scope="{row}">
+                    <div>
+                      <el-button @click="showEditEmpView(row)" style="padding: 3px 4px 3px 4px;margin: 2px"
+                                 size="mini">编辑
+                      </el-button>
+                      <el-button @click="addChild(row)" style="padding: 3px 4px 3px 4px;margin: 2px"
+                                 size="mini">添加子公司
+                      </el-button>
+                      <el-button v-if="!row.children" type="danger" style="padding: 3px 4px 3px 4px;margin: 2px"
+                                 size="mini"
+                                 @click="deleteData(row)">删除
+                      </el-button>
+                    </div>
+                  </template>
+                </GridColumn>
+              </TreeGrid>
+              <div style="text-align: center;" v-if="companys.length===0">
+                暂无数据
+              </div>
+            </div>
+          </el-main>
+        </el-container>
+        <div v-else class="product-model-base">
+          <div class="product-model-item" v-for="item in typelist" :key="item.id" @click="used(item)">
+            <span class="fa fa-cc"></span>
+            <span>{{item.name}}</span>
+            <span>（{{item.num}}）</span>
+          </div>
+        </div>
+      </el-container>
+    </el-container>
+    <el-dialog v-dialogDrag :title="dialogTitle"
+               style="padding: 0;"
+               :close-on-click-modal="false"
+               :visible.sync="dialogFormVisible"
+               @close="cancelOpt"
+               width="500px">
+      <div>
+        <type></type>
+      </div>
+    </el-dialog>
+    <el-dialog v-dialogDrag :title="formTitle"
+               style="padding: 0px;"
+               :close-on-click-modal="false"
+               :visible.sync="formVisible"
+               @close="cancelOpt"
+               width="960px">
+
+      <div style="width: 100% " v-if="formVisible">
+        <el-form :model="company" :rules="rules" ref="addDataForm" size="sam" label-width="90px">
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="站名:" prop="name">
+                <el-input class="product-input-btn-class" prefix-icon="el-icon-edit" v-model="company.name" size="mini"
+                          placeholder="请输入客户名称"></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="简称:" prop="abbreviation">
+                <el-input class="product-input-btn-class" prefix-icon="el-icon-edit" v-model="company.abbreviation"
+                          size="mini"
+                          placeholder="请输入客户简称..."></el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="电话:" prop="phone">
+                <el-input class="product-input-btn-class" prefix-icon="el-icon-edit" v-model="company.phone" size="mini"
+                          placeholder="公司电话...">
+                </el-input>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="传真:" prop="fax">
+                <el-input class="product-input-btn-class" prefix-icon="el-icon-edit" v-model="company.fax" size="mini"
+                          placeholder="公司传真...">
+                </el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="邮箱:" prop="email">
+                <el-input class="product-input-btn-class" prefix-icon="el-icon-message" v-model="company.email"
+                          size="mini"
+                          placeholder="公司邮箱...">
+                </el-input>
+              </el-form-item>
+            </el-col>
+            <el-col :span="8">
+              <el-form-item label="性质:" prop="status">
+                <el-radio-group class="product-input-btn-class" :disabled="selectRadio" v-model="company.status">
+                  <el-radio label='down'>下游</el-radio>
+                  <el-radio style="margin-left: 15px" label='up'>上游</el-radio>
+                </el-radio-group>
+              </el-form-item>
+            </el-col>
+          </el-row>
+          <el-row>
+            <el-col :span="8">
+              <el-form-item label="地址:" prop="address">
+                <el-input class="product-input-btn-class" prefix-icon="el-icon-edit" v-model="company.address"
+                          size="mini"
+                          placeholder="公司地址...">
+                </el-input>
+              </el-form-item>
+            </el-col>
+
+          </el-row>
+          <div style="text-align: left">
+
+            <span>添加联系人:</span>
+          </div>
+          <el-row>
+<!--            <el-col :span="8">-->
+<!--              <el-form-item label="姓名:" prop="contact.name">-->
+<!--                <el-input class="product-input-btn-class" prefix-icon="el-icon-edit" v-model="contact.name" size="mini"-->
+<!--                          placeholder="姓名...">-->
+<!--                </el-input>-->
+<!--              </el-form-item>-->
+<!--            </el-col>-->
+<!--            <el-col :span="8">-->
+<!--              <el-form-item label="电话:" prop="contact.phone">-->
+<!--                <el-input class="product-input-btn-class" prefix-icon="el-icon-phone" v-model="contact.phone"-->
+<!--                          size="mini"-->
+<!--                          placeholder="电话...">-->
+<!--                </el-input>-->
+<!--              </el-form-item>-->
+<!--            </el-col>-->
+<!--            <el-col :span="8">-->
+<!--              <el-form-item label="岗位:" prop="contact.post">-->
+<!--                <el-input class="product-input-btn-class" prefix-icon="el-icon-edit" v-model="contact.post"-->
+<!--                          size="mini"-->
+<!--                          placeholder="岗位...">-->
+<!--                </el-input>-->
+<!--              </el-form-item>-->
+<!--            </el-col>-->
+          </el-row>
+
+          <el-row>
+            <div style="display: flex;flex-direction: row;justify-content: flex-start;padding: 16px;">
+              <label>
+                关联等级:
+              </label>
+              <el-rate
+                v-model="company.grade"
+                :colors="['#99A9BF', '#F7BA2A', '#FF9900']"
+                :texts="texts"
+                show-text
+                text-color="#ff99 00"
+              >
+              </el-rate>
+            </div>
+          </el-row>
+          <el-row>
+            <div style="text-align: left; margin-left: 0;">
+              <label style="margin-left: 16px;">常用产品:</label> <span>{{company.productStr}} </span>
+            </div>
+
+
+          </el-row>
+          <div style="text-align: left; padding: 16px;">
+            <span>最近订单：</span>
+          </div>
+<!--          <el-row v-for=" item in productRecord" :key="item.name" style="text-align: left;margin-left: 15px;">-->
+<!--            <span> {{item.name}}</span>-->
+<!--            <span> {{item.producteName}}</span>-->
+<!--          </el-row>-->
+          <div style="text-align: left;padding: 12px;">
+            <span>业务办理流程：</span>
+          </div>
+          <el-row
+            style="text-align: left;margin-left: 15px;display: flex;flex-direction: row;justify-content: flex-start;">
+
+
+            <el-upload
+              :http-request="submitDialogData"
+              action=""
+              accept="image/*"
+              list-type="picture-card"
+              ref="imgBroadcastUpload"
+              :auto-upload="false" multiple
+              :file-list="diaLogForm.imgBroadcastList"
+              :on-success="successfile"
+              :on-change="imgBroadcastChange"
+              :on-remove="imgBroadcastRemove"
+              >
+              <i slot="default" class="el-icon-plus"></i>
+              <div slot="file" slot-scope="{file}">
+                <img
+                  class="el-upload-list__item-thumbnail"
+                  :src="file.url" alt=""
+                >
+                <span class="el-upload-list__item-actions">
+                          <span
+                            class="el-upload-list__item-preview"
+                            @click="handlePictureCardPreview(file)">
+                            <i class="el-icon-zoom-in"></i>
+                          </span>
+                          <span
+                              v-if="!disabled"
+                              class="el-upload-list__item-delete"
+                              @click="handleDownload(file)"
+                             >
+                          <i class="el-icon-download"></i>
+                        </span>
+                        <span
+                          v-if="!disabled"
+                          class="el-upload-list__item-delete"
+                          @click="handleRemove(file)"
+                        >
+                        <i class="el-icon-delete"></i>
+                      </span>
+                 </span>
+              </div>
+            </el-upload>
+
+          </el-row>
+
+          <div style="text-align: left;">
+
+            <el-input class="product-isnput-btn-class" prefix-icon="el-icon-edit" v-model="company.notes"
+                      style="padding: 16px;" type="textarea" size="mini"
+                      placeholder="注意事项...">
+            </el-input>
+
+          </div>
+          <div style="display: flex;flex-direction: row;justify-content:space-between;">
+            <div style="text-align: left;">
+              <label style="margin-left: 50px; " for="address">地址:</label>
+              <el-input id="address" class="product-input-btn-class" style="margin-left: 5px; width: 200px;"
+                        prefix-icon="el-icon-edit" v-model="company.addressDetails"
+                        size="mini"
+                        placeholder="详细地址...">
+              </el-input>
+            </div>
+            <div>
+              <div>
+                <span class="demonstration">地图</span>
+              </div>
+              <el-image>
+                <div slot="placeholder" class="image-slot">
+                  <i class="el-icon-picture-outline"></i>
+                </div>
+              </el-image>
+
+            </div>
+
+          </div>
+        </el-form>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="formVisible=false">取 消</el-button>
+        <el-button type="primary" @click="addData('addDataForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!--    文件浏览-->
+    <el-dialog :visible.sync="dialogContImgVisible" append-to-body>
+      <img width="100%" :src="dialogContImgUrl"/>
+    </el-dialog>
+  </div>
+</template>
+<script>
+
+  import treeTable from "./../TreeTable";
+  import CompanyType from '@/components/emp/CompanyType';
+  //移除数组中的数据
+  // Array.prototype.indexOf = function (val) {
+  //   for (var i = 0; i < this.length; i++) {
+  //     if (this[i] === val) {
+  //       return i;
+  //     }
+  //   }
+  //   return -1;
+  // }
+  // Array.prototype.remove = function (val) {
+  //   var index = this.indexOf(val);
+  //   if (index > -1) {
+  //     this.splice(index, 1);
+  //   }
+  // }
+  export default {
+    components: {
+      'treeTable': treeTable,
+      'type': CompanyType,
+    },
+    data() {
+
+      // let phonevalidate = (rule, value, callback) => {
+      //   //后台方法
+      //   const reg = /^1[3|4|5|7|8][0-9]\d{8}$/;
+      //   if (reg.test(value)) {
+      //     callback()
+      //   } else {
+      //     callback("电话号码格式错误!")
+      //   }
+      // }
+      return {
+        imageSrc: '/files/downloadfile?fname=3.jpg',
+        dialogContImgUrl: '',
+        dialogImageUrl: '',
+        dialogVisible: false,
+        dialogContImgVisible: false,
+        disabled: false,
+        uploadPicList: [],
+        imageUrl: '',
+        contact: {
+          name: '',//姓名
+          phone: '', //电话
+          post: '',//职位
+        },
+        productRecord: [{
+          name: '第一次',
+          producteName: '10s'
+        }, {
+          name: '第二次',
+          producteName: '15s'
+        }],
+        texts: ['偶尔', '一般', '正常', '重要', '特级'],
+        typelist: [],
+        tap: 2,
+
+        columns: [
+          {
+            text: "公司名称",
+            value: "name",
+            width: 200
+          },
+          {
+            text: "编号",
+            value: "id"
+          },
+          {
+            text: "电话",
+            value: "phone"
+          },
+          {
+            text: "地址",
+            value: "address"
+          }
+        ],
+        dialogVisible: false,
+
+        showOrHidePop: false,
+        depTextColor: '#c0c4cc',
+        keywords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        rules: {
+          name: [{required: true, message: '必填:名称', trigger: 'blur'}],
+          // phone: [{required: true, message: '必填:电话号码', trigger: 'blur'},
+          //   {
+          //     validator:phonevalidate
+          //     message: '电话号码错误',
+          //     trigger: 'blur'
+          //   }],
+          // email: [{required: true, message: '必填:电子邮箱', trigger: 'blur'}, {
+          //   type: 'email',
+          //   message: '邮箱格式不正确',
+          //   trigger: 'blur'
+          // }],
+        },
+        companys: [],
+        defaultProps: {
+          label: 'name',
+          isLeaf: 'leaf',
+          children: 'child'
+        },
+        dialogTitle: '',
+        currentPage: 1,
+        formLabelWidth: '120px',
+        totalCount: -1,
+        company: {
+          name: '',
+          phone: '',
+          address: '',
+          email: '',
+          fax: '',
+          status: '',
+          abbreviation: '',
+          parentName: '',
+          parentClientId: '',
+          infor: '',
+          notes: '',
+          productStr: ''
+        },
+        shops: [],
+        posts: [],
+        dialogTableVisible: false,
+        dialogFormVisible: false,
+        pName: '',
+        pId: '',
+        activeName: 'down',
+        tempShops: [],
+        formVisible: false,
+        formTitle: '',
+        diaLogForm: {
+          goodsName:'', // 商品名称字段
+          imgBroadcastList:[], // 储存选中的图片列表
+          imgsStr:''   // 后端需要的多张图base64字符串 , 分割
+        }
+      }
+    },
+    mounted: function () {
+      this.initData();
+    },
+
+    methods: {
+      imgBroadcastChange (file, fileList) {
+        const isLt2M = file.size / 1024 / 1024 < 2 // 上传头像图片大小不能超过 2MB
+        if (!isLt2M) {
+          this.diaLogForm.imgBroadcastList = fileList.filter(v => v.uid !== file.uid)
+          this.$message.error('图片选择失败，每张图片大小不能超过 2MB,请重新选择!')
+        } else {
+          this.diaLogForm.imgBroadcastList.push(file)
+        }
+      },
+      imgBroadcastRemove (file, fileList) {
+        this.diaLogForm.imgBroadcastList = fileList
+      },
+      handleRemove(file) {
+        console.log(file);
+      },
+      handlePictureCardPreview(file) {
+        this.dialogImageUrl = file.url;
+        this.dialogVisible = true;
+      },
+      handleDownload(file) {
+        console.log(file);
+      },
+      successfile(file){
+        console.log(file)
+        console.log(this.uploadPicList);
+      },
+      async submitDialogData () {
+        let that=this;
+        const imgBroadcastListBase64 = []
+        console.log('图片转base64开始...')
+        // 并发 转码轮播图片list => base64
+        const filePromises = this.diaLogForm.imgBroadcastList.map(async file => {
+          const response = await that.uploadImgToBase64(file.raw)
+          return response.result.replace(/.*;base64,/, '') // 去掉data:image/jpeg;base64,
+        })
+        // 按次序输出 base64图片
+        for (const textPromise of filePromises) {
+          imgBroadcastListBase64.push(await textPromise)
+        }
+        console.log('图片转base64结束..., ', imgBroadcastListBase64)
+        this.diaLogForm.imgsStr = imgBroadcastListBase64.join()
+        console.log(this.diaLogForm)
+        const res = await addCommodity(this.diaLogForm)       // 发请求提交表单
+        if (res.status) {
+          this.$message.success('添加商品成功')
+          // 一般提交成功后后端会处理，在需要展示商品地方会返回一个图片路径
+        }
+      },
+//上传图片
+      uploadPic(data) {
+        var result = "";
+        console.log('开始上传');
+        this.uploadFileRequest('/files/uploadfile', {
+          data: data,
+          success: function (res) {
+            console.log(res);
+            if (res.success) {
+              result = res.data;
+              this.$message({
+                message: res.msg,
+                type: 'success'
+              });
+            } else {
+              this.$message({
+                message: res.msg,
+                type: 'warning'
+              });
+              return;
+            }
+          }
+        });
+        return result;
+      },
+
+      handleRemove(file) {
+        console.log(file);
+      },
+      handlePictureCardPreview(file) {
+        this.dialogImageUrl = file.url;
+        this.dialogVisible = true;
+      },
+      handleDownload(file) {
+        console.log(file);
+      },
+      getBaseData() {
+        let _this = this;
+        _this.getRequest("/client/baseData").then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+            let data = resp.data;
+            // _this.nations = data.nations;
+            let typeinfo = data.root.typelist || [];
+            let types = [];
+            typeinfo.forEach(function (v) {
+              types.push({
+                id: v[0],
+                num: v[1],
+                name: v[2]
+              })
+            });
+            _this.typelist = types;
+
+          }
+        })
+
+      },
+      andCode() {
+        this.dialogFormVisible = true
+      },
+      addChild(row) {
+        console.log(row)
+        this.formTitle = "添加子公司";
+        let company = row;
+        let copShop = _.cloneDeep(company);
+        console.log(row);
+        this.isChild = true;
+        this.selectRadio = true;
+        this.tempShops = [];
+        if (copShop.parentClientId === 0 || copShop.parentClientId === copShop.id) {
+          delete copShop.child;
+        } else {
+          if (copShop.parent !== undefined) {
+            delete copShop.parent;
+          }
+
+        }
+        this.tempShops.push(copShop);
+        this.company.parentName = copShop.name;
+        this.company.parentClientId = copShop.id;
+        this.company.status = copShop.status;
+        this.formVisible = true;
+      },
+      formatSex: function (row, column) {
+        return row.status === "up" ? '上游' : row.status === 'down' ? '下游' : '未知';
+      },
+      showDepTree() {
+        this.showOrHidePop = !this.showOrHidePop;
+      },
+      onTreeDataChange() {
+      },
+      handleNodeClick(data) {
+        this.company.parentName = data.name;
+        this.company.parentClientId = data.id;
+        this.pId = data.id;
+        this.pName = data.name;
+        this.showOrHidePop = false;
+        this.depTextColor = '#606266';
+      },
+      handleClick(tab, event) {//切换标签
+        // console.log(tab, event);
+        let activeName = this.activeName;
+        this.loadMyData(activeName)
+      },
+      clearChoose() {
+        this.company.parentName = '';
+        this.company.parentClientId = '';
+      },
+      headCall(data) {
+        this.companys = data;
+      },
+      cancelChoos() {
+        console.log(this.pName);
+        this.company.parentName = this.pName;
+        this.company.parentClientId = this.pId;
+      },
+      initData() {
+        let activeName = this.activeName;
+        this.loadMyData(activeName);
+        this.getBaseData();
+
+      },
+      keywordsChange(val) {
+        if (val === '') {
+          let activeName = this.activeName;
+          this.loadMyData(activeName);
+        }
+      },
+      currentChange(currentChange) {
+        this.currentPage = currentChange;
+        console.log(this.currentPage);
+        let activeName = this.activeName;
+        this.loadMyData(activeName);
+      },
+      addAndFlushData() {
+
+        this.formTitle = "添加总公司";
+
+        this.isChild = false;
+        this.selectRadio = false;
+        this.formVisible = true;
+
+
+      },
+      searchData() {
+        let activeName = this.activeName;
+        this.loadMyData(activeName);
+      },
+      showEditEmpView(row) {
+        console.log(row)
+        this.isChild = false;
+        this.tempShops = [];
+        this.formTitle = "编辑客户信息";
+        this.company = row;
+        this.selectRadio = true;
+        // this.tempShops=_.cloneDeep(this.shops);
+        console.log(row);
+        this.company.parentClientId = row.parentClientId;
+        this.company.createDate = row.createDate;
+        this.company.parentName = row.parentName;
+        // delete this.company.parent;
+        delete this.company.purchasePlan;
+        delete this.company.product;
+
+        this.formVisible = true;
+      },
+      addData(addDataForm) {
+        this.formVisible = true;
+        let _this = this;
+        this.$refs[addDataForm].validate((valid) => {
+          if (valid) {
+            let cops = _.cloneDeep(this.company)
+            let cache = [];
+            let str = JSON.stringify(cops.child, function (key, value) {
+              if (typeof value === 'object' && value !== null) {
+                if (cache.indexOf(value) !== -1) {
+                  // Circular reference found, discard key
+                  return;
+                }
+                // Store value in our collection
+                cache.push(value);
+              }
+              return value;
+            });
+            cache = null;
+            cops.child = str;
+            if (cops.parentClientId === undefined || cops.parentClientId === null || cops.parentClientId === '') {
+              cops.parentClientId = 0;
+              cops.parentName = '';
+            }
+            delete cops.parent;
+            console.log(cops);
+            if (this.company.id) {
+              //更新
+              _this.tableLoading = true;
+              this.postRequest("/client/update", cops).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200 && resp.data.success) {
+                  // let data = resp.data;
+                  _this.formVisible = false;
+                  let activeName = _this.activeName;
+                  _this.loadMyData(activeName);
+                  _this.emptyData();
+
+                } else {
+                  this.$message({type: 'info', message: '更新失败'})
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              this.postRequest("/client/add", cops).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200 && resp.data.success) {
+                  let data = resp.data;
+                  _this.formVisible = false;
+                  let activeName = _this.activeName;
+                  _this.loadMyData(activeName);
+                  _this.emptyData();
+
+                } else {
+                  this.$message({type: 'info', message: '添加失败'})
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      cancelOpt() {
+        this.dialogFormVisible = false;
+        this.emptyData();
+      },
+
+      deleteData(row) {
+        let _this = this;
+        this.$confirm('此操作将删除该条记录, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          console.log('55');
+          _this.doDelete(row.id);
+
+        }).catch(() => {
+        });
+      },
+      doDelete(ids) {
+        console.log('666')
+        this.tableLoading = true;
+        let _this = this;
+        _this.getRequest("/client/delete?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          console.log('777777');
+          if (resp && resp.status === 200 && resp.data.success) {
+            let activeName = this.activeName;
+            _this.loadMyData(activeName);
+          } else {
+            this.$message({type: 'info', message: '失败'})
+          }
+        })
+      },
+      loadMyData() {
+        let _this = this;
+        let activeName = this.activeName;
+        this.tableLoading = true;
+        console.log(activeName);
+        this.getRequest("/client/findbypage?page=" + this.currentPage + "&size=100&queryName=" + this.keywords + "&shopType=" + activeName).then(resp => {
+          this.tableLoading = false;
+          if (resp && resp.status === 200) {
+            _this.companys = _this.famatDataArr(resp.data.data);
+            console.log(_this.companys);
+            _this.totalCount = resp.data.total;
+            _this.emptyData();
+          }
+        });
+        this.getRequest("/client/baseData").then(resp => {
+          if (resp && resp.status === 200) {
+            _this.shops = resp.data.data;
+
+          }
+        })
+      },
+      famatDataArr(data) {
+        let _this = this;
+        if (data && data.length) {
+          Array.from(data).forEach((value) => {
+            _this.toArrays(value);
+          })
+        }
+        return data;
+      },
+      toArrays(item) {
+        let _this = this;
+        if (item.child && item.child.length > 0) {
+          item.children = item.child;
+          Array.from(item.children).forEach((value) => {
+            if (value.child && value.child.length > 0)
+              _this.toArrays(value);
+          })
+        }
+      },
+      toTree(data) {
+        let result = []
+        if (!Array.isArray(data)) {
+          return result
+        }
+        data.forEach(item => {
+          delete item.child;
+        });
+        let map = {};
+        data.forEach(item => {
+          map[item.id] = item;
+        });
+        data.forEach(item => {
+          let parent = map[item.parentClientId];
+          if (parent) {
+            (parent.children || (parent.children = [])).push(item);
+          } else {
+            result.push(item);
+          }
+        });
+        console.log(result);
+        return result;
+      },
+      emptyData() {
+        console.log('+++++_+++++_')
+        this.company = {
+          name: '',
+          phone: '',
+          address: '',
+          email: '',
+          birthday: '',
+          entryDate: '',
+          status: '',
+          departmentName: '',
+          departmentId: ''
+        }
+      }
+    },
+    computed: {
+      routes() {
+        return this.$store.state.routes
+      }
+    }
+  }
+</script>
+<style>
+  .el-dialog {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: 0 !important;
+    transform: translate(-50%, 0%);
+    max-height: calc(100% - 10px);
+
+    max-width: calc(100% - 10px);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .el-dialog > .el-dialog__body {
+    overflow: auto
+  }
+
+
+  .product-model-base {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    /*padding: 0 20px 20px 20px;*/
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+    box-sizing: border-box;
+    background-color: #E5EFF1;
+    /*position: absolute;*/
+  }
+
+  .product-model-item {
+    /*box-sizing: border-box;*/
+    height: 140px;
+    width: 140px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 10px;
+    color: #ffffff;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    background-color: #2fc5da;
+    margin-left: 25px;
+    padding: 30px;
+    box-shadow: 2px 4px 20px #005377;
+    cursor: pointer;
+  }
+
+  .stamp {
+    color: #2783ca;
+  }
+
+  .image-slot {
+    height: 200px;
+    width: 300px;
+    border: 1px solid red;
+    background: #f5f7fa;
+    color: #909399;
+  }
+
+  .avatar-uploader .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .avatar-uploader .el-upload:hover {
+    border-color: #409EFF;
+  }
+
+  .avatar-uploader-icon {
+    font-size: 28px;
+    color: #8c939d;
+    width: 178px;
+    height: 178px;
+    line-height: 178px;
+    text-align: center;
+  }
+
+  .avatar {
+    width: 178px;
+    height: 178px;
+    display: block;
+  }
+
+  .el-input__inner {
+    -webkit-appearance: none;
+    background-color: #FFF;
+    background-image: none;
+    border-radius: 4px;
+    /*border: 1px solid #DCDFE6;*/
+    border: none;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #606266;
+    display: inline-block;
+    font-size: inherit;
+    height: 40px;
+    line-height: 40px;
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    width: 100%;
+  }
+
+  .el-input__inner:focus {
+    -webkit-appearance: none;
+    background-color: #FFF;
+    background-image: none;
+    border-radius: 4px;
+    border: 1px solid #66B1FF;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #606266;
+    display: inline-block;
+    font-size: inherit;
+
+
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    width: 100%;
+  }
+
+  .el-input--prefix .el-input__inner:focus {
+    padding-left: 30px;
+  }
+
+  .el-textarea__inner {
+    width: 200px;
+    border: none;
+  }
+
+  .el-textarea__inner:focus {
+    display: block;
+    resize: vertical;
+    padding: 5px 15px;
+    line-height: 1.5;
+    -webkit-box-sizing: border-box;
+    width: 100%;
+    font-size: inherit;
+    color: #606266;
+    background-color: #FFF;
+    background-image: none;
+    border: 1px solid #66B1FF;
+    border-radius: 4px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+  }
+
+  .el-input__icon:after {
+    display: none;
+  }
+
+</style>

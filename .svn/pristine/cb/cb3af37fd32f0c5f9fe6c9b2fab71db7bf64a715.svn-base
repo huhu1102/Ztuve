@@ -1,0 +1,48 @@
+<template>
+  <div>
+    <el-tabs v-model="activeName" type="border-card" @tab-click="handleClick"  style="margin-top: 10px">
+      <el-tab-pane label='半成品库'  name="midProduct">
+        <product ref="child"></product>
+      </el-tab-pane>
+      <el-tab-pane label="出库记录" name="midOutRecord" lazy>
+        <mpoutrecord  ref="child"></mpoutrecord>
+      </el-tab-pane>
+      <el-tab-pane label="入库记录" name="midInRecord"lazy>
+        <productinrecord  ref="child"></productinrecord>
+      </el-tab-pane>
+      <el-tab-pane label="采购确认" name="midConfirm"lazy>
+        <mpconfirm  ref="child"></mpconfirm>
+      </el-tab-pane>
+
+    </el-tabs>
+  </div>
+</template>
+<script>
+  import MidProduct from '@/components/produce/ProductMiddle'
+  import ProductMidInRecord from '@/components/produce/ProductMidInRecord'
+  import ProductMidOutRecord from '@/components/produce/ProductMidOutRecord'
+
+  import ProductMidConfirm from '@/components/produce/ProductMidConfirm'
+  export default {
+    data() {
+      return {
+        activeName: 'midProduct',
+      };
+    },
+    methods: {
+      handleClick(tab, event) {
+        console.log(tab, event);
+        console.log('被点了');
+        this.$refs.child.initData();
+      }
+    },
+    components: {
+      'product': MidProduct,
+      'productinrecord': ProductMidInRecord,
+      'mpoutrecord': ProductMidOutRecord,
+
+      'mpconfirm': ProductMidConfirm,
+    }
+  };
+
+</script>

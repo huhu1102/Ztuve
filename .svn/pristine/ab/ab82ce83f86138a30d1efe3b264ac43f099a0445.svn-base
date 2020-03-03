@@ -1,0 +1,892 @@
+<template>
+  <!--   发货记录-->
+  <div>
+
+    <div
+      >
+<!--      style="display: flex;flex-direction: row;justify-content: space-between; text-align: right;padding: 0 100px 10px 0;color: #2fc5da;cursor: pointer;"-->
+      <el-page-header  @back="backMange" style="padding: 16px;">
+        <div style="font-size: 14px;" slot="content">
+          <!--          生产计划-->
+          <div v-if="currentPlandetails.createDate">
+            {{currentPlandetails.createDate|formatDate}}日生产
+            计划号：{{currentPlandetails.planNo}}
+            <span
+              v-if="currentPlandetails.salesPlan&&currentPlandetails.salesPlan.client">
+          客户：{{currentPlandetails.salesPlan.client.name}}
+          </span>
+          </div>
+        </div>
+      </el-page-header>
+
+
+<!--      <div>-->
+
+<!--          <span class="fa fa-arrow-left"  style="font-size: 16px;color: #2fc5da;padding: 16px;">返回</span>-->
+
+<!--      </div>-->
+    </div>
+    <div>
+      <el-table
+                :data="plansRecord"
+                cell-style="padding:2px;font-size: 12px;"
+                fit
+                border
+                highlight-current-row>
+        <el-table-column
+          label="次数"
+          type="index"
+          width="80">
+        </el-table-column>
+        <el-table-column
+          align="left"
+          label="收货人">
+          <template slot-scope="scope">
+            <span v-if="scope.row.consignee">{{scope.row.consignee}}</span>
+            <span v-else>未知</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          align="left"
+          label="收货地址">
+          <template slot-scope="scope">
+            <span v-if="scope.row.address">{{scope.row.address}}</span>
+            <span v-else>未知</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          align="left"
+          label="本次发货数">
+          <template slot-scope="scope">
+            <span v-if="scope.row.planNumber">{{scope.row.planNumber}}</span>
+            <span v-else>未知</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          align="left"
+          label="累计发货数">
+          <!--          <template slot-scope="scope">-->
+          <!--            <span v-if="scope.row.planNumber">{{scope.row.planNumber}}</span>-->
+          <!--            <span v-else>未知</span>-->
+          <!--          </template>-->
+        </el-table-column>
+
+        <el-table-column
+          align="left"
+          label="发货时间">
+          <template slot-scope="scope">
+            {{scope.row.createDate|formatDateTime}}
+          </template>
+        </el-table-column>
+        <el-table-column
+          align="left"
+          label="货运部">
+          <template slot-scope="scope">
+           <span v-if="scope.row.client">
+            {{scope.row.client.name}}
+           </span>
+            <span v-else>未知</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          align="left"
+          label="货运部电话">
+          <template slot-scope="scope">
+           <span v-if="scope.row.phone">
+            {{scope.row.client.phone}}
+           </span>
+            <span v-else>未知</span>
+          </template>
+        </el-table-column>
+        <el-table-column
+          align="left"
+          label="状态">
+          <template slot-scope="scope">
+            {{scope.row.shipingStatus===1?'运输中':scope.row.shipingStatus===2?"已到达":scope.row.shipingStatus===3?"已签收":"未知"}}
+          </template>
+        </el-table-column>
+
+        <el-table-column
+          align="left"
+          label="操作">
+          <template slot-scope="scope">
+            <div style="margin-top: 10px; ">
+              <el-tooltip content="详情">
+                        <span class="fa fa-list shipping-bill-list-btn"
+                              @click="visitChange(scope.$index,scope.row)"
+                              size="mini">
+                        </span>
+              </el-tooltip>
+              <el-tooltip content="回访">
+                            <span class="fa fa-phone shipping-bill-list-btn"
+                                  type="primary"
+                                  @click="returnVisit(scope.row)"
+                                  style="margin-left: 5px;"
+                                  size="mini">
+                            </span>
+              </el-tooltip>
+            </div>
+          </template>
+        </el-table-column>
+      </el-table>
+    </div>
+
+    <div style="display: flex;justify-content: flex-end;margin: 2px">
+      <el-pagination background :page-size="10" :pager-count="11" :current-page="currentVePage"
+                     @current-change="currentVeChange" layout="prev, pager, next" :total="totalVeCount">
+      </el-pagination>
+    </div>
+    <!--     发货 生产经理发货确认-->
+    <el-dialog v-dialog-drag :title="dialogSendTitle" style="padding: 0px;" :close-on-click-modal="false"
+               :visible.sync="dialogSendVisible" @close="cancelSend" width="1150px">
+      <div style="width: 100% " v-if="dialogSendVisible">
+        <el-form :model="confirmData" :rules="rulesSend" ref="sendForm" size="mini" label-width="80px">
+
+          <div style="border: 1px solid #eeeeee;">
+            <!-- 客户信息 -->
+            <el-row>
+              <el-col :span="12">
+                <el-form-item label="物流名:" prop="clientId">
+                  <el-cascader
+                    class="send-input"
+                    placeholder="--选择物流公司--"
+                    :options="clients"
+                    :props="clientProps"
+                    v-model="confirmData.clientId"
+                    style="width: 400px;"
+                  ></el-cascader>
+                </el-form-item>
+              </el-col>
+
+
+              <el-col :span="6">
+                <el-form-item label="数量:" prop="planNumber">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="number"
+                    min="0"
+                    step="1000"
+                    class="send-input"
+                    placeholder="数量"
+                    v-model="confirmData.planNumber">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="件数:" prop="boxs">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="number"
+                    min="0"
+                    class="send-input"
+                    placeholder="件数"
+                    v-model="confirmData.boxs">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+
+            </el-row>
+            <el-row>
+              <el-col :span="6">
+                <el-form-item label="货名:" prop="cargoName">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    class="send-input"
+                    placeholder="货名"
+                    v-model="confirmData.cargoName">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="收货地:" prop="address">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    class="send-input"
+                    placeholder="收货地址"
+                    v-model="confirmData.address">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="收货人:" prop="consignee">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    class="send-input"
+                    placeholder="收货人"
+                    v-model="confirmData.consignee">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="电话:" prop="consigneePhone">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    min="0"
+                    class="send-input"
+                    placeholder="收货人电话"
+                    v-model="confirmData.consigneePhone">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+
+
+            </el-row>
+            <el-row>
+              <el-col :span="6">
+                <el-form-item label="方式:" prop="stype">
+                  <el-select class="send-input" v-model="confirmData.stype" filterable placeholder="----支付方式----">
+                    <el-option
+                      v-for="item in payCode"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+                    </el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="服务:" prop="serviceCode">
+                  <el-select v-model="confirmData.serviceCode" filterable placeholder="----请选择服务方式----"
+                             class="send-input">
+                    <el-option
+                      v-for="item in serviceCodes"
+                      :key="item.value"
+                      :label="item.label"
+                      :value="item.value">
+                    </el-option>
+                  </el-select>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="回单:" prop="receipt">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    class="send-input"
+                    placeholder="回单信息"
+                    v-model="confirmData.receipt">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="上门费:" prop="shortHaulMoney">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="number"
+                    min="0"
+                    step="10"
+                    class="send-input"
+                    placeholder="上门费"
+                    v-model="confirmData.shortHaulMoney">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+
+            </el-row>
+            <el-row>
+              <el-col :span="6">
+                <el-form-item label="发货人:" prop="consigner">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    class="send-input"
+                    placeholder="发货人"
+                    v-model="confirmData.consigner">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="电话:" prop="consignerPhone">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    class="send-input"
+                    placeholder="发货人电话"
+                    v-model="confirmData.consignerPhone">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="收货款:" prop="collFreight">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="number"
+                    min="0"
+                    class="send-input"
+                    placeholder="代收货款"
+                    v-model="confirmData.collFreight">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="大写:" prop="collFreightBig">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    :disabled="true"
+                    class="send-input"
+                    placeholder="代收货款大写"
+                    v-model="confirmData.collFreightBig">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+            </el-row>
+            <el-row>
+              <el-col :span="6">
+                <el-form-item label="单号:" prop="dispatchBillNo">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    class="send-input"
+                    placeholder="单号"
+                    v-model="confirmData.dispatchBillNo">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="运费:" prop="freights">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="number"
+                    min="0"
+                    class="send-input"
+                    placeholder="运费"
+                    v-model="confirmData.freights">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="详情:" prop="freightDetails">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="text"
+                    class="send-input"
+                    placeholder="运费详情"
+                    v-model="confirmData.freightDetails">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span="6">
+                <el-form-item label="备注:" prop="remarks">
+                  <el-input
+                    prefix-icon="el-icon-edit"
+                    type="textarea"
+                    class="send-input"
+                    placeholder="备注"
+                    v-model="confirmData.remarks">
+                  </el-input>
+                </el-form-item>
+              </el-col>
+
+            </el-row>
+          </div>
+        </el-form>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogSendVisible=false">取 消</el-button>
+        <el-button type="primary" @click="confirmAdd('sendForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+    <!--  新回访记录-->
+    <el-dialog v-dialog-drag :title="dialogVisitTitle" style="padding: 0;" :close-on-click-modal="false"
+               :visible.sync="dialogVisitVisible" @close="cancelvisit" width="1000">
+      <div style="width: 100%;font-size: 12px; " v-if="dialogVisitVisible">
+        <el-table
+          ref="xTable"
+          border
+          fit
+          width="100%"
+          size="mini"
+          tooltip-effect="light"
+          :model="visit"
+          highlight-current-row
+          :data="detailsList"
+        >
+          <el-table-column type="index" width="60">
+          </el-table-column>
+          <el-table-column show-overflow-tooltip label="回访时间">
+            <template slot-scope="scope">
+              <span v-show="scope.row.createDate">{{scope.row.createDate|formatDateTime}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column show-overflow-tooltip label="回访内容">
+            <template slot-scope="scope">
+              <el-input placeholder="请输入备注" v-show="scope.row.show"
+                        v-model="scope.row.note"></el-input>
+              <span v-show="!scope.row.show">{{scope.row.note}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="方式">
+            <template slot-scope="scope">
+              <el-select v-show="scope.row.show" v-model="scope.row.visitType">
+                <el-option
+                  v-for="item in visitTypeList"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+              <span v-show="!scope.row.show">{{scope.row.visitType==='weChat'?'微信':scope.row.visitType==='phone'?'电话':scope.row.visitType==='address'?'上门':'未知'}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="回访结果">
+            <template slot-scope="scope">
+              <el-select v-show="scope.row.show" v-model="scope.row.billstatus">
+                <el-option
+                  v-for="item in stateList"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+              <span v-show="!scope.row.show">{{scope.row.billstatus===1?'运输中':scope.row.billstatus===2?'到达':scope.row.billstatus==3?'签收':'未知'}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="回访者">
+            <template slot-scope="scope">
+              <span v-show="!scope.row.show"><span v-if="scope.row.recorder">{{scope.row.recorder.name}}</span></span>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="操作">
+            <template slot-scope="scope">
+              <template>
+                <el-tooltip content="编辑">
+                  <span class="fa fa-pencil btn-left" @click="editRowEvent(scope.$index,scope.row)"></span>
+                </el-tooltip>
+                <el-tooltip>
+                  <div slot="content">
+                    {{scope.row.show?"保存":'更新'}}
+                  </div>
+                  <span class="fa fa-save btn-left" @click="saveRowEvent(scope.row)"></span>
+                </el-tooltip>
+                <el-tooltip content="删除">
+                  <span class="fa fa-trash btn-left" style="color: red;" @click="deletSendRecord(scope.row)"></span>
+                </el-tooltip>
+              </template>
+            </template>
+          </el-table-column>
+        </el-table>
+
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogVisitVisible=false">取 消</el-button>
+        <el-button type="primary" @click="addViist('addVisitForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+<script>
+  export default {
+    name: 'ZtSend',
+    props: {
+      currentPlandetails: {
+        type: Object,
+        default: {}
+      },
+      plansRecord: {
+        type: Array,
+        default: [],
+      },
+      currentVePage: {
+        type: Number,
+        default: 1,
+      },
+      totalVeCount: {
+        type: Number,
+        default: -1,
+      },
+      clients: {
+        type: Array,
+        default: [],
+      },
+      // dialogSendTitle: {
+      //   type: String,
+      //   default: "发货单"
+      // },
+      // dialogSendVisible:{
+      //   type:Boolean,
+      //   default:false,
+      // },
+    },
+    data() {
+      return {
+        dialogVisitVisible: false,
+        visit: {
+          id: 0,
+          note: '',
+          billId: '',//发货记录id
+          billstatus: '',//状态
+          visitTypeList: '',
+        },
+
+        dialogVisitTitle: '回访记录',
+        dialogSendTitle: '发货单',
+        dialogSendVisible: false,
+        confirmData: {
+          id: 0,
+          shippingRequestDetailsId: 0,//发货请求详情ID
+          clientId: [],//货运部id
+          dispatchBillNo: '',//单号
+          boxs: '',//件数
+          consignee: '',//收货人
+          consigneePhone: '',//收货人电话
+          address: '',//收货地址
+          consigner: '',//发货人
+          consignerPhone: '',//发货人电话
+          remarks: '',//备注
+          cargoName: '',//货名
+          freights: "",//运费
+          shortHaulMoney: "",//上门费
+          freightDetails: "",//运费详情
+          collFreight: '',//代收货款
+          collFreightBig: '',//代收货款大写
+          serviceCode: '自提',//服务方式
+          receipt: '',//回单信息
+          totalMoney: '',//到站总应收
+          // userName:'',//代收货款大写
+          stype: '现金',//支付方式
+          planNumber: '',//发货数量
+        },
+        detailsList: [],
+        dialogSendVisible: false,
+        visitTypeList: [{
+          label: '微信',
+          value: 'weChat',
+        }, {
+          label: '电话',
+          value: 'phone',
+        }, {
+          label: '上门',
+          value: 'address',
+        }],
+        stateList: [{
+          label: '运输中',
+          value: 1,
+        }, {
+          label: '已到达',
+          value: 2,
+        }, {
+          label: '已签收',
+          value: 3,
+        }],
+        //回访记录表
+        rulesSend: {
+          clientId: [{required: true, message: '必须选:物流公司', trigger: 'blur'}],
+          planNumber: [{required: true, message: '必填：数量', trigger: 'blur'}],
+          box: [{required: true, message: '必填：件/箱', trigger: 'blur'}]
+        },
+        clientProps: {
+          value: 'id',
+          label: 'name',
+          children: 'child',
+          checkStrictly: true
+        },
+        currentVisitRow: {},
+        payCode: [{
+          value: '微信',
+          label: '微信'
+        }, {
+          value: '支付宝',
+          label: '支付宝'
+        }, {
+          value: '银行卡',
+          label: '银行卡'
+        }, {
+          value: '现金',
+          label: '现金'
+        }, {
+          value: '其他（备注）',
+          label: '其他（备注）'
+        }],
+        serviceCodes: [{
+          value: '送货回单',
+          label: '送货回单'
+        }, {
+          value: '自提',
+          label: '自提'
+        }],
+      }
+    },
+
+    methods: {
+      currentVeChange() {
+        this.currentVePage = currentChange;
+        console.log(this.currentVePage);
+        this.loadData();
+      },
+      loadData() {
+        this.$emit("load_data");
+      },
+      visitChange(index, row) {
+        console.log(row);
+        console.log("clients" + this.clients)
+        this.confirmData.clientId = row.clientId;
+        this.confirmData.cargoName = row.cargoName;
+        this.confirmData.planNumber = row.planNumber;
+        this.confirmData.address = row.address;
+        this.confirmData.consignee = row.consignee;
+        this.confirmData.consigneePhone = row.consigneePhone;
+        this.confirmData.stype = row.stype;
+        this.confirmData.serviceCode = row.serviceCode;
+        this.confirmData.receipt = row.receipt;
+        this.confirmData.shortHaulMoney = row.shortHaulMoney == null ? 0 : row.shortHaulMoney;
+        this.confirmData.freightDetails = row.freightDetails;
+        this.confirmData.consigner = row.consigner;
+        this.confirmData.consignerPhone = row.consignerPhone;
+        this.confirmData.collFreight = row.collFreight == null ? 0 : row.collFreight;
+        this.confirmData.collFreightBig = row.collFreightBig;
+        this.confirmData.dispatchBillNo = row.dispatchBillNo;
+        this.confirmData.freights = row.freights == null ? 0 : row.freights;
+        this.confirmData.boxs = row.boxs;
+        this.confirmData.remarks = row.remarks;
+        this.confirmData.id = row.id;
+        this.dialogSendVisible = true;
+      },
+      returnVisit(row) {
+        this.visit.billId = row.id;
+        this.visit.billstatus = row.shipingStatus;
+        let billId = row.id;
+        this.currentPhoneRecord = row;
+        // this.currentVisitRow=row.planDetails;
+        this.tableLoading = true;
+        var date = this.formatDateTime(new Date());
+        console.log(date);
+        this.loadRecord();
+
+      },
+      deletSendRecord(row) {
+
+        this.$confirm('此操作将删除该纪录, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doDeletSendRecord(row.id);
+        }).catch(() => {
+        });
+      },
+      doDeletSendRecord(ids) {
+        let _this = this;
+        this.getRequest("/returnvisit/delete?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status === 200 && resp.data.success) {
+            _this.loadRecord();
+          } else {
+            _this.$message({type: 'info', message: '删除失败！'})
+          }
+        })
+
+      },
+      backMange() {
+        console.log("goback")
+        this.$emit('backMange', 'goBack');
+      },
+      cancelvisit() {
+        this.visit = {
+          note: '',
+          id: 0,
+          billId: '',//发货记录id
+          billstatus: '',//状态
+          visitType: ''
+        }
+      },
+      //发货确认保存
+      confirmAdd(sendForm) {
+
+        let _this = this;
+        let please = _.cloneDeep(this.confirmData);
+        please.clientId = (please.clientId + '').split(",");
+        please.clientId = parseInt(please.clientId[please.clientId.length - 1]);
+        console.log(please.id);
+        this.$refs[sendForm].validate((valid) => {
+          if (valid) {
+            if (please.id) {
+              //更新
+              this.tableLoading = true;
+              this.postRequest("/shippingBill/update", please).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200) {
+                  _this.dialogSendVisible = false;
+                  _this.loadData();
+                  _this.cancelSend();
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              this.postRequest("/shippingBill/add", please).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200 && resp.data.success) {
+                  _this.dialogSendVisible = false;
+                  _this.loadData();
+                  _this.cancelSend();
+                } else {
+                  Message("添加失败")
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+
+
+      },
+      cancelSend() {
+        this.confirmData = {
+          id: 0,
+          shippingRequestDetailsId: 0,//发货请求详情ID
+          clientId: [],//货运部id
+          dispatchBillNo: '',//单号
+          boxs: '',//件数
+          consignee: '',//收货人
+          consigneePhone: '',//收货人电话
+          address: '',//收货地址
+          consigner: '',//发货人
+          consignerPhone: '',//发货人电话
+          remarks: '',//备注
+          cargoName: '',//货名
+          freights: "",//运费
+          shortHaulMoney: "",//上门费
+          freightDetails: "",//运费详情
+          collFreight: '',//代收货款
+          collFreightBig: '',//代收货款大写
+          serviceCode: '',//服务方式
+          receipt: '',//回单信息
+          totalMoney: '',//代收货款大写
+          // userName:'',//代收货款大写
+          stype: '',//支付方式
+          startDate: '',
+          endDate: '',
+        }
+      },
+      editRowEvent(index, row) {
+        // this.$refs.xTable.setActiveRow(row)
+        console.log("index" + index)
+        console.log("row" + row)
+        if (row.id != 0) {
+          this.visit.id = row.id;
+          this.visit.billstatus = row.billstatus;
+          this.visit.note = row.note;
+          this.visit.billId = row.billId;
+          this.visit.visitType = row.visitType;
+          this.visit.createDate = row.createDate;
+        }
+        row.show = true;
+      },
+      saveRowEvent(row) {
+
+        let _this = this;
+        if (!row.show) {
+          return;
+        }
+        if (row.billstatus === null || row.billstatus === '') {
+          Message("请选择状态！");
+          return false;
+        }
+        this.visit.billstatus = row.billstatus;
+        this.visit.note = row.note;
+        this.visit.visitType = row.visitType;
+        if (row.id) {
+          //更新
+          this.createDate = row.createDate;
+          this.visit.id = row.id;
+          this.tableLoading = true;
+          this.postRequest("/returnvisit/add", this.visit).then(resp => {
+            _this.tableLoading = false;
+            if (resp && resp.status === 200 && resp.data.success) {
+              row.show = false;
+              _this.loadRecord();
+            }
+          })
+        } else {
+          //添加
+          this.tableLoading = true;
+          this.postRequest("/returnvisit/add", this.visit).then(resp => {
+            _this.tableLoading = false;
+            if (resp && resp.status === 200 && resp.data.success) {
+              row.show = false;
+              _this.loadRecord();
+            } else {
+              Message("添加失败")
+            }
+          })
+        }
+      },
+      deletSendRecord(row) {
+
+        this.$confirm('此操作将删除该纪录, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doDeletSendRecord(row.id);
+        }).catch(() => {
+        });
+      },
+      doDeletSendRecord(ids) {
+        let _this = this;
+        this.getRequest("/returnvisit/delete?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status === 200 && resp.data.success) {
+            _this.loadRecord();
+          } else {
+            _this.$message({type: 'info', message: '删除失败！'})
+          }
+        })
+
+      },
+      loadRecord() {
+        console.log('sendnadsfnalsdfasdlmnflkasdmfa;l++++99999')
+        let _this = this;
+
+        this.getUrl = "/returnvisit/findByBillId/" + this.currentPhoneRecord.id;
+        this.getRequest(this.getUrl)
+          .then(resp => {
+            this.tableLoading = false;
+            if (resp && resp.status === 200 && resp.data.success) {
+              console.log(_this.detailsList);
+              _this.detailsList = resp.data.data || [];
+              _this.detailsList.push({
+                billstatus: 1,
+                note: '',
+                createDate: new Date(),
+                show: true,
+                billId: 0,
+                visitType: 'phone',
+                id: 0,
+              });
+              _this.detailsList.map(item => {
+                item['show'] = false;
+              })
+
+              _this.dialogVisitVisible = true;
+            }
+          })
+      },
+    }
+
+  }
+
+</script>
+<style scoped>
+  .send-input {
+    width: 160px;
+  }
+
+  .btn-left {
+    color: #2fc5da;
+    margin-left: 10px;
+  }
+  .shipping-bill-list-btn {
+    padding: 3px 4px 3px 4px;
+    color: #2fc5da;
+    cursor: pointer
+  }
+</style>

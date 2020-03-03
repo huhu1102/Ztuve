@@ -1,0 +1,127 @@
+<template>
+  <div>
+
+    <el-container style="display: flex;flex-direction: column; font-size: 14px;">
+      <div style="margin-left:20px;line-height: 30px;; height: 30px; text-align: start;padding-left: 20px;border-left: 4px solid red;font-weight: 700;">
+        产品管理
+      </div>
+      <el-main class="product-base">
+        <div class="product-item"  v-for="item in  stepOpt" :key="item.id" @click="detials(item)">
+          <div class="item-left">
+            <div style="margin:60px 0;font-size: 16px">
+              <span class="fa fa-product-hunt" style="display: block;"></span>
+              <span style="display: block;">{{item.name}}</span>
+            </div>
+          </div>
+          <div class="item-right">
+          </div>
+        </div>
+      </el-main>
+    </el-container>
+  </div>
+</template>
+<script>
+  // import Product from '@/components/produce/Product'
+  // import ProductSpec from '@/components/produce/ProductSpec'
+  // import ProductColor from '@/components/produce/ProductColor'
+  // import ProductStep from '@/components/produce/ProductStep'
+  // import ProductProgress from '@/components/produce/ProductProgress'
+  // import axios from 'axios'
+  export default {
+    data() {
+      return {
+        // activeName: 'product',
+      };
+    },
+    methods: {
+      // test(){
+      //   var file='';//想法获取文件 类型为Object file
+      //   var token='14a1347f412b39f'  //token换成从缓存获取
+      // var transactionId='';
+      //   axios.post(url,{file:file,transactionId:transactionId},{header:{
+      //     "content-Type":"multipart/form-data",
+      //      "token":token,
+      //   }}).then(resp=>{
+      //     //resp 处理
+      //   })
+      // },
+      detials(e){
+        this.$router.replace({
+          path: e.path
+        });
+      }
+    },
+
+
+    components: {
+
+
+
+
+      // 'Products': Product,
+      // 'specs': ProductSpec,
+      // 'color': ProductColor,
+      // 'step': ProductStep,
+      // 'gress': ProductProgress,
+    },
+    computed: {
+      stepOpt(){
+        let currentCmp={};
+        console.log(this.$store.state.routes);
+        this.$store.state.routes.forEach(function (va) {
+            if(va.path==='/productBase'){
+              currentCmp=va;
+            }
+        });
+        console.log(currentCmp.id);
+         let currentlist=[];
+        this.$store.state.routes.forEach(function (va) {
+          if(va.parentId===currentCmp.id){
+            currentlist.push(va);
+          }
+        });
+        console.log(currentlist);
+        return currentlist||[];
+      }
+    },
+  };
+
+</script>
+<style>
+ .product-base{
+   width: 100%;
+   height: auto;
+   display: flex;
+   padding: 0 20px 20px 20px;
+   flex-direction: row;
+   flex-wrap: wrap;
+   justify-content: space-between;
+   box-sizing: border-box;
+
+ }
+  .product-item{
+    box-sizing: border-box;
+    height: 140px;
+    width: 560px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 10px;
+    color: #ffffff;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    flex-direction: row;
+    justify-content: stretch;
+    background-color: blanchedalmond;
+  }
+  .item-left{
+    height: 140px;
+    width: 140px;
+    background-color: #2fc5da;
+  }
+  .item-right{
+    height: 140px;
+    width: 420px;
+    background-color: #F5F6FA;
+  }
+</style>

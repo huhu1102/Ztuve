@@ -1,0 +1,2338 @@
+<template>
+  <!--  销售计划-->
+  <div>
+    <el-container style="display: flex;flex-direction: column;justify-content: flex-start;">
+      <div style="margin: 0;padding: 0;">
+        <el-tabs style="background-color: #ffffff" v-model="activePanel" type="card" tab-position="top"
+                 @tab-click="handleClick">
+          <el-tab-pane label="新订单" name='1'></el-tab-pane>
+          <el-tab-pane label="汇总" name='7'></el-tab-pane>
+        </el-tabs>
+      </div>
+      <div class="divce-mode">
+        <!--销售计划 -->
+        <div style="padding: 0;margin: 0;display: flex;flex-direction: row;justify-content: space-between;">
+          <div>
+            <el-button slot="reference" type="primary" size="mini" class="send-head-right-btn"
+                       @click="showAdvanceSearchView"><i class="fa fa-lg send-head-left-btn"
+                                                         v-bind:class="[advanceSearchViewVisible ? faangledoubleup:faangledoubledown]"
+            ></i>高级搜索
+            </el-button>
+            <el-button size="mini" type="primary" @click="showChanges">批量选择</el-button>
+            <el-button size="mini" type="primary" @click="isbatch=true">批量修改</el-button>
+          </div>
+          <div class="send-head-right-btn">
+            <el-button type="success" v-if="showDetaillist" size="mini" icon="el-icon-back" @click="back">返回</el-button>
+          </div>
+        </div>
+<!--        <div>-->
+<!--          <div class="triangle">-->
+<!--            shuangand;nga-->
+<!--          </div>-->
+<!--          <div class="trapezoid">-->
+
+<!--            <div class="part1"></div>-->
+<!--            <div class="part2"></div>-->
+<!--            <div class="part3"></div>-->
+<!--          </div>-->
+<!--          <div class="box">-->
+<!--            <div class="inner">hehehe</div>-->
+<!--          </div>-->
+<!--        </div>-->
+
+        <el-main class="send-main">
+          <transition name="slide-fade">
+            <div class="send-main-div" v-show="advanceSearchViewVisible">
+              <el-row>
+                <el-col :span='8'>
+                  产品:
+                  <el-input prefix-icon="el-icon-edit" v-model="keyproductName" size="mini" class="send-input"
+                            placeholder="产品名称。。。">
+                  </el-input>
+                </el-col>
+                <el-col :span='8'>
+                  客户:
+                  <el-input prefix-icon="el-icon-edit" v-model="keyClientName" size="mini" class="send-input"
+                            placeholder="客户。。。">
+                  </el-input>
+                </el-col>
+                <el-col :span='8'>
+                  操作人:
+                  <el-input prefix-icon="el-icon-edit" v-model="keyempName" size="mini" style="width: 200px"
+                            placeholder="员工名。。。">
+                  </el-input>
+                </el-col>
+              </el-row>
+              <div class="block">
+                <el-date-picker v-model="value5"
+                                type="datetimerange"
+                                :picker-options="pickerOptions2"
+                                range-separator="至"
+                                start-placeholder="开始日期"
+                                end-placeholder="结束日期"
+                                align="right"
+                                clearable
+                                @clear="clearDates">
+                </el-date-picker>
+              </div>
+            </div>
+          </transition>
+          <div v-show="!showDetaillist">
+            <div class="main-salse-progress-plan flex-sales">
+              <div class="item-sales" @click="addAndFlushData">
+                <div class="add">
+                  <el-tooltip effect="light" content="新建" placement="top-start">
+                    <i>+</i>
+                  </el-tooltip>
+                  <!--<span style="font-size: 12px;">新建</span>-->
+                </div>
+              </div>
+              <div class="item-sales "
+                   v-for="(plandetail,index) in plans"
+                   @mouseover="plandetail.onhover=true"
+                   @mouseout="plandetail.onhover=false"
+                   v-bind:key="plandetail.id ">
+                <div class="in-sales-show angle" :style="{backgroundColor:plandetail.bgColor}">
+
+                  <div class="compay-ifor " @click="chooseShop(plandetail)">
+
+                    <div>
+                      <div class="text-alight">
+                        <div style="padding: 6px 0 0 5px;">编号</div>
+                        <!--                      {{plandetail.sNumber}}-->
+                        <div class="plan-num-companyName">
+                          {{plandetail.clientName}}
+                        </div>
+                        <div
+                          style="padding: 0 16px;color: #2E2E2F;text-align: right; text-overflow: ellipsis;overflow: hidden; white-space: nowrap;">
+                          ┈┈{{plandetail.parentName}}
+                        </div>
+                      </div>
+                      <div class="text-alight" style="text-align: center;">
+                        {{plandetail.productName}}
+                        <!--                      |{{plandetail.specName}}-->
+                        <!--                      |{{plandetail.colorName}}-->
+                      </div>
+                    </div>
+                    <el-checkbox style="padding-left: 10px;" v-show="plandetail.toChange"
+                                 v-model="plandetail.checked"></el-checkbox>
+                  </div>
+                  <div class="plan-num">
+                    <div class="plan-num-left">
+                      <div style="width: 140px;">
+                        <div style="padding: 30px 0 0 4px;font-size: 12px;">
+                          <div class="plan-num-detail">
+                            <span class="detail-text">总数:</span>
+                            <span class="detail-text">{{plandetail.expecNum}}</span>
+                          </div>
+                          <div class="plan-num-detail">
+                            <span class="detail-text">已下发:</span>
+                            <span class="detail-text">{{plandetail.sendNum}}</span>
+                          </div>
+                          <div class="plan-num-detail">
+                            <span class="detail-text">未下发:</span>
+                            <span class="detail-text">{{plandetail.expecNum-plandetail.sendNum}}</span>
+                          </div>
+                        </div>
+                        <div v-if="plandetail.recordStr">{{plandetail.recordStr}}</div>
+
+
+                      </div>
+                      <div
+                        style="width:280px;height:120px;display: flex;flex-direction: column;justify-content: start; padding:0 8px; ">
+<!--                         <div style="position: absolute;padding-top: 10px; opacity: 0.6; height:100px;width: 280px; z-index: 20; background-color: yellow">-->
+                        <div class="trapezoid"v-if="plandetail.expectLevel" >
+                          <div class="part1" :style="{borderBottom:plandetail.botomeColor}" ></div>
+                          <div class="part2" :style="{backgroundColor:plandetail.bgColor}" v-if="plandetail.expectLevel===1">紧急</div>
+                          <div class="part2" :style="{backgroundColor:plandetail.bgColor}" v-if="plandetail.expectLevel===2">加急</div>
+                          <div class="part2" :style="{backgroundColor:plandetail.bgColor}" v-if="plandetail.expectLevel===3">备货</div>
+                          <div class="part2" :style="{backgroundColor:plandetail.bgColor}" v-if="plandetail.expectLevel===4">正常</div>
+                          <div class="part2" :style="{backgroundColor:plandetail.bgColor}" v-if="plandetail.expectLevel===5">特殊</div>
+                          <div class="part3" :style="{borderBottom:plandetail.botomeColor}"></div>
+                        </div>
+<!--                         </div>-->
+                        <div class="plan-note" v-if="plandetail.note">
+                          <!--                          <div style="padding: 5px 0;">备注：</div>-->
+                          <div class="plan-notetext">
+                            备注： {{plandetail.note}}
+                          </div>
+                        </div>
+                        <div class="plan-note" v-else>
+                          <div class="plan-notetext">
+                            备注： 暂无
+                          </div>
+                        </div>
+                        <!--  操作按钮-->
+                        <div
+                          style="flex-direction: row; display: flex;justify-content: flex-end; height: 18px;line-height: 20px;">
+                          <div>
+                            <el-tooltip class="item" effect="dark" content="发货请求" placement="top-start">
+                              <span
+                                class="fa fa-send"
+                                @click="deliveryRequest(index,plandetail)"
+                                style="padding: 2px;margin: 4px"
+                              ></span>
+                            </el-tooltip>
+                            <el-tooltip class="item" effect="dark" content="编辑" placement="top-start">
+                        <span
+                          class="fa fa-edit"
+                          @click="showEditEmpView(index,plandetail)"
+                          style="padding: 2px;margin: 4px"
+                        >
+                        </span></el-tooltip>
+
+                          </div>
+                          <div>
+                            <el-tooltip class="item" effect="dark" content="删除" placement="top-start">
+                        <span
+                          class="fa fa-trash"
+                          @click="cancelPlan(plandetail)"
+                          style="padding: 2px;margin: 4px"
+                        >
+                        </span></el-tooltip>
+                          </div>
+                          <div>
+                            <el-tooltip class="item" effect="dark" content="查看" placement="top-start">
+                        <span
+
+                          class="fa fa-eye"
+                          @click="showplanDetail(plandetail)"
+                          style="padding:2px;margin: 4px"
+                          size="mini">
+                        </span>
+                            </el-tooltip>
+
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+
+                </div>
+              </div>
+              <div style="text-align: center;width: 100%;" v-if="plans.length===0">
+                暂无数据
+              </div>
+            </div>
+
+            <div class="page-tool">
+              <el-pagination background :page-size="10" :pager-count="11" :current-page="currentPage"
+                             @current-change="currentChange" layout="prev, pager, next" :total="totalCount">
+              </el-pagination>
+            </div>
+          </div>
+          <div v-show="showDetaillist">
+            <el-table :data="plandetaillist" highlight-current-row fit border style="width: 100%">
+              <el-table-column align="left" label="客户名">
+                <template slot-scope="scope">
+                  <div v-if="scope.row.salesPlan.client">
+                    {{scope.row.salesPlan.client.name}}
+                  </div>
+                  <div v-else>
+                    无
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column align="left" label="产品名称">
+                <template slot-scope="scope">
+                  {{scope.row.salesPlan.product.producteName}}
+                </template>
+              </el-table-column>
+              <el-table-column align="left" label="计划量/完成量">
+                <template slot-scope="scope">{{ scope.row.actualQuantity}}/{{scope.row.accomplishNO}}枚
+                </template>
+              </el-table-column>
+              <el-table-column prop="status" :formatter="statusFormat" align="left" label="状态">
+              </el-table-column>
+              <el-table-column prop="note" align="left" label="备注">
+              </el-table-column>
+            </el-table>
+            <div style="display: flex;justify-content: flex-end;margin: 2px">
+              <el-pagination background :page-size="10" :pager-count="11" :current-page="currentDetailPage"
+                             @current-change="currentDetailChange" layout="prev, pager, next" :total="totalDatailPage">
+              </el-pagination>
+            </div>
+          </div>
+        </el-main>
+      </div>
+      <!-- 模块展示   -->
+      <!--      <el-container v-else class="product-model-base">-->
+      <!--        <div class="product-model-item" v-for="item in typeItems" :key="item.value" @click="used(item)">-->
+      <!--          <span class="fa fa-bomb"></span>-->
+      <!--          <span>{{item.name}}</span>-->
+      <!--          &lt;!&ndash;          <span>（{{item.num}}）</span>&ndash;&gt;-->
+      <!--        </div>-->
+      <!--      </el-container>-->
+    </el-container>
+    <!--    title="销售计划信息"-->
+    <!--    ZtDialog-->
+    <zt-dialog :is-show="showDialog" height-num='590' wid-num='450' left-site='400' zt-dialog-class="myDialogStyle"
+               @on-close="closeDialog">
+      <div slot="header" class="zt-dialog-head">
+        <span style="line-height: 24px;box-sizing: border-box;text-align: left;">销售计划信息</span>
+        <span @click="closeDialog" class="colosBtn">×</span>
+      </div>
+      <div class="zt-dialog-main" slot="main">
+        <!--        这里是内容插入到子组件的slot的name为main里面，可以在父组件中添加class定义样式，事件类型等各种操作-->
+        <div style="width: 100% " v-if="showDialog">
+          <div style="text-align: left;">
+          </div>
+          <el-form :model="detail" class="sale-form" ref="addEmpForm" size="mini" label-width="120px">
+            <Cascader
+              :data="clients"
+              trigger="hover"
+              change-on-select
+              :not-found-text="conName"
+              v-model="detail.clientId"
+              size="small"
+              @on-change="handleClientChange">
+              <div
+                style="font-size: 12px; width: 100%;min-height: 60px; display:inline-flex;flex-direction: row;justify-content:space-between;">
+                <a style="padding: 13px 13px 0 0;text-align: right;display: inline-block;width: 170px;"
+                   href="javascript:void(0)">选择客户:</a>
+                <div style="display: flex;flex-direction: column;justify-content: flex-start;width: 100%;">
+
+                  <div style="width: 100%;padding: 13px 13px 0 16px;text-align: left;" v-for="item in noClient"
+                       :key="item.value"> {{item.label}}
+                  </div>
+                </div>
+              </div>
+            </Cascader>
+            <el-form-item style="margin-top: -5px;" label="型号:" prop="productNo">
+              <el-input prefix-icon="el-icon-edit"
+                        v-model="detail.productNo"
+                        size="mini"
+                        @focus="showMaterial"
+                        placeholder="型号"></el-input>
+            </el-form-item>
+            <el-form-item style="margin-top: -5px;" label="数量:"
+                          prop="quantity">
+              <el-input type='number'
+                        placeholder="原料数量(枚/kg)"
+                        size="mini"
+                        refix-icon="el-icon-edit"
+                        min="0" step="1000"
+                        v-model="detail.quantity"
+                        style="background: #fff;">
+              </el-input>
+            </el-form-item>
+            <el-form-item style="margin-top: -5px;" label="规格:" prop="specsId">
+              <el-select v-model="detail.specsId"
+                         size="mini"
+                         style="width: 100%;"
+                         placeholder="请选择规格">
+                <el-option
+                  v-for="item in specslist"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item style="margin-top: -5px;" label="颜色:" prop="colorId">
+              <el-select v-model="detail.colorId"
+                         style="width: 100%;"
+                         size="mini"
+                         placeholder="--请选择色彩--">
+                <el-option
+                  v-for="item in colorlist"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <div style="height: 10px;text-align: center;line-height: 10px;">
+              <hr>
+            </div>
+            <el-form-item label="等级:" prop="expectLevel">
+              <el-select v-model="detail.expectLevel"
+                         filterable
+                         style="width: 100%;"
+                         placeholder="--请选择等级--">
+                <el-option
+                  v-for="item in options"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item style="margin-top: -5px;" label="备注:" prop="notes">
+              <el-input prefix-icon="el-icon-edit" v-model="detail.notes" size="mini"
+                        style="width: 200px;"
+                        :rows="5"
+                        type="textarea" placeholder="备注。。。"></el-input>
+            </el-form-item>
+            <div>
+            </div>
+          </el-form>
+        </div>
+        <div class="zt-dialog-footer">
+          <el-button style="font-size: 12px;" @click="showDialog=false">取 消</el-button>
+          <el-button style="font-size: 12px;" type="primary" @click="add('addEmpForm')">确 定</el-button>
+        </div>
+      </div>
+    </zt-dialog>
+    <zt-dialog :is-show="isbatch" height-num='400' wid-num='450' left-site='400' zt-dialog-class="myDialogStyle"
+               @on-close="closeDialog">
+      <div slot="header" class="zt-dialog-head">
+        <span style="line-height: 24px;box-sizing: border-box;text-align: left;">批量修改</span>
+        <span @click="closeDialog" class="colosBtn">×</span>
+      </div>
+      <div class="zt-dialog-main" slot="main">
+        <div style="width: 100% " v-if="isbatch">
+          <div style="text-align: left;">
+          </div>
+
+          <div style="height: 10px;text-align: center;line-height: 10px;">
+          </div>
+          <div style=" font-size:12px;width: 100%; display: inline-flex;flex-direction: row;">
+           等级:
+            <el-select size="mini" v-model="expectLevel"
+                       filterable
+
+                       style="width:200px;"
+                       placeholder="--请选择订单等级--">
+              <el-option
+                v-for="item in options2"
+                :key="item.value"
+                :label="item.label"
+                :value="item.value">
+              </el-option>
+            </el-select>
+          </div>
+
+          <div>
+          </div>
+        </div>
+        <div class="zt-dialog-footer">
+          <el-button style="font-size: 12px;" @click="isbatch=false">取 消</el-button>
+          <el-button style="font-size: 12px;" type="primary" @click="batchEdit">确 定</el-button>
+        </div>
+      </div>
+    </zt-dialog>
+    <el-dialog :title="dialogMaterialTitle" style="padding: 0px;" :close-on-click-modal="false"
+               :visible.sync="dialogMaterialVisible" @close="cancelchoose" width="650px">
+      <div style="width: 100% " v-if="dialogMaterialVisible">
+        <div style="padding: 0px;display:flex;justify-content:space-between;align-items: center">
+          <!-- 产品的搜索   -->
+          <div style="display: inline">
+            <el-input placeholder="通过名称搜索,记得回车哦..." clearable @change="keywordsMaterialChange"
+                      style="width: 300px;margin: 0px;padding: 0px;" size="mini"
+                      @keyup.enter.native="searchMaterialData"
+                      prefix-icon="el-icon-search" v-model="keyMaterialwords">
+            </el-input>
+            <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search"
+                       @click="searchMaterialData">搜索
+            </el-button>
+          </div>
+        </div>
+        <!-- 产品表 -->
+        <el-table :data="materialList" fit border style="width: 100%" @row-click="showRow">
+          <el-table-column align="center" fixed label="当前" width="80">
+            <template slot-scope="scope">
+              <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>
+            </template>
+          </el-table-column>
+          <el-table-column prop="specName" align="left" fixed label="规格">
+          </el-table-column>
+          <el-table-column prop="proType" align="left" fixed label="型号">
+          </el-table-column>
+          <el-table-column prop="colorName" align="left" fixed label="颜色">
+          </el-table-column>
+
+        </el-table>
+        <div style="display: flex;justify-content: flex-end;margin: 2px">
+          <el-pagination background :page-size="10" :pager-count="11" :current-page="currentMaterialPage"
+                         @current-change="currentMaterialChange" layout="prev, pager, next" :total="totalMaterialCount">
+          </el-pagination>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogMaterialVisible=false">取 消</el-button>
+        <el-button type="primary" @click="chooseMaterial()">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog
+      title="记录集"
+      :close-on-click-modal="false"
+      :visible.sync="dialogRecordVisible"
+      @close.stop="cancelRecord"
+      width="450px">
+      <div style="width: 100% " v-if="dialogRecordVisible"></div>
+      <div v-if="recordStr.length">
+        <div style="padding: 0 16px;" v-for="record in recordStr" :key="record">
+          <span>{{record}}</span>
+        </div>
+      </div>
+      <div v-else>暂无记录</div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogRecordVisible=false">取 消</el-button>
+        <!--        <el-button type="primary" @click="add('addEmpForm')">确 定</el-button>-->
+      </div>
+    </el-dialog>
+    <el-dialog  :title="dialogsendTitle" style="padding: 0px;" :close-on-click-modal="false"
+               :visible.sync="dialogSendVisible" @close="cancelOpt"  width="550px">
+      <div style="width: 100% " v-if="dialogSendVisible">
+        <el-form :model="sendDetail" :rules="rules" ref="addSend" size="mini" label-width="90px">
+
+          <div style="border: 1px solid #eeeeee;">
+            <!-- 客户信息 -->
+            <el-row>
+                发货数量:<el-input
+                  prefix-icon="el-icon-edit"
+                  type="number"
+                  min="0"
+                  size="mini"
+                  style="width: 200px"
+                  placeholder="发货数量"
+                  v-model="sendDetail.planNumber">
+                </el-input>
+            </el-row>
+            <el-row style="padding-top: 10px;">
+                收货人员:<el-input
+                  prefix-icon="el-icon-edit"
+                  type="text"
+                  style="width: 200px"
+                  size="mini"
+                  placeholder="收货人"
+                  v-model="sendDetail.receiver">
+                </el-input>
+            </el-row>
+            <el-row style="padding-top: 10px;">
+                联系方式:<el-input
+                  prefix-icon="el-icon-edit"
+                  type="text"
+                  size="mini"
+                  style="width: 200px"
+                  placeholder="收货人电话"
+                  v-model="sendDetail.relation">
+                </el-input>
+            </el-row>
+            <el-row style="padding-top: 10px;">
+                收货方式:<el-select v-model="sendDetail.receiveWay"
+                                size="mini"
+                                filterable placeholder="----请选择----"
+                                style="width: 200px;">
+                  <el-option
+                    v-for="item in sendOptions"
+                    :key="item.value"
+                    :label="item.label"
+                    size="mini"
+                    :value="item.value">
+                  </el-option>
+                </el-select>
+            </el-row>
+            <el-row style="padding-top: 10px;">
+                收货地址:<el-input
+                  prefix-icon="el-icon-edit"
+                  type="text"
+                  size="mini"
+                  style="width: 200px"
+                  placeholder="收货详细地址"
+                  v-model="sendDetail.destination">
+                </el-input>
+            </el-row>
+
+            <el-row style="padding-top: 10px;">
+                备注条款:<el-input
+                  prefix-icon="el-icon-edit"
+                  type="textarea"
+                  size="mini"
+                  style="width: 200px"
+                  placeholder="备注。。"
+                  v-model="sendDetail.note">
+                </el-input>
+            </el-row>
+
+          </div>
+        </el-form>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogSendVisible=false">取 消</el-button>
+        <el-button type="primary" @click="addSend('addSend')">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+
+</template>
+<script>
+  import {
+    Message
+  } from 'element-ui'
+  import ZtDialog from "../ZtDialog/index";
+
+  export default {
+    components: {ZtDialog},
+    data() {
+
+      return {
+        CurrentSalesId:0,
+        dialogsendTitle:'',
+        //收货方式
+        sendOptions: [{
+          value: '自提',
+          label: '自提'
+        }, {
+          value: '送货上门',
+          label: '送货上门'
+        }, {
+          value: '其他(备注)',
+          label: '其他(备注)'
+        }],
+        //发货请求详情
+        sendDetail: {
+          id: 0,
+          planNumber: '',//发货亲求数量
+          destination: '',//发货地址
+          receiveWay: '',//收货方式
+          receiver: '',//联系人
+          relation: '',//联系人电话
+          note: '',//备注
+        },
+
+        dialogSendVisible:false,
+        isbatch: false,//批量对话框
+        showDialog: false,
+        recordStr: [],
+        typeItems: [{
+          value: 1,
+          name: '新订单'
+        }, {
+          value: 2,
+          name: '进行中'
+        }, {
+          value: 3,
+          name: '完成'
+        }, {
+          value: 4,
+          name: '撤销'
+        }, {
+          value: 5,
+          name: '汇总'
+        }],
+        tap: 1,
+        options: [{
+          value: 1,
+          label: '紧急'
+        }, {
+          value: 2,
+          label: '加急'
+        }, {
+          value: 3,
+          label: '备货'
+        }, {
+          value: 4,
+          label: '正常'
+        }, {
+          value: 5,
+          label: '特殊'
+        }],
+        options2: [{
+          value: 1,
+          label: '紧急'
+        }, {
+          value: 2,
+          label: '加急'
+        }, {
+          value: 3,
+          label: '备货'
+        }, {
+          value: 4,
+          label: '正常'
+        }, {
+          value: 5,
+          label: '特殊'
+        }],
+        conName: '选择公司',
+        selectedStep: {},
+        lastPlanDetail: {
+          startNo: 'J00000001',
+          endNo: "J00000100"
+        },
+        myDialog: {
+          'height': '800px'
+        },
+        lastPlanmarketPlanDetails: [{
+          startNo: 'J00000001',
+          endNo: "J00000100"
+        }, {
+          startNo: 'K00000001',
+          endNo: "K00000100"
+        }],
+        // 月份使用？
+        pickerOptions2: {
+          shortcuts: [{
+            text: '最近一周',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+              picker.$emit('pick', [start, end]);
+            }
+          }, {
+            text: '最近一个月',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+              picker.$emit('pick', [start, end]);
+            }
+          }, {
+            text: '最近三个月',
+            onClick(picker) {
+              const end = new Date();
+              const start = new Date();
+              start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+              picker.$emit('pick', [start, end]);
+            }
+          }]
+        },
+        value4: [new Date(2000, 10, 10, 10, 10), new Date(2000, 10, 11, 10, 10)],
+        value5: '',
+        //***********************************________*******************************
+        keywords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        types: 2,
+        midProduct: [],
+        plans: [],
+        clients: [],
+        units: [],
+        dialogTitle: '',
+        currentPage: 1,
+        currentDetailPage: 1,
+        totalDatailPage: -1,
+        totalCount: -1,
+        // 原材料
+        totalMaterialCount: -1,
+        keyMaterialwords: '',
+        currentMaterialPage: 1,
+
+        detail: {
+          id: 0,
+          clientId: [],
+          clientName: '',
+          quantity: '',
+          note: '',
+          expectLevel: '',//订单等级
+          productName: '',
+          proId: '', //产品Id
+          specification: "", //规格
+          mark: '', //标记
+          productNo: '', //型号
+          specsId: "",//规格Id
+          colorId: '',
+          progressId: 0,//工序Id;
+        },
+        currentAllClients: [],
+        dialogFormVisible: false,
+        currentRowData: {}, //当前选中行数据
+        currentIndex: '', //当前选中行号
+        depTextColor: '',
+        showOrHidePop: false,
+        showHidePop: false,
+        defaultProps: {
+          value: 'id',
+          label: 'name',
+          children: 'child',
+          expandTrigger: 'click'
+        },
+
+        maxSid: 0,
+        currentDeleteData: [],
+        materials: [],
+        materialList: [],
+        products: [],
+        dialogMaterialVisible: false,
+        dialogMaterialTitle: '请选择产品',
+        selectMaterial: {}, //当前选择的原料
+        selectedM: {},
+        filterText: '',
+        crrentSelectShop: {}, //当前选中的公司；
+        isCurrentShop: true,
+        isprarent: false,
+        sugestParentstartNo: '', //..公司
+        sugestParentEndNo: '', //公司结束编号
+        sugestSelfEndNumbers: '',
+        sugestSelfNumbers: '', //仅子公司
+        currentParentShop: {},
+        currentShop: {},
+        lastPlanDetail: {
+          startNo: '',
+          endNo: '',
+        },
+        noClient: [],
+        serialNuberDeleted: [], //删除编号集合
+        serialNuberUpdate: [], //更新编号集合
+        serialNuberList: [], //编号集合
+        specslist: [],
+        colorlist: [],
+        selectPreStep: {},
+        selectSteps: [],
+        activePanel: '1',
+        manageStatus: '1',
+        plandetaillist: [],
+        showDetaillist: false,
+        showPlan: true,
+        detailPage: 1,
+        currentPlanId: '',
+        //搜索
+        advanceSearchViewVisible: false,
+        faangledoubleup: 'fa-angle-double-up',
+        faangledoubledown: 'fa-angle-double-down',
+        keyproductName: '',
+        keyClientName: '',
+        keyempName: '',
+        startDate: '',
+        endDate: '',
+        dialogRecordVisible: false,
+        showOrHidePop2: false,
+        clientNamelist: [],
+        checked: true,
+        expectLevel: '',
+      }
+    },
+    mounted: function () {
+      this.initData();
+    },
+
+
+    methods: {
+      deliveryRequest(index, detail) {
+        this.dialogsendTitle= "发货请求";
+        this.CurrentSalesId = detail.id;
+        this.dialogSendVisible = true;
+      },
+      //发货请求
+      addSend(addForm) {
+        let _this = this;
+        let detail = _.cloneDeep(this.sendDetail);
+        let please = {
+          shippingRequestDetails: detail
+        };
+        this.$refs[addForm].validate((valid) => {
+          if (valid) {
+            if (_this.sendDetail.id) {
+              //更新
+              this.tableLoading = true;
+              this.postRequest("/shippingrequestdetails/update", please).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200) {
+                  _this.dialogSendVisible = false;
+                  _this.loadData();
+                  _this.emptySendData();
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              this.postRequest("/shippingrequestdetails/add?salesPlanId=" + this.CurrentSalesId, detail).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200 && resp.data.success) {
+                  _this.dialogSendVisible = false;
+                  _this.loadData();
+                  _this.emptySendData();
+                } else {
+                  Message("添加失败")
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      emptySendData() {
+        this.CurrentSalesId = "";
+        this.sendDetail = {
+          id: 0,
+          planNumber: '',//发货亲求数量
+          destination: '',//发货地址
+          receiveWay: '',//收货方式
+          receiver: '',//联系人
+          relation: '',//联系人电话
+          note: '',//备注e
+        };
+      },
+
+      batchEdit() {
+        // 批量修改方法
+        var ids = [];
+        this.plans.map(function (v, k) {
+          if (v.checked) {
+            ids.push(v.id);
+          }
+        })
+        if (ids.length) {
+          ids = ids.join(',')
+          //批量修改
+          if (this.expectLevel === '') {
+            this.$message({
+              type: 'info',
+              message: '请选择等级!'
+            })
+            return false;
+          }
+
+          this.batchimp(ids, this.expectLevel);
+        } else {
+
+        }
+
+      },
+      batchimp(ids, expect) {
+        let that = this;
+        this.getRequest("/sales/batchEdit?ids=" + ids + "&important=" + expect).then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+            that.isbatch = false;
+            that.loadData();
+          } else {
+            that.$message({type: 'info ', message: '修改失败！'})
+            return false;
+          }
+        })
+      },
+      handleClientChange(value, selectedData) {
+        console.log(selectedData);
+
+        this.noClient = selectedData;
+      },
+      chooseShop(item) {
+        item.checked = !item.checked;
+      },
+      showDepTree2() {
+        console.log('clickd');
+        this.showOrHidePop2 = !this.showOrHidePop2;
+      },
+      closeDialog() {
+        // this.status.isShowPublish=false;
+        //把绑定的弹窗数组 设为false即可关闭弹窗
+        this.showDialog = false;
+        this.loadData();
+      },
+
+      cancelRecord() {
+        this.recordStr = [];
+      },
+      //展示已发送的计划
+      showSend(item) {
+        console.log(item);
+        if (item.planString) {
+          this.recordStr = item.planString.split(';');
+        } else {
+          this.recordStr = []
+        }
+        this.dialogRecordVisible = true;
+      },
+      used(item) {
+        //跳转 查询
+        this.handleClick('', '', item.value + "")
+      },
+      showAdvanceSearchView() {
+        this.advanceSearchViewVisible = !this.advanceSearchViewVisible;
+        this.keywords = '';
+        if (!this.advanceSearchViewVisible) {
+          this.emptyData();
+          // this.beginDateScope = '';
+          this.loadData();
+        }
+      },
+      cancelSearch() {
+        this.keyproductName = '',
+          this.keyClientName = '',
+          this.keyempName = '',
+          this.advanceSearchViewVisible = false;
+        this.loadData();
+      },
+      // getchoose(){
+      //
+      // },
+      getchoose(e) {
+        let that = this;
+
+        console.log(this.detail.clientId + '客户');
+        this.detail.clientId = this.$refs.companyTree.getCheckedNodes() || [];
+        // this.clientNameList=[];
+        let list = this.detail.clientId;
+        //根据id找客户名
+        console.log('变化了');
+        this.clientNamelist = [];
+        let ruesult = [];
+        let arryTree = that.getArray(this.clients);
+        console.log(arryTree);
+        for (let i = 0, n = list.length; i < n; i++) {
+          for (let j = arryTree.length - 1; j >= 0; j--) {
+            if (list[i] === arryTree[j].id) {
+              that.clientNamelist.push(arryTree[j].name);
+            }
+          }
+        }
+      },
+      getArray(data) {
+        let that = this;
+        let temp = [];
+        let fts = Array.from(data).forEach(function (record) {
+          // 如果有父元素
+          temp.push(record);
+          if (record.child && record.child.length > 0) {
+            const child = that.getArray(record.child);
+            temp = temp.concat(child);
+          }
+        });
+        return temp;
+      },
+
+      handleClick(e, cli, status) {
+        console.log(status);
+        let code;
+        if (status && status !== '') {
+          code = status;
+          this.activePanel = status;
+          this.tap = 2;
+        } else {
+          code = this.activePanel;
+        }
+        switch (code) {
+          case "1":
+            this.manageStatus = "1";
+            break;
+          case "2":
+            this.manageStatus = "2";
+            break;
+          case "3":
+            this.manageStatus = "3";
+            break;
+          case "4":
+            this.manageStatus = "4";
+            break;
+          case "7":
+            this.manageStatus = "";
+            break;
+          default:
+            break;
+        }
+        this.loadData();
+      },      //撤销销售计划
+      cancelPlan(row) {
+        this.$confirm('此操作将撤销该销售计划, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doCancel(row.id);
+        }).catch(() => {
+        });
+
+      },
+      showplanDetail(row) {
+        this.currentPlanId = row.id;
+        this.showPlanDe();
+
+      },
+      showPlanDe() {
+        let _this = this;
+        this.getRequest("/productionplandetails/findPlan?salesPlanId=" + this.currentPlanId + "&page=" + this.currentDetailPage + "&size=10").then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status === 200 && resp.data.success) {
+            _this.plandetaillist = resp.data.data || [];
+            _this.totalDatailPage = resp.data.total;
+            if (_this.plandetaillist.length) {
+              _this.showDetaillist = true;
+              _this.showPlan = false;
+            } else {
+              _this.$message({type: 'info ', message: '未开始生产！'})
+              return false;
+            }
+
+          }
+        })
+      },
+
+      doCancel(ids) {
+        let _this = this;
+        this.tableLoading = true;
+        this.getRequest("/sales/annul?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status === 200) {
+            _this.loadData();
+          }
+        })
+      },
+      statusFormat(row) {
+        let str = '';
+        switch (row.status) {
+          case 1:
+            str = "新建";
+            break;
+          case 2:
+            str = "开始生产";
+            break;
+          case 3:
+            str = "生产完成";
+            break;
+          case 4:
+            str = "生产撤销";
+            break;
+
+          default :
+
+            break;
+        }
+        return str;
+      },
+
+
+      filterNode(value, data) {
+        if (!value) return true;
+        return data.label.indexOf(value) !== -1;
+      },
+      showRow(row) {
+        this.selectedM = this.materialList.indexOf(row);
+        this.selectMaterial = row;
+        console.log(this.selectMaterial);
+      },
+      //选择产品；
+      showMaterial() {
+        console.log('showMaterial');
+        this.loadMaterial();
+      },
+      chooseMaterial() {
+        console.log('选择原料了！');
+        let vm = this;
+        if (this.selectMaterial.id > 0) {
+          const msg = this.selectMaterial.producteName + "" + this.selectMaterial.specName + ";";
+          this.$confirm('您当前选择了' + msg + "确认选择该产品吗？", '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            vm.setDetailData(vm);
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消'
+            });
+          });
+        } else {
+          this.$message({
+            type: 'info',
+            message: '请选择原材料！'
+          })
+        }
+
+      },
+      setDetailData() {
+        let that = this;
+        let v = that.selectMaterial;
+        console.log(v);
+
+        that.detail.productName = v.producteName;
+        that.detail.proId = v.id; //选取的物料Id
+        // let speclist = [];
+        //
+        // let specsArr = v.specs;
+        // if (specsArr.length) {
+        //   specsArr.forEach(function (v) {
+        //     speclist.push(v.id);
+        //   })
+        // }
+        that.detail.specification = '';
+        that.specslist = v.specs || [];
+        that.colorlist = v.colors || [];
+        that.detail.productNo = v.proType
+        this.dialogMaterialVisible = false;
+      },
+      cancelchoose: function () {
+        console.log('选择框关闭')
+        this.selectMaterial = {};
+        this.selectedM = {};
+      },
+      formatStatus: function (row, column) {
+        return row.materialType == 1 ? '已确认' : '未确认';
+      },
+      //materials: [["手套", 1, 38]]
+      selectType(e, v, icon) {
+        let that = this;
+        console.log('changne'); //products  materials
+        this.types = e;
+        if (e === 2) {
+          this.midProduct = [];
+          this.midProduct = this.materials.concat(this.midProduct);
+          this.emptyDetail()
+        } else {
+          this.midProduct = [];
+          this.midProduct = this.products.concat(this.midProduct);
+          this.emptyDetail()
+        }
+      },
+      matterSelect(e) {
+        console.log(e);
+        let that = this;
+        this.midProduct.forEach(function (v, i, arr) {
+          if (v.id === e && that.detail) {
+            that.detail.unitId = v.unitId;
+            that.detail.unitName = v.unitName;
+            that.detail.name = v.name;
+            that.detail.materialId = v.id; //选取的物料Id
+            that.detail.specifications = v.specs;
+
+          }
+        })
+      },
+      addBox() {
+        let that = this;
+        console.log("asdfadsfasdfasd");
+        if (this.detail.quantity === '' || this.detail.quantity === undefined) {
+          Message('请输入数量');
+          return false;
+        }
+        if (this.detail.name === '' || this.detail.name === undefined) {
+          Message('请选择产品！');
+          return false;
+        }
+        if (this.detail.sid === "") {
+          if (this.marketPlanDetails.length > 0) {
+            //this.types 选择的类型原料/半成品
+            //有之前相同的。。增加数量
+            let flag = false;
+            this.marketPlanDetails.forEach(function (v, i, arr) {
+              if (v.materialId === that.detail.materialId && v.mtype === that.types) {
+                flag = true;
+                v.quantity = parseFloat(that.detail.quantity) + parseFloat(v.quantity);
+              }
+            });
+            if (!flag) {
+              this.maxSid += 1;
+              this.detail.sid = this.maxSid;
+              this.detail.type = 'new'
+              // this.detail.mtype = this.types;
+              this.marketPlanDetails.push(this.detail);
+            }
+
+          } else {
+            this.detail.sid = 1;
+            this.detail.type = 'new'
+            this.detail.mtype = this.types;
+            this.maxSid += 1;
+            this.marketPlanDetails.push(this.detail);
+          }
+          ;
+        } else {
+          if (this.marketPlanDetails.length) {
+            for (let index = 0, n = this.marketPlanDetails.length; index < n; index++) {
+              let e = this.marketPlanDetails[index];
+              if (e.type === 'odd') {
+                this.detail.type = 'update'
+                if (e.sid === this.detail.sid) {
+                  this.marketPlanDetails.splice(index, 1);
+                  this.marketPlanDetails.push(this.detail);
+                }
+              } else {
+                if (e.sid === this.detail.sid) {
+                  this.marketPlanDetails.splice(index, 1);
+                  this.marketPlanDetails.push(this.detail);
+                }
+              }
+
+            }
+          }
+        }
+        this.detail.marketPlanSerialNumber = that.marketPlanSerialNumber;
+
+        this.clearSerialNumbers();
+        // console.log( this.marketPlanDetails);
+        this.emptyDetail();
+      },
+      //清理编号和查询结果
+      clearSerialNumbers() {
+        let that = this;
+        that.marketPlanSerialNumber = [];
+        that.marketPlanSerialNumber.push({
+          sid: 1,
+          id: 0,
+          startNo: '',
+          endNo: '',
+          type: 'new',
+          note: ''
+        });
+      },
+
+      editeDetail(index, row) {
+        this.detail = row;
+      },
+      deleteDetail(index, row) {
+        console.log('delete');
+        let deletes = this.marketPlanDetails.splice(index, 1);
+        if (deletes[0].type === "odd") {
+          deletes[0].type = 'delete'
+          this.currentDeleteData.push(deletes[0]);
+        }
+        this.maxSid -= 1;
+      },
+      emptyDetail() {
+        this.detail = {
+          sid: 0,
+          id: 0,
+          name: '',
+          quantity: '',
+          unitId: '',
+          notes: '',
+          unitName: '',
+          specifications: '',
+          type: '',
+        };
+      },
+      initData() {
+        let _this = this;
+        _this.loadData();
+        console.log('销售initData');
+        this.getRequest("/productionplan/basedata").then(resp => {
+          if (resp && resp.status === 200) {
+            let data = resp.data;
+            this.currentAllClients = data.root.clients;
+            _this.clients = _this.toTree(data.root.clients);
+            _this.midProduct = [];
+            _this.midProduct = _this.materials.concat(_this.midProduct);
+            let pro = [];
+            let p = data.root.products;
+            p.forEach(function (v, i, arr) {
+              pro.push({
+                id: v[0],
+                producteName: v[1],
+                specification: v[2],
+                proType: v[3],
+                mark: v[4],
+                color: v[5],
+              })
+            });
+            _this.products = pro;
+          }
+        })
+
+      },
+      keywordsChange(val) {
+        if (val === '') {
+          this.loadData();
+        }
+      },
+      keywordsMaterialChange(val) {
+        if (val === '') {
+          this.loadMaterial();
+        }
+      },
+      handleNodeClick(data) {
+        let that = this;
+        that.tableLoading = true;
+        this.crrentSelectShop = data;
+        if (this.detail) {
+          this.detail.clientId = data.id;
+          this.detail.clientName = data.name;
+          this.detail.abbrName = data.abbreviation;
+        }
+        this.showOrHidePop = false;
+        this.depTextColor = '#606266';
+
+      },
+      showCurrentNo() {
+        if (this.isprarent) {
+          this.isprarent = false;
+        } else {
+          this.isprarent = true;
+        }
+      },
+      // 切换编号;
+      changeNO() {
+        let that = this;
+        if (that.isCurrentShop) {
+          that.lastPlanDetail = that.currentShop;
+          that.isCurrentShop = false;
+        } else {
+          that.lastPlanDetail = that.currentParentShop;
+          that.isCurrentShop = true;
+        }
+      },
+
+      getCurrentPlans() {
+        let that = this;
+        if (this.crrentSelectShop.id === undefined) {
+          this.$message({
+            type: 'info',
+            message: '请选择公司'
+          })
+        } else if (this.detail.proId === undefined || this.detail.proId === '') {
+          this.$message({
+            type: 'info',
+            message: '请选择产品'
+          })
+        } else {
+          this.getRequest("/sales/getPlanDetails?clientId=" + this.crrentSelectShop.id + "&productId=" + this
+            .detail.proId).then(resp => {
+            that.tableLoading = false;
+            if (resp && resp.status === 200) {
+              let data = resp.data;
+              that.currentParentShop = data.root.parent;
+              if (that.currentParentShop.length) {
+                let n = that.currentParentShop.length - 1;
+                that.currentParentShop = that.currentParentShop[n]
+                let lastMaxNumber = that.currentParentShop[n].endNo;
+                that.sugestParentstartNo = that.sugestStartNo(lastMaxNumber, 1);
+              } else { //设置为起始的000001;
+                that.sugestParentstartNo = '00000001';
+                that.currentParentShop = {};
+              }
+              if (that.detail.quantity !== '') {
+                that.sugestParentEndNo = that.sugestStartNo(that.currentParentShop[n].endNo, parseInt(that.detail
+                  .quantity) + 1)
+              }
+              that.setStartSerialNo(that.sugestParentstartNo, that.sugestParentEndNo.endNo, "parent");
+              that.lastPlanDetail = that.currentParentShop;
+              that.currentShop = data.root.self;
+
+              if (that.currentShop.length) {
+
+                let m = that.currentShop.length - 1;
+                that.currentShop = that.currentShop[m];
+                let lastMisNumber = that.currentShop[m].endNo;
+                that.sugestSelfNumbers = that.sugestStartNo(lastMisNumber, 1);
+              } else { //设置为起始的000001;
+                that.sugestSelfNumbers = "00000001"
+                that.currentShop = {};
+              }
+            }
+          })
+        }
+      },
+      setEndNumber: function (e) {
+        console.log(e);
+        // e.target.value
+        let that = this;
+        if (that.isCurrentShop) {
+          that.lastPlanDetail = that.currentShop;
+          if (that.currentShop.length) {
+
+            let m = that.currentShop.length - 1;
+            that.sugestSelfEndNumbers = that.sugestStartNo(that.currentShop[m].endNo, parseInt(e) + 1);
+            this.marketPlanSerialNumber[0].startNo = that.sugestSelfNumbers;
+            this.marketPlanSerialNumber[0].endNo = that.sugestSelfEndNumbers;
+            this.marketPlanSerialNumber[0].note = '';
+            this.marketPlanSerialNumber[0].clientId = this.crrentSelectShop.id;
+            this.marketPlanSerialNumber[0].productId = this.detail.proId;
+
+
+          } else {
+            let baseData = that.sugestSelfNumbers
+            that.setCurrentEndData(baseData, e);
+          }
+        } else {
+          that.lastPlanDetail = that.currentParentShop;
+          if (that.currentParentShop.length) {
+            let n = that.currentParentShop.length - 1;
+            that.sugestParentEndNo = that.sugestStartNo(that.currentParentShop[n].endNo, parseInt(e) + 1);
+            this.marketPlanSerialNumber[0].startNo = that.sugestParentstartNo;
+            this.marketPlanSerialNumber[0].endNo = that.sugestParentEndNo;
+            this.marketPlanSerialNumber[0].note = '';
+            this.marketPlanSerialNumber[0].clientId = this.crrentSelectShop.id;
+            this.marketPlanSerialNumber[0].productId = this.detail.proId;
+          } else {
+            let baseData = that.currentParentShop
+            that.setCurrentEndData(baseData, e);
+          }
+        }
+      },
+      setCurrentEndData(baseData, e) {
+        let baseLen = baseData.length;
+        let currentData = parseInt(baseData) + parseInt(e);
+        let currentDataLen = currentData.toString().length;
+        let zerolen = baseLen - currentDataLen;
+        if (zerolen) {
+          for (let i = 0; i < zerolen; i++) {
+            currentData = "0" + currentData;
+          }
+        }
+
+        this.marketPlanSerialNumber[0].endNo = currentData;
+      },
+
+      //生成起始编号:
+      sugestStartNo(str, nu) {
+        let that = this;
+        // let str = "ox002VtII0000UUY";
+        let getNum = function (Str, isFilter) {
+          isFilter = isFilter || false;
+          if (typeof Str === "string") {
+            // let arr = Str.match(/(0\d{2,})|([1-9]\d+)/g);
+            //"/[1-9]\d{1,}/g",表示匹配1到9,一位数以上的数字(不包括一位数).
+            //"/\d{2,}/g",  表示匹配至少二个数字至多无穷位数字
+            let arr = Str.match(isFilter ? /[0-9]\d{1,}/g : /\d{1,}/g);
+            console.log(arr);
+            return arr.map(function (item) {
+              //转换为整数，
+              //但是提取出来的数字，如果是连续的多个0会被改为一个0，如000---->0，
+              //或者0开头的连续非零数字，比如015，会被改为15，这是一个坑
+              // return parseInt(item);
+              //字符串，连续的多个0也会存在，不会被去掉
+              return item;
+            });
+          } else {
+            return [];
+          }
+        };
+        let startIndex = str.indexOf(getNum(str)[0]);
+        let startStr = str.substr(0, startIndex);
+        let endStr = str.substr(startIndex + getNum(str)[0].length, str.length - 1);
+        //中间数字的长度;
+        let noLength = getNum(str)[0].length;
+        let currentNumber = parseInt(getNum(str)[0]) + nu;
+        let cNo = currentNumber.toString().length;
+        let subNo = (currentNumber - cNo);
+        if (subNo) {
+          // 位数不够的补零
+          for (let i = 0; i < subNo; i++) {
+            currentNumber += "0";
+          }
+        }
+        return startStr + currentNumber + endStr;
+
+      },
+      // 设置起始编号:type ;self  parent
+      setStartSerialNo(sugestNo, endNo, type) {
+        if (this.marketPlanSerialNumber.length) {
+          this.marketPlanSerialNumber[0].startNo = sugestNo;
+          this.marketPlanSerialNumber[0].endNo = endNo;
+          this.marketPlanSerialNumber[0].note = '';
+        }
+
+      },
+
+      clearChoose() {
+        this.detail.clientId = 0;
+        this.detail.clientName = "";
+      },
+      showDepTree() {
+        this.showHidePop = !this.showHidePop;
+      },
+      selectChange(e) {
+        let that = this;
+        console.log(e);
+        if (that.units) {
+          that.units.forEach(function (v, arr) {
+            if (v.id === e && that.detail) {
+              console.log(v.id);
+              that.detail.unitName = v.name;
+
+            }
+          })
+        }
+
+      },
+      currentChange(currentChange) {
+        this.currentPage = currentChange;
+        console.log(this.currentPage);
+        this.loadData();
+      },
+      currentDetailChange(currentChange) {
+        this.currentDetailPage = currentChange;
+        console.log(this.currentPage);
+        this.showPlanDe();
+      },
+      currentMaterialChange(currentChange) {
+        this.currentMaterialPage = currentChange;
+        this.loadMaterial();
+      },
+      addAndFlushData() {
+        console.log("add");
+        this.dialogTitle = "郑铁公司销售单";
+        let that = this;
+        that.marketPlanSerialNumber = [];
+
+        // that.marketPlanSerialNumber.push(this.serialNumber);
+
+        that.showDialog = true;
+
+      },
+      searchData() {
+        if (this.value5 && this.value5.length) {
+          this.startDate = this.formatDateTime(this.value5[0]);
+          this.endDate = this.formatDateTime(this.value5[1]);
+          console.log(this.startDate);
+        }
+        this.loadData();
+      },
+      searchMaterialData() {
+        this.loadMaterial();
+      },
+      showEditEmpView(index, row) {
+        console.log(row);
+
+        let that = this;
+        that.dialogTitle = "编辑信息";
+        that.detail = {
+          productNo: row.productName,
+          quantity: row.expecNum,
+          specsId: row.specsId,
+          expectLevel: row.expectLevel,
+          notes: row.note,
+          proId: row.productId,
+          colorId: row.colorId,
+          clientId: [],
+        }
+
+        if (row.clientIds) {
+          that.detail.clientId = Array.from(row.clientIds.split(","), item => parseInt(item));
+        }
+        this.setShopNames();
+
+        that.plan.createDate = row.createDate;
+        this.getRequest("/sales/findProductById?salesPlanId=" + row.id).then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+            let data = resp.data.root.product;
+            if (data) {
+              that.colorlist = data.colors || [];
+              that.specslist = data.specs || [];
+            }
+            that.showDialog = true;
+          }
+        })
+      },
+      setShopNames() {
+        let that = this;
+        this.noClient = [];
+        // this.currentAllClients//所有客户、公司
+        if (that.detail.clientId && that.detail.clientId.length) {
+          for (let i = 0, m = that.currentAllClients.length; i < m; i++) {
+            let shopAll = that.currentAllClients[i];
+            for (let j = 0, n = that.detail.clientId.length; j < n; j++) {
+              let shop = that.detail.clientId[j];
+              if (that.detail.clientId[j] === shopAll.id) {
+                that.noClient.push({
+                  'label': shopAll.name,
+                  'value': shopAll.id,
+                });
+              }
+            }
+          }
+
+        }
+      },
+      add(addEmpForm) {
+        let _this = this;
+        let plans = _.cloneDeep(this.detail);
+        plans.pcCode = plans.clientId.join(",");
+        plans.clientId = plans.clientId.pop();
+        delete plans.product;
+        delete plans.client;
+        delete plans.color;
+        delete plans.editer;
+        delete plans.specification;
+        this.$refs[addEmpForm].validate((valid) => {
+          if (valid) {
+            if (_this.detail.id) {
+              //更新
+              this.tableLoading = true;
+              console.log(_this.plan);
+              this.postRequest("/sales/update", plans).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200) {
+                  // let data = resp.data;
+                  _this.showDialog = false;
+                  _this.loadData();
+                  _this.emptyData();
+                  _this.emptyDetail();
+                  _this.clearSerialNumbers();
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              if (this.plan.clientId === 0 || this.plan.clientId === '') {
+                this.plan.clientId = 0;
+              }
+              console.log(plans);
+              this.postRequest("/sales/add", plans).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200) {
+                  _this.showDialog = false;
+                  _this.loadData();
+                  _this.emptyData();
+                  _this.emptyDetail();
+                  _this.clearSerialNumbers();
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      loadMaterial() {
+        let _this = this;
+        this.tableLoading = true;
+        this.getRequest("/product/findbypage?page=" + this.currentMaterialPage + "&size=10&queryName=" + this
+          .keyMaterialwords).then(resp => {
+          this.tableLoading = false;
+          if (resp && resp.status === 200) {
+            let data = resp.data.data;
+            _this.materialList = data;
+            _this.totalMaterialCount = resp.data.total;
+            _this.dialogMaterialVisible = true;
+            // _this.emptyData();
+            // 清除选择的行
+          }
+        })
+      },
+      cancelOpt() {
+        this.showDialog = false;
+        this.loadData();
+        this.emptyData();
+      },
+      doDelete(ids) {
+        this.tableLoading = true;
+        let _this = this;
+        this.getRequest("/sales/delete?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status === 200) {
+            let data = resp.data;
+            _this.loadData();
+          }
+        })
+      },
+      clearDates() {
+        this.startDate = '';
+        this.endDate = '';
+      },
+      loadData() {
+        let _this = this;
+        this.tableLoading = true;
+        this.getRequest("/sales/find?page="
+          + this.currentPage
+          + "&size=10&status=" + this.manageStatus
+          + "&start=" + this.startDate
+          + "&end=" + this.endDate
+          + "&clientName=" + this.keyClientName
+          + "&productName=" + this.keyproductName
+          + "&empName=" + this.keyempName
+        )
+          .then(resp => {
+            this.tableLoading = false;
+            if (resp && resp.status === 200 && resp.data.success) {
+              console.log('dfanfasf');
+              _this.plans = _this.preDataSale(resp.data.data);
+              console.log(_this.plans);
+              _this.totalCount = resp.data.total;
+              _this.emptyData();
+            }
+          })
+      },
+      emptyData() {
+        this.marketPlanDetails = [];
+        this.plan = {
+          materialType: '',
+          notes: '',
+          serialNumber: '',
+          clientId: 0,
+          clientName: ''
+        };
+        this.detail = {
+          id: 0,
+          clientId: 0,
+          clientName: '',
+          quantity: '',
+          note: '',
+          productName: '',
+          proId: '', //产品Id
+          specification: "", //规格
+          mark: '', //标记
+          productNo: '', //型号
+          specsId: '',//规格Id
+          colorId: '',
+          progressId: 0,//工序Id;
+        };
+
+      },
+      back() {
+        if (this.showDetaillist) {
+          this.showDetaillist = false;
+          this.showPlan = true;
+        } else {
+          this.showDetaillist = true;
+          this.showPlan = false;
+        }
+
+
+      },
+      // 数据模式改变
+      preDataSale(data) {
+
+        let arr = [];
+        if (data.length) {
+          for (let i = data.length - 1; i >= 0; i--) {
+            let e = data[i];
+            let color = e[18]+'';
+
+            let bgColor = 'red';
+            let botomeColor='25px solid red'
+            switch (color) {
+              case '1':
+                bgColor = "orange";
+                botomeColor='25px solid orange';
+                break;
+              case '2':
+                bgColor = "yellowgreen";
+                botomeColor='25px solid yellowgreen';
+                break;
+              case '3':
+                bgColor = "green";
+                botomeColor='25px solid green';
+                break;
+              case '4':
+                bgColor = "#e4e4e4";
+                botomeColor='25px solid #e4e4e4';
+                break;
+              case '5':
+                bgColor = "#e23433";
+                botomeColor='25px solid #e23433';
+                break;
+              case '6':
+                bgColor = "#85ce61";
+                botomeColor='25px solid #85ce61';
+                break;
+              default:
+                break;
+            }
+            arr.push({
+              id: e[0],
+              state: e[1],
+              clientName: e[2],
+              productName: e[3],
+              empName: e[4],
+              specName: e[5],
+              createDate: e[6],
+              expecNum: e[7],
+              completeNum: e[8],
+              sendNum: e[9],
+              planString: e[10],
+              note: e[11],
+              colorName: e[12],
+              parentName: e[13],
+              clientIds: e[14],//父子关系Id保存
+              productId: e[15],//产品
+              colorId: e[16],//颜色
+              specsId: e[17],//规格
+              expectLevel: e[18],//重要程度
+              bgColor: bgColor,
+              botomeColor:botomeColor,
+              checked: false,
+              toChange: false,//xian
+            });
+
+          }
+        }
+        return arr;
+      },
+      toTree(data) {
+        console.log('toTree');
+        let that = this;
+        let result = []
+        if (!Array.isArray(data)) {
+          return result
+        }
+        var treeData = [];
+        data.forEach(item => {
+          treeData.push({
+            'value': item.id,
+            'label': item.name,
+            'parentId': item.parentClientId
+          })
+        });
+        let map = {};
+        treeData.forEach(item => {
+          map[item.value] = item;
+        });
+        treeData.forEach(item => {
+          let parent = map[item.parentId];
+          if (parent) {
+            (parent.children || (parent.children = [])).push(item);
+          } else {
+            result.push(item);
+          }
+        });
+        result = that.getResult(result)
+        console.log(result);
+        //将父parentId 删除掉
+        return result;
+      },
+
+
+      getResult(reusult) {
+        let that = this;
+        reusult.map(item => {
+          delete item.parentId;
+          if (item.children && item.children.length) {
+            that.getResult(item.children)
+          }
+        });
+        return reusult;
+      },
+      showChanges() {
+        this.plans.map(item => item.toChange = !item.toChange)
+      }
+    },
+    computed: {
+      routes() {
+        return this.$store.state.routes
+      }
+    },
+
+
+  }
+
+</script>
+<style>
+
+  .el-step__title.is-process {
+    color: #13ce66;
+  }
+
+  .el-step__description.is-process {
+    color: #13ce66;
+  }
+
+  .el-step__head.is-process {
+    color: #13ce66;
+    border-color: #13ce66;
+  }
+
+  .el-step__title.is-finish {
+    color: #C0C4CC;
+  }
+
+  .el-step__description.is-finish {
+    color: #C0C4CC;
+  }
+
+  .el-step__head.is-finish {
+    color: #C0C4CC;
+    border-color: #C0C4CC;
+  }
+
+  .demo-table-expand label {
+    width: 50px;
+    color: #2974df;
+  }
+
+  .flex-sales {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+  }
+
+  .flex-sales .item-sales {
+    display: block;
+    box-sizing: border-box;
+    width: 48%;
+    overflow: hidden;
+    min-width: 560px;
+    height: 140px;
+    /*margin-left: -4px;*/
+    /*margin-top: -4px;*/
+    /*line-height: 100px;*/
+    text-align: center;
+    list-style: none;
+    font-size: 12px;
+    padding: 5px;
+    position: relative;
+    justify-content: stretch;
+  }
+
+  .in-sales-show:hover {
+    border-color: red;
+    /*position: relative;*/
+  }
+
+
+  .in-sales-show {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    border: 1px solid #ccc;
+    text-align: start;
+    overflow-y: hidden;
+    overflow: auto;
+    height: 100%;
+    width: 100%;
+  }
+
+  .compay-ifor {
+    height: 100%;
+    width: 140px;
+    background-color: #2FC5DA;
+  }
+
+  .plan-num {
+    flex-direction: column;
+    width: 420px;
+    justify-content: space-between;
+    background-color: #F0F0F0;
+  }
+
+  .plan-num-left {
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+  }
+
+  .plan-num-detail {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .detail-text {
+    text-align: right;
+    display: block;
+    width: 50%;
+  }
+
+  .plan-num-companyName {
+    padding: 14px 0 0 2px;
+    font-size: 14px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+  }
+
+  .main-salse-progress-plan {
+    width: 100%;
+    height: auto;
+    padding: 10px 0;
+    cursor: pointer;
+    /*border: 1px solid red;*/
+  }
+
+  .send-input {
+    width: 160px;
+  }
+
+  .send-head {
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: auto;
+  }
+
+  .send-head-right-btn {
+    margin-left: 5px;
+    margin-right: 20px;
+    display: inline
+  }
+
+  .send-head-left-btn {
+    margin-left: 5px
+  }
+
+  .send-main {
+    padding-left: 0;
+    padding-top: 0;
+
+  }
+
+  .send-main-div {
+    margin-bottom: 10px;
+    border-radius: 5px;
+    padding: 5px 0;
+    box-sizing: border-box;
+    border: 1px solid #20a0ff;
+  }
+
+  .page-tool {
+    display: flex;
+    justify-content: flex-end;
+    margin: 2px;
+  }
+
+  /*——————————————————————————模块——————————————————————————————————————————————————*/
+  .stamp {
+    color: #2783ca;
+  }
+
+  .divce-mode {
+    display: flex;
+    flex-direction: column;
+    /*padding: 0 20px;*/
+  }
+
+  .product-model-base {
+    width: 100%;
+    height: auto;
+    display: flex;
+    padding: 0 20px 20px 20px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: start;
+    box-sizing: border-box;
+    background-color: #E5EFF1;
+  }
+
+  .product-model-item {
+    box-sizing: border-box;
+    height: 140px;
+    width: 140px;
+    overflow: hidden;
+    position: relative;
+    margin-top: 10px;
+    color: #ffffff;
+    font-weight: 700;
+    display: flex;
+    flex-direction: column;
+    background-color: #2fc5da;
+    margin-left: 25px;
+    padding: 30px;
+    box-shadow: 2px 4px 20px #005377;
+    cursor: pointer;
+  }
+
+  /***************************输入框**********************************/
+  .el-input__inner {
+    -webkit-appearance: none;
+    background-color: #FFF;
+    background-image: none;
+    border-radius: 4px;
+    /*border: 1px solid #DCDFE6;*/
+    border: none;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #606266;
+    display: inline-block;
+    font-size: inherit;
+    height: 40px;
+    line-height: 40px;
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    width: 100%;
+  }
+
+  .el-input__inner:focus {
+    -webkit-appearance: none;
+    background-color: #FFF;
+    background-image: none;
+    border-radius: 4px;
+    border: 1px solid #66B1FF;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    color: #606266;
+    display: inline-block;
+    font-size: inherit;
+
+
+    outline: 0;
+    padding: 0 15px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    width: 100%;
+  }
+
+  .el-input--prefix .el-input__inner:focus {
+    padding-left: 30px;
+  }
+
+  .el-textarea__inner {
+    width: 200px;
+    border: none;
+  }
+
+  .el-textarea__inner:focus {
+    display: block;
+    resize: vertical;
+    padding: 5px 15px;
+    line-height: 1.5;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    width: 100%;
+    font-size: inherit;
+    color: #606266;
+    background-color: #FFF;
+    background-image: none;
+    border: 1px solid #66B1FF;
+    border-radius: 4px;
+    -webkit-transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+    transition: border-color .2s cubic-bezier(.645, .045, .355, 1);
+  }
+
+  .el-input__icon:after {
+    display: none;
+  }
+
+
+  /*备注*/
+  .plan-note {
+    word-wrap: break-word;
+    overflow: hidden;
+    height: 110px;
+    padding: 10px 4px 0 20px;
+  }
+
+  .plan-notetext {
+    width: 100%;
+    border: 1px solid #e4e4e4;
+    height: 90px;
+    background-color: white;
+  }
+
+  .myDialogStyle {
+    width: 450px;
+    height: 590px;
+  }
+
+  .zt-dialog-head {
+    text-align: left;
+    height: 60px;
+    padding: 30px 0 20px 90px;
+    line-height: 40px;
+    font-size: 14px;
+  }
+
+  .zt-dialog-main {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+  }
+
+  .zt-dialog-footer {
+    margin-bottom: 10px;
+    width: 100%;
+    height: 20px;
+  }
+
+  .sale-form {
+    height: 20px;
+  }
+
+  .el-form-item__label {
+    font-size: 12px;
+  }
+
+  .colosBtn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 0;
+    background: 0 0;
+    border: none;
+    outline: 0;
+    color: #C0CFE3;
+    cursor: pointer;
+    font-size: 20px;
+  }
+
+  .compay-show {
+    width: 200px;
+    min-height: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    font-size: 13px;
+    border: 1px solid #dcdfe6;
+    border-radius: 5px;
+    padding-left: 13px;
+    box-sizing: border-box;
+    cursor: pointer;
+    align-items: flex-start;
+  }
+
+  .compay-show-item {
+    height: 20px;
+    text-align: left;
+  }
+
+  .add:hover {
+    color: #6b9cde;
+  }
+
+  .add {
+    border: 1px dashed #6b9cde;
+    color: #6b9cde;
+    font-size: 30px;
+    text-align: center;
+    line-height: 130px;
+    align-items: center;
+  }
+
+  .angle {
+    /*content:"ceshi";*/
+    /*display:block;*/
+    /*height:0;*/
+    /*border-width:0px 15px 15px;*/
+    /*border-style:none solid solid;*/
+    /*border-color:transparent transparent red;*/
+    /*position:absolute;*/
+    /*-moz-transform:rotate(-45deg);!*FF浏览器*!*/
+    /*-webkit-transform:rotate(-45deg);!*chrome浏览器*!*/
+    /*-o-transform:rotate(-45deg);!*oprea浏览器*!*/
+    /*-ms-transform:rotate(-45deg);!*IE浏览器*!*/
+    /*left:-10px;*/
+    /*top:17px;*/
+    /*width:40px;*/
+    /*opacity: 0.8;*/
+  }
+
+  .part1 {
+    height: 0px;
+    width: 0px;
+    border-top: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-bottom: 25px solid red;
+    display: inline-block;
+    /*-webkit-transform: translate(104px);*/
+    transform: translate(74px,-25px);
+  }
+
+  .part2 {
+    height: 25px;
+    width: 51px;
+    background-color: red;
+    display: inline-block;
+  }
+
+  .part3{
+    height: 0px;
+    width: 0px;
+    /*border-style:solid;*/
+    /*border-top-width:25px ;*/
+    /*border-left-width:25px ;*/
+    /*border-bottom-width:25px ;*/
+    /*border-top-color: transparent;*/
+    /*border-left-color: transparent;*/
+    /*border-bottom-color: green;*/
+    border-top: 25px solid transparent;
+    border-left: 25px solid transparent;
+    border-bottom: 25px solid red;
+    display: inline-block;
+    transform: translate(-74px,-25px);
+  }
+.trapezoid{
+  width: 100px;
+  height: 60px;
+  position:absolute;
+  left: 466px;
+  top: 14px;
+  z-index: 22;
+  color: white;
+  display: inline-flex;
+  -moz-transform:rotate(45deg);/*FF浏览器*/
+  -webkit-transform:rotate(45deg);/*chrome浏览器*/
+  -o-transform:rotate(45deg);/*oprea浏览器*/
+  -ms-transform:rotate(45deg);/*IE浏览器*/
+}
+
+
+</style>

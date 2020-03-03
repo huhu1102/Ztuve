@@ -1,0 +1,815 @@
+<template>
+  <div>
+    <!-- 购买计划  /采购计划/生产计划/发货管理-->
+    <div style="padding: 0px;display:flex;justify-content:space-between;align-items: center">
+      <div style="display: inline">
+        <el-input placeholder="通过名称搜索,记得回车哦..." clearable @change="keywordsChange"
+          style="width: 300px;margin: 0px;padding: 0px;" size="mini" :disabled="advanceSearchViewVisible"
+          @keyup.enter.native="searchData" prefix-icon="el-icon-search" v-model="keywords">
+        </el-input>
+        <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search" @click="searchData">搜索
+        </el-button>
+
+      </div>
+      <div style="margin-left: 5px;margin-right: 20px;display: inline">
+
+        <el-button type="primary" size="mini" icon="el-icon-plus" @click="addAndFlushData">
+          添加
+        </el-button>
+      </div>
+    </div>
+    <el-dialog v-dialogDrag :title="dialogTitle" style="padding: 0px;" :close-on-click-modal="false"
+      :visible.sync="dialogFormVisible" @close="cancelOpt" width="750px">
+      <div style="width: 100% " v-if="dialogFormVisible">
+        <el-form :model="plan" :rules="rules" ref="addEmpForm" size="small" label-width="90px">
+
+          <div style="border: 1px solid #eeeeee;">
+            <el-row>
+              <el-col :span='12'>
+                <el-form-item label="编号:" prop="serialNumber">
+                  <el-input prefix-icon="el-icon-edit" v-model="plan.serialNumber" size="mini" style="width: 200px"
+                    placeholder="计划编号"></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span='12'>
+                <el-form-item label="供货商:" prop="clientId">
+                  <el-popover v-model="showOrHidePop" placement="right" title="供货商" trigger="hover">
+                    <el-input placeholder="输入关键字进行过滤" v-model="filterText">
+                    </el-input>
+
+                    <el-tree :data="clients" :default-expand-all="false" :props="defaultProps"
+                      :expand-on-click-node="false" @node-click="handleNodeClick"></el-tree>
+                    <div slot="reference"
+                      style="width: 200px;height: 28px;display: inline-flex; justify-content:space-between;font-size:13px;border: 1px;border-radius: 5px;border-style: solid;padding-left: 13px;box-sizing:border-box;border-color: #dcdfe6;cursor: pointer;align-items: center"
+                      @click="showDepTree" :filter-node-method="filterNode"ref="tree2" v-bind:style="{color: depTextColor}">
+                      <div>{{plan.clientName}}</div>
+                      <div @click="clearChoose" class="el-icon-circle-close" style="color: #606266"></div>
+                    </div>
+                  </el-popover>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span='12'>
+                <el-form-item label="备注:" prop="notes">
+                  <el-input prefix-icon="el-icon-edit" v-model="plan.notes" size="mini" style="width: 200px"
+                    type='textarea' placeholder="备注。。。"></el-input>
+                </el-form-item>
+              </el-col>
+
+            </el-row>
+          </div>
+          <div style="text-align: left;border: 1px solid #eeeeee;">
+            购买详情:
+          </div>
+          <div style="border: 1px solid #eeeeee;">
+
+            <el-row>
+              <el-col :span='12'>
+                <el-form-item label="名称:" prop="name">
+                  <el-input prefix-icon="el-icon-edit" v-model="detail.name" size="mini" style="width: 200px"
+                    @focus='showMaterial' placeholder="名称"></el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span='12'>
+                <el-form-item label="规格:" prop="specifications">
+                  <el-input prefix-icon="el-icon-edit" :disabled="true" v-model="detail.specifications" size="mini"
+                    style="width: 200px" placeholder="规格。。"></el-input>
+                </el-form-item>
+
+              </el-col>
+            </el-row>
+            <el-row>
+              <el-col :span='12'>
+                <el-form-item label="数量:" prop="quantity">
+                  <el-input type='number' placeholder="原料数量" size="mini" prefix-icon="el-icon-edit"
+                    v-model="detail.quantity" style="width: 200px;background: #fff;">
+                    <el-select v-model="detail.unitId" :disabled="true" @change='selectChange' slot="append"
+                      placeholder="单位" style="width: 90px;">
+                      <el-option v-for="item in units" :key="item.id" :label="item.name" :value="item.id">
+                      </el-option>
+                    </el-select>
+                  </el-input>
+                </el-form-item>
+              </el-col>
+              <el-col :span='12'>
+                <el-form-item label="备注:" prop="notes">
+                  <el-input prefix-icon="el-icon-edit" v-model="detail.notes" size="mini" style="width: 200px"
+                    type='textarea' placeholder="备注。。。"></el-input>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <div style="text-align:right;">
+
+              <el-button size="mini" type="primary" @click="addBox">添加</el-button>
+            </div>
+            <el-table :data="details" cell-style="padding:2px;font-size:12px" border height="200" style="width: 100%;">
+              <el-table-column prop="sid" align="left" label="序号" width="100">
+              </el-table-column>
+              <el-table-column prop="name" align="left" label="名称" width="100">
+              </el-table-column>
+              <el-table-column align="left" label="数量" width="80">
+                <template slot-scope="scope">{{ scope.row.quantity}}{{ scope.row.unitName}}</template>
+              </el-table-column>
+              <el-table-column prop="specifications" align="left" label="规格" width="120">
+              </el-table-column>
+              <el-table-column prop="notes" align="left" label="备注" width="120">
+              </el-table-column>
+              <el-table-column align="left" label="操作" width="195">
+                <template slot-scope="scope">
+                  <el-button @click="editeDetail(scope.$index,scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px"
+                    size="mini">编辑
+                  </el-button>
+                  <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
+                    @click="deleteDetail(scope.$index,scope.row)">删除
+                  </el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
+        </el-form>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible=false">取 消</el-button>
+        <el-button type="primary" @click="add('addEmpForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog v-dialogDrag :title="dialogMaterialTitle" style="padding: 0px;" :close-on-click-modal="false"
+      :visible.sync="dialogMaterialVisible" @close="cancelchoose" width="480px">
+      <div style="width: 100% " v-if="dialogMaterialVisible">
+        <div style="padding: 0px;display:flex;justify-content:space-between;align-items: center">
+          <!-- 原材料的搜索   -->
+          <div style="display: inline">
+            <el-input placeholder="通过名称搜索,记得回车哦..." clearable @change="keywordsMaterialChange"
+              style="width: 300px;margin: 0px;padding: 0px;" size="mini" @keyup.enter.native="searchMaterialData"
+              prefix-icon="el-icon-search" v-model="keyMaterialwords">
+            </el-input>
+            <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search"
+              @click="searchMaterialData">搜索
+            </el-button>
+          </div>
+        </div>
+        <!-- 原材料表 -->
+
+        <el-table :data="materialList" border cell-style="padding:2px;font-size:12px"style="width: 100%" @row-click="showRow">
+          <el-table-column align="center" fixed label="当前" width="80">
+            <template slot-scope="scope">
+              <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>
+            </template>
+          </el-table-column>
+          <el-table-column prop="materialName" align="left" fixed label="名称" width="120">
+          </el-table-column>
+          <el-table-column prop="specs" align="left" fixed label="原料规格" width="120">
+          </el-table-column>
+          <el-table-column align="left" fixed label="单位" width="120">
+            <template slot-scope="scope">
+              {{scope.row.unit.name}}
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="display: flex;justify-content: flex-end;margin: 2px">
+          <!--          <el-button type="danger" size="mini" v-if="emps.length>0" :disabled="multipleSelection.length==0"-->
+          <!--          @click="deleteManyEmps">批量删除-->
+          <!--          </el-button>-->
+          <el-pagination background :page-size="10" :pager-count="11" :current-page="currentMaterialPage"
+            @current-change="currentMaterialChange" layout="prev, pager, next" :total="totalMaterialCount">
+          </el-pagination>
+        </div>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogMaterialVisible=false">取 消</el-button>
+        <el-button type="primary" @click="chooseMaterial()">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-table :data="plans" cell-style="padding:2px;font-size:12px"border style="width: 100%">
+      <el-table-column type="expand">
+        <template slot-scope="props">
+          <el-form label-position="left" inline class="demo-table-expand" v-for="(child,index) in props.row.detail"
+            :key="child.id">
+            <el-form-item>
+              <span>{{index+1}}</span>
+            </el-form-item>
+            <el-form-item label="名称:">
+              <span>{{ child.name}};</span>
+            </el-form-item>
+            <el-form-item label="规格:">
+              <span>{{ child.specifications }} ;</span>
+            </el-form-item>
+            <el-form-item label="数量:">
+              <span>{{ child.quantity }} {{ child.units.name}};</span>
+            </el-form-item>
+            <el-form-item label="状态:">
+              <span>{{ child.confirmStatus==1?"未确认":"已收货"}}</span>
+            </el-form-item>
+            <el-form-item label="备注:">
+              <span>{{ child.notes }}</span>
+            </el-form-item>
+          </el-form>
+        </template>
+      </el-table-column>
+      <el-table-column prop="serialNumber" align="left" label="编号" width="150">
+      </el-table-column>
+      <el-table-column prop="clientName" width="120" align="left" label="公司名称">
+      </el-table-column>
+      <el-table-column width="140" align="left" label="下单时间">
+        <template slot-scope="scope">{{ scope.row.createDate | formatDateTime}}</template>
+      </el-table-column>
+      <el-table-column prop="confirmStatus" width="80" align="left" :formatter="formatStatus" label="状态">
+      </el-table-column>
+      <el-table-column align="left" label="操作" width="195">
+        <template slot-scope="scope">
+          <el-button @click="showEditEmpView(scope.$index,scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px"
+            size="mini">编辑
+          </el-button>
+
+          <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
+            @click="deleteData(scope.row)">删除
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div style="display: flex;justify-content: flex-end;margin: 2px">
+      <el-pagination background :page-size="10" :pager-count="11" :current-page="currentPage"
+        @current-change="currentChange" layout="prev, pager, next" :total="totalCount">
+      </el-pagination>
+    </div>
+  </div>
+
+</template>
+<script>
+  import {
+    Message
+  } from 'element-ui'
+  export default {
+    data() {
+      return {
+        keywords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        rules: {
+          // note: [{required: true, message: '必填:备注', trigger: 'blur'}],
+          // name: [{required: true, message: '必填:名称', trigger: 'blur'}],
+          // quantity: [{required: true, message: '必填:数量', trigger: 'blur'}],
+          // unitId: [{required: true, message: '必选:单位', trigger: 'blur'}],
+        },
+        types: 2,
+        midProduct: [],
+        plans: [],
+        clients: [],
+        units: [],
+        dialogTitle: '',
+        currentPage: 1,
+        totalCount: -1,
+        // 原材料
+        totalMaterialCount: -1,
+        keyMaterialwords: '',
+        currentMaterialPage: 1,
+        plan: {
+          materialType: '',
+          notes: '',
+          serialNumber: '',
+          clientId: "",
+          clientName: ''
+        },
+        detail: {
+          sid: 0,
+          id: 0,
+          name: '',
+          quantity: '',
+          unitId: '',
+          notes: '',
+          unitName: '',
+          type: '',
+          specifications: ''
+        },
+        details: [],
+        dialogFormVisible: false,
+        currentRowData: {}, //当前选中行数据
+        currentIndex: '', //当前选中行号
+        depTextColor: '',
+        showOrHidePop: false,
+        showHidePop: false,
+        defaultProps: {
+          label: 'name',
+          isLeaf: 'leaf',
+          children: 'child'
+        },
+        maxSid: 0,
+        currentDeleteData: [],
+        materials: [],
+        materialList: [],
+        products: [],
+        dialogMaterialVisible: false,
+        dialogMaterialTitle: '请选择原材料',
+        selectMaterial: {}, //当前选择的原料
+        selectedM: {},
+        filterText:'',
+      }
+    },
+    mounted: function () {
+      this.initData();
+    },
+    // watch: {
+    //   filterText(val) {
+    //     this.$refs.tree2.filter(val);
+    //   }
+    // },
+    methods: {
+      filterNode(value, data) {
+        if (!value) return true;
+        return data.label.indexOf(value) !== -1;
+      },
+      showRow(row) {
+        this.selectedM = this.materialList.indexOf(row);
+        this.selectMaterial = row;
+        console.log(this.selectMaterial);
+      },
+      showMaterial() {
+        this.loadMaterial();
+
+      },
+      chooseMaterial() {
+        console.log('选择原料了！')
+        // this.selectMaterial
+        let vm = this;
+
+        if (this.selectMaterial.id > 0) {
+          const msg = this.selectMaterial.materialName + "" + this.selectMaterial.specs + ";"
+          this.$confirm('您当前选择了' + msg + "确认选择该原料吗？", '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            vm.setDetailData(vm);
+          }).catch(() => {
+            this.$message({
+              type: 'info',
+              message: '已取消'
+            });
+          });
+        } else {
+          this.$message({
+            type: 'info',
+            message: '请选择原材料！'
+          })
+        }
+
+      },
+      setDetailData(that) {
+        var v = that.selectMaterial;
+        that.detail.unitId = v.unitId;
+        that.detail.unitName = v.unit.name;
+        that.detail.name = v.materialName;
+        that.detail.materialId = v.id; //选取的物料Id
+        that.detail.specifications = v.specs;
+        this.dialogMaterialVisible = false;
+      },
+      cancelchoose: function () {
+        console.log('选择框关闭')
+        this.selectMaterial = {};
+        this.selectedM = {};
+      },
+      formatStatus: function (row, column) {
+        return row.materialType == 1 ? '已确认' : '未确认';
+      },
+      //materials: [["手套", 1, 38]]
+      selectType(e, v, icon) {
+        let that = this;
+        console.log('changne'); //products  materials
+        this.types = e;
+        if (e == 2) {
+          this.midProduct = [];
+          this.midProduct = this.materials.concat(this.midProduct);
+          this.emptyDetail()
+        } else {
+          this.midProduct = [];
+          this.midProduct = this.products.concat(this.midProduct);
+          this.emptyDetail()
+        }
+      },
+      matterSelect(e) {
+        console.log(e);
+        let that = this;
+        this.midProduct.forEach(function (v, i, arr) {
+          if (v.id == e) {
+            that.detail.unitId = v.unitId;
+            that.detail.unitName = v.unitName;
+            that.detail.name = v.name;
+            that.detail.materialId = v.id; //选取的物料Id
+            that.detail.specifications = v.specs;
+
+          }
+        })
+      },
+      addBox() {
+        let that = this;
+        console.log("asdfadsfasdfasd");
+        if (this.detail.quantity == '' || this.detail.quantity == undefined) {
+          Message('请输入数量');
+          return false;
+        }
+        if (this.detail.name == '' || this.detail.name == undefined) {
+          Message('请选择物料');
+          return false;
+
+        }
+        if (this.detail.sid == "") {
+          if (this.details.length > 0) {
+            //this.types 选择的类型原料/半成品
+            //有之前相同的。。增加数量
+            var flag = false;
+            this.details.forEach(function (v, i, arr) {
+              if (v.materialId == that.detail.materialId && v.mtype == that.types) {
+                flag = true;
+                v.quantity = parseFloat(that.detail.quantity) + parseFloat(v.quantity);
+              }
+            });
+            if (!flag) {
+              this.maxSid += 1;
+              this.detail.sid = this.maxSid;
+              this.detail.type = 'new'
+              this.detail.mtype = this.types;
+              this.details.push(this.detail);
+            }
+
+          } else {
+            this.detail.sid = 1;
+            this.detail.type = 'new'
+            this.detail.mtype = this.types;
+            this.maxSid += 1;
+            this.details.push(this.detail);
+          };
+        } else {
+          if (this.details.length) {
+            for (let index = 0, n = this.details.length; index < n; index++) {
+              var e = this.details[index];
+              if (e.type === 'odd') {
+                this.detail.type = 'update'
+                if (e.sid == this.detail.sid) {
+                  this.details.splice(index, 1);
+                  this.details.push(this.detail);
+                }
+              } else {
+                if (e.sid == this.detail.sid) {
+                  this.details.splice(index, 1);
+                  this.details.push(this.detail);
+                }
+              }
+
+            }
+          }
+        }
+
+        this.emptyDetail();
+      },
+      editeDetail(index, row) {
+        this.detail = row;
+      },
+      deleteDetail(index, row) {
+        console.log('delete');
+        var deletes = this.details.splice(index, 1);
+        if (deletes[0].type === "odd") {
+          deletes[0].type = 'delete'
+          this.currentDeleteData.push(deletes[0]);
+        }
+        this.maxSid -= 1;
+      },
+      emptyDetail() {
+        this.detail = {
+          sid: 0,
+          id: 0,
+          name: '',
+          quantity: '',
+          unitId: '',
+          notes: '',
+          unitName: '',
+          specifications: '',
+          type: '',
+        };
+      },
+      initData() {
+        var _this = this;
+        _this.loadData();
+        this.getRequest("/rowBuyPlan/basedata").then(resp => {
+          if (resp && resp.status == 200) {
+            var data = resp.data;
+            _this.units = data.root.units;
+            _this.clients = data.root.clients;
+            var ma = data.root.materials;
+            var mater = [];
+            ma.forEach(function (v, i, arr) {
+              var name = v[0],
+                unitId = v[1],
+                id = v[2];
+              mater.push({
+                name: name,
+                unitId: unitId,
+                id: id,
+                unitName: v[3],
+                specs: v[4],
+                mtype: 1
+              })
+            });
+            _this.materials = mater;
+            _this.midProduct = [];
+            _this.midProduct = _this.materials.concat(_this.midProduct);
+            var pro = [];
+            var p = data.root.products;
+            p.forEach(function (v, i, arr) {
+              pro.push({
+                name: v[0],
+                unitId: v[1],
+                id: v[2],
+                unitName: v[3],
+                specs: v[4],
+                mtype: 2,
+              })
+            });
+            _this.products = pro;
+          }
+        })
+
+      },
+      keywordsChange(val) {
+        if (val == '') {
+          this.loadData();
+        }
+      },
+      keywordsMaterialChange(val) {
+        if (val == '') {
+          this.loadMaterial();
+        }
+      },
+      handleNodeClick(data) {
+        this.plan.clientId = data.id;
+        this.plan.clientName = data.name;
+        this.showOrHidePop = false;
+        this.depTextColor = '#606266';
+      },
+      clearChoose() {
+        this.plan.clientId = 0;
+        this.plan.clientName = "";
+      },
+      showDepTree() {
+        this.showHidePop = !this.showHidePop;
+      },
+      selectChange(e) {
+        let that = this;
+        console.log(e);
+        if (that.units) {
+          that.units.forEach(function (v, arr) {
+            if (v.id == e) {
+              console.log(v.id);
+              that.detail.unitName = v.name;
+
+            }
+          })
+        }
+
+      },
+      currentChange(currentChange) {
+        this.currentPage = currentChange;
+        console.log(this.currentPage);
+        this.loadData();
+      },
+      currentMaterialChange(currentChange) {
+        this.currentMaterialPage = currentChange;
+        this.loadMaterial();
+      },
+      addAndFlushData() {
+        this.dialogTitle = "郑铁公司采购单";
+        let that = this;
+        this.getRequest("/rowBuyPlan/getSerialNumber").then(resp => {
+          that.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data;
+            that.plan.serialNumber = data.root.serialNumber;
+            that.dialogFormVisible = true;
+          }
+        })
+
+
+      },
+      searchData() {
+        this.loadData();
+      },
+      searchMaterialData() {
+        this.loadMaterial();
+      },
+      showEditEmpView(index, row) {
+        console.log(row)
+        var that = this;
+        that.dialogTitle = "编辑信息";
+        that.plan = row;
+        that.plan.createDate = row.createDate;
+        var currentPlan = _.cloneDeep(row);
+        if (currentPlan.detail != undefined) {
+          currentPlan.detail.forEach(function (v, i, arr) {
+            v.type = 'odd';
+            v.sid = i + 1;
+          })
+          this.details = currentPlan.detail;
+          this.maxSid = currentPlan.detail.length;
+        }
+        that.dialogFormVisible = true;
+      },
+      add(addEmpForm) {
+        this.dialogFormVisible = true;
+        var _this = this;
+        var plans = _.cloneDeep(this.plan);
+        if (this.details.length == 0) {
+          this.$message({
+            type: 'info',
+            message: '详情不能为空！'
+          });
+          return false;
+        }
+        var cache = [];
+        var currentDetail = this.details.concat(this.currentDeleteData);
+        var str = JSON.stringify(currentDetail, function (key, value) {
+          if (typeof value === 'object' && value !== null) {
+            if (cache.indexOf(value) !== -1) {
+              // Circular reference found, discard key
+              return;
+            }
+            // Store value in our collection
+            cache.push(value);
+          }
+          return value;
+        });
+        cache = null;
+        plans.detail = str;
+        this.$refs[addEmpForm].validate((valid) => {
+          if (valid) {
+            // this.plan.buyedDate=new Date(this.plan.buyedDate);
+            var flag = this.validateplanNo();
+            if (this.plan.id) {
+              //更新
+              this.tableLoading = true;
+              console.log(this.plan);
+
+              this.postRequest("/rowBuyPlan/update", plans).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status == 200) {
+                  // var data = resp.data;
+                  _this.dialogFormVisible = false;
+                  _this.loadData();
+                  _this.emptyData();
+                  _this.emptyDetail();
+
+
+
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              if (this.plan.clientId == 0 || this.plan.clientId == '') {
+                this.plan.clientId = 0;
+                plans.materialType = 1;
+              } else {
+                plans.materialType = 2;
+              }
+              console.log(plans);
+              this.postRequest("/rowBuyPlan/addnew", plans).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status == 200) {
+                  var data = resp.data;
+                  _this.dialogFormVisible = false;
+                  _this.loadData();
+                  _this.emptyData();
+                  _this.emptyDetail();
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      validateplanNo() {
+        var flag = true;
+
+        return flag;
+      },
+      cancelOpt() {
+        this.dialogFormVisible = false;
+        this.loadData();
+        // var index=this.currentIndex;
+        // this.plans[index] =this.currentRowData;
+        console.log('o(*￣︶￣*)o')
+
+      },
+      deleteData(row) {
+        this.$confirm('此操作将删除[' + row.serialNumber + '], 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doDelete(row.id);
+        }).catch(() => {});
+      },
+      doDelete(ids) {
+        this.tableLoading = true;
+        var _this = this;
+        this.getRequest("/rowBuyPlan/delet?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data;
+            _this.loadData();
+          }
+        })
+      },
+      loadData() {
+        var _this = this;
+        this.tableLoading = true;
+        this.getRequest("/rowBuyPlan/findbypage?page=" + this.currentPage + "&size=10&queryName=" + this.keywords).then(
+          resp => {
+            this.tableLoading = false;
+            if (resp && resp.status == 200) {
+              var data = resp.data.data;
+              _this.plans = data;
+              _this.totalCount = resp.data.total;
+              _this.emptyData();
+            }
+          })
+      },
+      loadMaterial() {
+        var _this = this;
+        this.tableLoading = true;
+        this.getRequest("/material/findbypage?page=" + this.currentMaterialPage + "&size=10&queryName=" + this
+          .keyMaterialwords).then(resp => {
+          this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data.data;
+            _this.materialList = data;
+            _this.totalMaterialCount = resp.data.total;
+            _this.dialogMaterialVisible = true;
+            // _this.emptyData();
+            // 清除选择的行
+          }
+        })
+      },
+      handleCommand(cmd) {
+        var _this = this;
+        if (cmd == 'logout') {
+          this.$confirm('注销登录, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            // _this.getRequest("/logout");
+            // _this.$store.commit('logout');
+            _this.$router.replace({
+              path: '/'
+            });
+          }).catch(() => {
+            _this.$message({
+              type: 'info',
+              message: '取消'
+            });
+          });
+        }
+      },
+      emptyData() {
+        this.details = [];
+        this.plan = {
+          materialType: '',
+          notes: '',
+          serialNumber: '',
+          clientId: 0,
+          clientName: ''
+        }
+
+      }
+    },
+    computed: {
+      routes() {
+        return this.$store.state.routes
+      }
+    }
+  }
+
+</script>
+<style>
+  .el-submenu {
+    width: 180px;
+    min-width: 175px;
+  }
+
+  .demo-table-expand {
+    font-size: 0;
+  }
+
+  .demo-table-expand label {
+    width: 50px;
+    color: #2974df;
+  }
+
+  .demo-table-expand .el-form-item {
+    margin-left: 10px;
+    margin-bottom: 0;
+    width: auto;
+  }
+
+</style>

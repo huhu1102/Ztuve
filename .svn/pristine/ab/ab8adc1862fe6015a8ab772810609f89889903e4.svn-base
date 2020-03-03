@@ -1,0 +1,371 @@
+<template>
+  <div>
+    <el-container>
+      <el-header class="product-spec-header">
+        <div class="product-spec-header-left">
+          <div style=" margin-left:20px;border-left: 4px solid red;text-align: left;" >
+            <span style="margin-left: 10px;">工序步骤</span>
+          </div>
+          <div style="margin-left: 20px;margin-top: 10px;">
+            <el-input
+              placeholder="通过名称搜索,记得回车哦..."
+              clearable
+              @change="keywordsChange"
+              style="width: 300px;margin: 0px;padding: 0px;"
+              size="mini"
+              :disabled="advanceSearchViewVisible"
+              @keyup.enter.native="searchEmp"
+              prefix-icon="el-icon-search"
+              v-model="keywords">
+            </el-input>
+            <el-button type="primary" size="mini" style="margin-left: 5px" icon="el-icon-search" @click="searchEmp">搜索
+            </el-button>
+            <el-button size="mini" type="success" @click="initData" icon="el-icon-refresh"></el-button>
+          </div>
+          </div>
+
+        <div class="product-spec-header-right">
+
+          <el-button v-if="stepOpt.add" type="primary" @click="addAndFlushEmp" size="mini" icon="el-icon-plus">添加
+          </el-button>
+        </div>
+
+      </el-header>
+      <el-main style="margin: 0 20px;">
+        <el-table :data="steps" style="width: 100%">
+          <el-table-column
+            type="selection"
+            align="left"
+            v-loading="tableLoading"
+            width="30">
+          </el-table-column>
+          <el-table-column
+            prop="workstepName"
+            align="left"
+            fixed
+            label="工序名称"
+            width="120">
+          </el-table-column>
+          <el-table-column
+            prop="intro"
+            width="220"
+            align="left"
+            label="介绍">
+          </el-table-column>
+          <el-table-column
+            align="left"
+            label="操作"
+            width="195" v-if="stepOpt.opt">
+            <template slot-scope="scope">
+              <el-button v-if="stepOpt.update" @click="showEditEmpView(scope.$index,scope.row)"
+                         style="padding: 3px 4px 3px 4px;margin: 2px"
+                         size="mini">编辑
+              </el-button>
+
+              <el-button v-if="stepOpt.del" type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
+                         @click="deleteData(scope.row)">删除
+              </el-button>
+            </template>
+          </el-table-column>
+        </el-table>
+        <div style="display: flex;justify-content: flex-end;margin: 2px">
+          <!--          <el-button type="danger" size="mini" v-if="emps.length>0" :disabled="multipleSelection.length==0"-->
+          <!--                     @click="deleteManyEmps">批量删除-->
+          <!--          </el-button>-->
+          <el-pagination
+            background
+            :page-size="10"
+            :pager-count="11"
+            :current-page="currentPage"
+            @current-change="currentChange"
+            layout="prev, pager, next"
+            :total="totalCount">
+          </el-pagination>
+        </div>
+      </el-main>
+
+    </el-container>
+
+    <el-dialog v-dialogDrag :title="dialogTitle"
+               style="padding: 0px;"
+               :close-on-click-modal="false"
+               :visible.sync="dialogFormVisible"
+               @close="cancelOpt"
+               width="500px">
+      <div style="width: 100% " v-if="dialogFormVisible">
+        <el-form :model="step" :rules="rules" ref="addEmpForm" size="small" label-width="90px">
+
+          <el-form-item label="工序名称:" prop="workstepName">
+            <el-input prefix-icon="el-icon-edit" v-model="step.workstepName" size="mini" style="width: 200px"
+                      placeholder="请输入工序名称。。"></el-input>
+          </el-form-item>
+
+          <el-form-item label="工序描述:" prop="intro">
+            <el-input prefix-icon="el-icon-edit" v-model="step.intro" size="mini" style="width: 200px"
+                      placeholder="工序描述"></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible=false">取 消</el-button>
+        <el-button type="primary" @click="add('addEmpForm')">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+
+</template>
+<script>
+  export default {
+    data() {
+
+
+      return {
+        keywords: '',
+        tableLoading: false,
+        advanceSearchViewVisible: false,
+        rules: {
+          workstepName: [{required: true, message: '必填:工序名称', trigger: 'blur'}],
+        },
+        steps: [],
+        dialogTitle: '',
+        currentPage: 1,
+        totalCount: -1,
+        step: {
+          workstepName: '',
+          intro: ''
+        },
+        dialogFormVisible: false,
+        currentRowData: {},//当前选中行数据
+        currentIndex: '',//当前选中行号
+        //   <el-menu style="background: #ececec;width: 180px;" unique-opened router>
+        // <template v-for="(item,index) in menuitems" v-if="!item.hidden">
+        //   <el-submenu :index="index+''" v-if="!item.leaf">
+        //   <template slot="title"><i :class="item.iconCls"></i>{{item.name}}</template>
+        // <el-menu-item v-for="child in item.children" :index="child.path" :key="child.path" v-if="!child.hidden">{{child.name}}</el-menu-item>
+        // </el-submenu>
+        // <el-menu-item v-if="item.leaf&&item.children.length>0" :index="item.children[0].path"><i :class="item.iconCls"></i>{{item.children[0].name}}</el-menu-item>
+        // </template>
+        // </el-menu>
+      }
+    },
+    mounted: function () {
+      this.initData();
+    },
+
+    methods: {
+      cancelOpt() {
+        this.dialogFormVisible = false;
+        this.loadData();
+        // this.steps[this.currentIndex] =this.currentRowData;
+      },
+      searchEmp() {
+        this.loadData();
+      },
+      initData() {
+        var _this = this;
+
+        _this.loadData();
+      },
+      keywordsChange(val) {
+        if (val === '') {
+          this.loadData();
+        }
+      },
+      currentChange(currentChange) {
+        this.currentPage = currentChange;
+        console.log(this.currentPage);
+        this.loadData();
+      },
+      addAndFlushEmp() {
+        this.dialogTitle = "添加";
+        this.dialogFormVisible = true;
+        this.emptyData();
+        // var _this = this;
+        // this.getRequest("/employee/basic/maxWorkID").then(resp=> {
+        //   if (resp && resp.status == 200) {
+        //     _this.emp.workID = resp.data;
+        //   }
+        // })
+      },
+      searchData() {
+        this.loadData();
+      },
+      showEditEmpView(index, row) {
+        console.log(row)
+        this.dialogTitle = "编辑信息";
+        this.step = row;
+        // this.step.createDate = this.formatDate(row.createDate);
+        // this.employee.departmentId = row.department.id;
+        delete this.step.noteMaker;
+        // delete this.emp.notWorkDate;
+        this.currentRowData = JSON.parse(JSON.stringify(row));
+        this.currentIndex = index;
+
+        this.dialogFormVisible = true;
+      },
+      add(addEmpForm) {
+        this.dialogFormVisible = true;
+        var _this = this;
+
+        this.$refs[addEmpForm].validate((valid) => {
+          if (valid) {
+            // this.step.buyedDate=new Date(this.step.buyedDate);
+            if (this.step.id) {
+              //更新
+              this.tableLoading = true;
+              console.log(this.step);
+              this.postRequest("/workStep/stepAdd", this.step).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status == 200) {
+                  // var data = resp.data;
+                  _this.dialogFormVisible = false;
+                  _this.loadData();
+                  _this.emptyData();
+
+                }
+              })
+            } else {
+              //添加
+              this.tableLoading = true;
+              console.log(_this.step);
+              this.postRequest("/workStep/stepAdd", this.step).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status == 200) {
+                  var data = resp.data;
+                  _this.dialogFormVisible = false;
+                  _this.loadData();
+                  _this.emptyData();
+                }
+              })
+            }
+          } else {
+            return false;
+          }
+        });
+      },
+      deleteData(row) {
+        this.$confirm('此操作将删除该记录, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.doDelete(row.id);
+        }).catch(() => {
+        });
+      },
+      doDelete(ids) {
+        this.tableLoading = true;
+        var _this = this;
+        this.getRequest("/workStep/delet?id=" + ids).then(resp => {
+          _this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data;
+            _this.loadData();
+          }
+        })
+      },
+      loadData() {
+        var _this = this;
+        this.tableLoading = true;
+        this.getRequest("/workStep/findbypage?page=" + this.currentPage + "&size=10&queryName=" + this.keywords).then(resp => {
+          this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            var data = resp.data.data;
+            _this.steps = data;
+            _this.totalCount = resp.data.total;
+            _this.emptyData();
+          }
+        })
+      },
+      handleCommand(cmd) {
+        var _this = this;
+        if (cmd == 'logout') {
+          this.$confirm('注销登录, 是否继续?', '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            // _this.getRequest("/logout");
+            // _this.$store.commit('logout');
+            _this.$router.replace({path: '/'});
+          }).catch(() => {
+            _this.$message({
+              type: 'info',
+              message: '取消'
+            });
+          });
+        }
+      },
+      emptyData() {
+        this.step = {
+          workstepName: '',
+          intro: ''
+        };
+      }
+    },
+    computed: {
+      stepOpt() {
+        let opt={
+          add:false,
+          update:false,
+          del:false,
+        };
+        let currentCmp={};
+        console.log(this.$store.state.routes);
+        this.$store.state.routes.forEach(function (va) {
+          if(va.path==='/workStep'){
+            currentCmp=va;
+          }
+        });
+        console.log(currentCmp.id);
+        let currentlist=[];
+        this.$store.state.routes.forEach(function (va) {
+          if(va.parentId===currentCmp.id){
+            currentlist.push(va);
+          }
+        });
+        console.log(currentlist);
+        if(currentlist){
+          currentlist.forEach(function (value, index, array){
+            switch (value.path) {
+              case "update":opt.update=true;break;
+              case "del":opt.del=true;break;
+              case "add":opt.add=true; break;
+              default :break;
+            }
+          })
+        }
+
+        return opt;
+
+      }
+    },
+
+  }
+</script>
+<style>
+
+  .el-submenu .el-menu-item {
+    width: 180px;
+    min-width: 175px;
+  }
+
+  .product-spec-header {
+    padding: 0px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center
+  }
+
+  .product-spec-header-right {
+    margin-left: 5px;
+    margin-right: 20px;
+    display: inline
+  }
+
+  .product-spec-header-left {
+    display: flex;
+    flex-direction: column;
+    justify-content: start
+  }
+</style>

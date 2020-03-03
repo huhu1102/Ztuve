@@ -1,0 +1,51 @@
+<template>
+    <div>
+      <el-tabs v-model="activeName"type="border-card"  @tab-click="handleClick" style="margin-top: 10px">
+     
+      
+        <el-tab-pane label='车辆基本信息'  name="cars" lazy>
+            <cars ref="child"></cars>
+          </el-tab-pane>
+          <el-tab-pane label="车辆驾驶记录" name="carsRecord" lazy>
+            <carsrecord  ref="child"></carsrecord>
+          </el-tab-pane>
+          <el-tab-pane label="车辆维护" name="carsRepair" lazy>
+            <repair  ref="child"></repair>
+          </el-tab-pane>
+          <el-tab-pane label="车辆申请" name="carsRequest" lazy>
+            <carsres  ref="child"></carsres>
+          </el-tab-pane>
+          <el-tab-pane label="车辆分配" name="carsAlot" lazy>
+            <carred  ref="child"></carred>
+          </el-tab-pane>
+      </el-tabs>
+    </div>
+  </template>
+  <script>
+    import Car from '@/components/dept/Car';
+    import CarRecord from '@/components/dept/CarRecord';
+    import CarRepair from '@/components/dept/CarRepair';
+    import CarReqRecord from '@/components/dept/CarReqRecord';
+    import CarRequest from '@/components/dept/CarRequest';
+    export default {
+      data() {
+        return {
+          activeName: 'cars'
+        };
+      },
+      methods: {
+        handleClick(tab, event) {
+          console.log(tab, event);
+        }
+      },
+      components:{
+        'cars':Car,
+        'carsrecord':CarRecord,
+        'repair':CarRepair,
+        'carred':CarReqRecord,
+        'carsres':CarRequest
+    
+      }
+    };
+  </script>
+  

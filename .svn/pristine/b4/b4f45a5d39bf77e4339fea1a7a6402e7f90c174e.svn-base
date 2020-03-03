@@ -1,0 +1,30 @@
+<template>
+    <div>
+      <el-tabs v-model="activeName"type="border-card"  @tab-click="handleClick" style="margin-top: 10px">
+        <el-tab-pane label="原材料采购计划" name="material"><mp></mp></el-tab-pane>
+        <el-tab-pane label="半成品采购计划" name="midproduct"><mps></mps></el-tab-pane>
+       
+      </el-tabs>
+    </div>
+  </template>
+  <script>
+    import BuyPlan from '@/components/dept/BuyPlan';
+    import BuyPlanMidProduct from '@/components/dept/BuyPlanMidProduct';
+    export default {
+      data() {
+        return {
+          activeName: 'material'
+        };
+      },
+      methods: {
+        handleClick(tab, event) {
+          console.log(tab, event);
+        }
+      },
+      components:{
+        'mp':BuyPlan,
+        'mps':BuyPlanMidProduct
+      }
+    };
+  </script>
+  

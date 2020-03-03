@@ -1,0 +1,243 @@
+import Vue from 'vue'
+import Router from 'vue-router'
+import Login from '@/components/Login'
+import Home from '@/components/Home'
+import Main from '@/components/main'
+import Department from '@/components/emp/Department'
+import Emp from '@/components/emp/Emp'
+import CarBase from '@/components/dept/CarBase'
+import BuyPlanBase from '@/components/dept/BuyPlanBase'
+import Position from "@/components/emp/Position";
+import CarRecord from "@/components/dept/CarRecord";
+import CarRepair from "@/components/dept/CarRepair";
+import ProductBase from "@/components/produce/ProductBase.vue";
+import CarRequest from "@/components/dept/CarRequest.vue";
+import CarReqRecord from "@/components/dept/CarReqRecord";
+import ProductStep from "@/components/produce/ProductStep";
+import Company from "@/components/emp/Company";
+import Chat from '@/components/chat/Chat';
+import Sysrole from "@/components/sys/Sysrole";
+import User from "@/components/sys/User";
+import ProductFinshed from "@/components/produce/ProductFinshed.vue";
+import ProductMidBase from "@/components/produce/ProductMidBase";
+import RowMaterialBase from "@/components/produce/RowMaterialBase";
+import SysUnit from "@/components/sys/SysUnit";
+import SaleBase from "@/components/sale/SaleBase";
+
+Vue.use(Router);
+export default new Router({
+  // mode: 'history',
+  routes: [
+    {
+      path: '/',
+      name: 'Login',
+      component: Login,
+      hidden: true
+    }, {
+      path: '/home',
+      name: '主页',
+      component: Home,
+      hidden: true,
+      meta: {
+        requireAuth: true
+      },
+      children: [
+        {
+          path: '/main',
+          name: '首页界面',
+          component: Main,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        },
+        // {path:'/carRecord',name:'车辆记录'},
+        //             {path:'/carRepair',name:'车辆维护'}
+        {
+          path: '/department',
+          name: '部门',
+          component: Department,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/carRecord',
+          name: '行车记录',
+          component: CarRecord,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/carRepair',
+          name: '车辆维护',
+          component: CarRepair,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/emp',
+          name: '员工',
+          component: Emp,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/position',
+          name: '职位',
+          component: Position,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/product',
+          name: '产品管理',
+          component: ProductBase,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/askRequest',
+          name: '用车申请',
+          component:CarRequest,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+          }, {
+          path: '/askBack',
+          name: '分配车辆',
+          component:CarReqRecord,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+          }, {
+          path: '/workStep',
+          name: '工序步骤',
+          component:ProductStep,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+          }, {
+          path: '/company',
+          name: '客户',
+          component:Company,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+          }, {
+          path: '/buyPlan',
+          name: '采购计划',
+          component:BuyPlanBase,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/chat',
+          name: '消息',
+          component: Chat,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/sysRole',
+          name: '角色',
+          component: Sysrole,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/sale',
+          name: '销售',
+          component: SaleBase,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+        }, {
+          path: '/users',
+          name: '用户',
+          component: User,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }  
+        }, {
+          path: '/productsFinished',
+          name: '成品库存',
+          component:ProductFinshed ,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }    
+        }, {
+          path: '/material',
+          name: '原材料库',
+          component:RowMaterialBase ,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }    
+        }, {
+          path: '/productMid',
+          name: '半成品库',
+          component:ProductMidBase ,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }   
+        }, {
+          path: '/sysUnit',
+          name: '单位管理',
+          component:SysUnit ,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }   
+        } , {
+          path: '/car',
+          name: '车辆管理',
+          component: CarBase,
+          hidden: true,
+          meta: {
+            keepAlive: false,
+            requireAuth: true
+          }
+
+        }
+
+      ]
+    }
+  ]
+})
