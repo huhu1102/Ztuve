@@ -29,7 +29,7 @@
     <div>
       <el-table
                 :data="plansRecord"
-                cell-style="padding:2px;font-size: 12px;"
+                :cell-style="{padding:'2px',fontSize:'12px'}"
                 fit
                 border
                 highlight-current-row>

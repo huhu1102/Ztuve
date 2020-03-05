@@ -25,8 +25,8 @@ Vue.directive('dialogDrag', {
         styT = +document.body.clientHeight * (+sty.top.replace(/\%/g, '') / 100)
         console.log("styT"+styT);
       } else {
-        styL = +sty.left.replace(/\px/g, '')
-        styT = +sty.top.replace(/\px/g, '')
+        styL = +sty.left.replace(/px/g, '')
+        styT = +sty.top.replace(/px/g, '')
       }
 
       document.onmousemove = function(e) {
@@ -74,3 +74,10 @@ Vue.directive('dialogDragWidth', {
     }
   }
 })
+Vue.directive('ztCellStyle',{
+  bind(el, binding, vnode, oldVnode){
+    return {
+      padding:'2px',
+      fontSize:"12px"
+    }
+  }})

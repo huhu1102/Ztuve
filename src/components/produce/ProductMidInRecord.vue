@@ -13,7 +13,7 @@
         <el-button size="mini" type="success" @click="initData" icon="el-icon-refresh"></el-button>
       </div>
     </div>
-    <el-table :data="midRecords"cell-style="padding:2px;font-size:12px" border style="width: 100%" >
+    <el-table :data="midRecords" :cell-style="{padding:'2px',fontSize:'12px'}" border style="width: 100%" >
       <el-table-column type="selection" align="left" v-loading="tableLoading" width="30">
       </el-table-column>
       <el-table-column  align="left" fixed label="入库时间" width="160">

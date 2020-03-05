@@ -57,7 +57,7 @@
     </el-dialog>
 
     <template>
-      <el-table ref="multipleTable" cell-style="padding:2px;font-size:12px":data="formatData" :row-style="showRow" v-bind="$attrs">
+      <el-table ref="multipleTable" :cell-style="{padding:'2px',fontSize:'12px'}" :data="formatData" :row-style="showRow" v-bind="$attrs">
         <!--  @header-click="chooseall" -->
         <el-table-column :render-header="renderHeader" width="50" align="center">
           <template slot-scope="scope">

@@ -49,7 +49,7 @@
       <el-button type="primary" @click="addData('addForm')">确 定</el-button>
     </div>
   </el-dialog>
-  <el-table cell-style="padding:2px;font-size:12px" :data="departs"  style="width: 100%">
+  <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="departs"  style="width: 100%">
     <el-table-column
       type="selection"
       align="left"

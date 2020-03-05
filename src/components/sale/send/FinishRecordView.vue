@@ -13,14 +13,14 @@
         <el-table :data="planFinishRecord"
                   fit
                   border
-                  cell-style="padding:2px;font-size:12px;"
+                  :cell-style="{padding:'2px',fontSize:'12px'}"
                   :model="stepRecord"
                   :summary-method="getSummaries"
                   :show-summary="true"
                   style="width: 100%">
           <el-table-column
             label="顺序"
-            cell-style="padding:2px;font-size:12px"
+            :cell-style="{padding:'2px',fontSize:'12px'}"
             type="index"
             width="80px"
           ></el-table-column>

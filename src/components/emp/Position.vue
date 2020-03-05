@@ -37,7 +37,7 @@
         <el-button type="primary" @click="addData('addForm')">确 定</el-button>
       </div>
     </el-dialog>
-    <el-table :data="positions"cell-style="padding:2px;font-size:12px"style="width: 100%">
+    <el-table :data="positions":cell-style="{padding:'2px',fontSize:'12px'}" style="width: 100%">
       <el-table-column type="selection" align="left" v-loading="tableLoading" width="30">
       </el-table-column>
       <el-table-column prop="name" align="left" fixed label="名称" width="120">

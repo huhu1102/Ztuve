@@ -81,7 +81,7 @@
               </el-row>
             </div>
           </transition>
-          <el-table   cell-style="padding:2px;font-size:12px" fit :data="emps"  style=" width: 100%;border: 1px solid #F7F7F7">
+          <el-table   v-zt-cell-style fit :data="emps"  style=" width: 100%;border: 1px solid #F7F7F7">
             <el-table-column
               type="selection"
               align="left"

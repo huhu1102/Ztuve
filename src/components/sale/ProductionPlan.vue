@@ -837,7 +837,7 @@
           </div>
         </div>
         <!-- 销售计划 -->
-        <el-table :data="materialList"cell-style="padding:2px;font-size:12px" border style="width: 100%" @row-click="showRow">
+        <el-table :data="materialList" v-zt-cell-style border style="width: 100%" @row-click="showRow">
           <el-table-column align="center" fixed label="当前" width="80">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedlock'>&nbsp;</el-radio>
@@ -904,7 +904,7 @@
           </div>
         </div>
         <!-- 产品表 -->
-        <el-table :data="lockList" cell-style="padding:2px;font-size:12px"fit border style="width: 100%" @row-click="showLockRow">
+        <el-table :data="lockList"  v-zt-cell-style fit border style="width: 100%" @row-click="showLockRow">
           <el-table-column align="center" fixed label="当前" width="80">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedlock'>&nbsp;</el-radio>

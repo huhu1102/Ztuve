@@ -50,7 +50,7 @@
             </el-row>
           </div>
         </transition>
-        <el-table :data="midConfirms"cell-style="padding:2px;font-size:12px" fit border style="width: 100%" onsort="">
+        <el-table :data="midConfirms":cell-style="{padding:'2px',fontSize:'12px'}" fit border style="width: 100%" onsort="">
           <el-table-column align="left" prop="name" fixed label="名称" sortable>
           </el-table-column>
           <el-table-column align="left" label="数量" sortable>

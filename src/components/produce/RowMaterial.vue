@@ -71,7 +71,7 @@
           <el-dialog v-dialogDrag :title="confirmDialogTitle" style="padding: 0px;" :close-on-click-modal="false"
             :visible.sync="confirmFormVisible" @close="cancelOpt" width="650px">
             <div style="width: 100% " height=200 v-if="confirmFormVisible">
-              <el-table cell-style="padding:2px;font-size:12px":data="matriallist" border highlight-current-row @current-change="handleCurrentChange"
+              <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="matriallist" border highlight-current-row @current-change="handleCurrentChange"
                 style="width: 100%">
                 <el-table-column prop="planSerialNumber" align="left" fixed label="采购编号" width="120">
                 </el-table-column>
@@ -156,7 +156,7 @@
               <el-button type="primary" @click="planConfirm('newconfirmForm')">确 定</el-button>
             </div>
           </el-dialog>
-          <el-table cell-style="padding:2px;font-size:12px":data="materials" highlight-current-row="" border fit style="width: 100%" :row-class-name="tableRowClassName">
+          <el-table  :cell-style="{padding:'2px',fontSize:'12px'}" :data="materials" highlight-current-row="" border fit style="width: 100%" :row-class-name="tableRowClassName">
             <el-table-column prop="materialName" align="left" fixed label="名称" width="120">
             </el-table-column>
             <el-table-column prop="specs" align="left" fixed label="原料规格" width="120">

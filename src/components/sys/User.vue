@@ -77,7 +77,7 @@
         </div>
       </el-dialog>
   
-      <el-table  :data="users"  cell-style="padding:2px;font-size:12px"border style="width: 100%">
+      <el-table  :data="users"  :cell-style="{padding:'2px',fontSize:'12px'}"  border style="width: 100%">
         <el-table-column
           type="selection"
           align="left"

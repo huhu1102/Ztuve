@@ -27,7 +27,7 @@
             </div>
           </el-header>
           <el-main style="padding: 0 20px;">
-            <el-table   cell-style="padding:2px;font-size:12px" highlight-current-row :data="units" fit  style="width: 100%">
+            <el-table   :cell-style="{padding:'2px',fontSize:'12px'}" highlight-current-row :data="units" fit  style="width: 100%">
               <el-table-column
                 type="selection"
                 align="left"

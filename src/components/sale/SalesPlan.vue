@@ -523,7 +523,7 @@
             </div>
           </div>
           <div v-show="showDetaillist">
-            <el-table cell-style="padding:2px;font-size:12px":data="plandetaillist" highlight-current-row fit border style="width: 100%">
+            <el-table  v-zt-cell-style  :data="plandetaillist" highlight-current-row fit border style="width: 100%">
               <el-table-column align="left" label="客户名">
                 <template slot-scope="scope">
                   <div v-if="scope.row.salesPlan.client">
@@ -798,7 +798,7 @@
           </div>
         </div>
         <!-- 产品表 -->
-        <el-table :data="materialList" cell-style="padding:2px;font-size:12px"highlight-current-row fit border style="width: 100%" @row-click="showRow">
+        <el-table :data="materialList" v-zt-cell-style highlight-current-row fit border style="width: 100%" @row-click="showRow">
           <el-table-column align="center" fixed label="当前" width="80">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>

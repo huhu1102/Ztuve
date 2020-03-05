@@ -37,7 +37,7 @@
           </div>
         </div>
       </el-header>
-      <el-container class="divce-mode" v-if="tap===2">
+      <el-container class="divce-mode" v-show="tap===2">
         <div class="product-header-style">
           <div style="display: inline">
             <el-input placeholder="通过车牌搜索,记得回车哦..." clearable @change="keywordsChange"
@@ -88,7 +88,7 @@
               </el-row>
             </div>
           </transition>
-          <el-table  cell-style="padding:2px;font-size:12px" :data="products" fit highlight-current-row style="width: 100%">
+          <el-table  :cell-style="{padding:'2px',fontSize:'12px'}" :data="products" fit highlight-current-row style="width: 100%">
             <el-table-column type="selection" align="left" v-loading="tableLoading" width="30">
 
             </el-table-column>
@@ -143,7 +143,7 @@
           </div>
         </el-main>
       </el-container>
-      <el-container v-else-if="tap===3">
+      <el-container v-show="tap===3">
         <el-header>
         <el-button type="warning" icon="el-icon-caret-left" @click="cancelOpt" circle></el-button>
         </el-header>
@@ -343,7 +343,7 @@
 
       </el-container>
       <!--      //模块展示-->
-      <el-container v-else class="product-model-base">
+      <el-container v-show="tap===1" class="product-model-base">
         <div class="product-model-item" v-for="item in typeItems" :key="item.id" @click="used(item)">
           <span class="fa fa-bomb"></span>
           <span>{{item.name}}</span>
@@ -385,7 +385,7 @@
         </div>
 
 
-        <el-table cell-style="padding:2px;font-size:12px" :data="materialList" border style="width: 100%" @row-click="showRow">
+        <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="materialList" border style="width: 100%" @row-click="showRow">
           <el-table-column align="center" fixed label="当前" width="80">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>
@@ -429,7 +429,7 @@
               +工序步骤
             </el-button>
           </div>
-          <el-table cell-style="padding:2px;font-size:12px":data="selectSteps" fit border style="width: 100%">
+          <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="selectSteps" fit border style="width: 100%">
             <el-table-column align="left" label="操作" width="160">
               <template slot-scope="scope">
 
@@ -464,10 +464,9 @@
     <!--    'step': ProductStep,-->
     <!--    'gress': ProductProgress,-->
 
-    <el-dialog  v-dialog-drag-width
+    <el-dialog
                 :modal="false"
                 :title="dialogset"
-               style="padding: 0;"
                :close-on-click-modal="false"
                :visible.sync="dialogspecVisible"
                @close="cancelOpt"
@@ -479,7 +478,6 @@
     <el-dialog
                  :modal="false"
                :title="dialogset"
-               style="padding: 0;"
                :close-on-click-modal="false"
                :visible.sync="dialogcolorVisible"
                @close="cancelOpt"
@@ -518,9 +516,8 @@
                :visible.sync="dialoguseVisible"
                @close="cancelOpt"
                 :modal="false"
-               width="500px"
-                v-dialog-drag
-    >
+                  width="500px"
+                v-dialog-drag>
       <div>
         <uses></uses>
       </div>
@@ -530,9 +527,7 @@
 
 </template>
 <script>
-  import {
-    Message
-  } from 'element-ui'
+  import {Message} from 'element-ui'
   import ProductSpec from '@/components/produce/ProductSpec'
   import ProductColor from '@/components/produce/ProductColor'
   import ProductStep from '@/components/produce/ProductStep'
@@ -543,6 +538,10 @@
     data() {
 
       return {
+        // ztCellStyle:{
+        //   'padding':'2px','fontSize':'12px'
+        // },
+
         dialogset: '设置',
         dialogspecVisible: false,
         dialoggressVisible: false,
@@ -668,7 +667,13 @@
       'uses': ProductUse,
     },
     methods: {
-      //图片上传
+      // ztCellStyle({row,column,rowIndex,columnIndex}){
+      //   return {
+      //     padding:'2px',
+      //   fontSize:"12px"
+      //   }
+      // },
+      //图片上传`
       uploadPic(param){
         let _this=this;
         console.log(param);

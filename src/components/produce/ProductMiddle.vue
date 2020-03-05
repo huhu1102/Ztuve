@@ -108,7 +108,7 @@
        :data="matriallist"  
        border 
        highlight-current-row
-       cell-style="padding:2px;font-size:12px"
+       :cell-style="{padding:'2px',fontSize:'12px'}"
        @current-change="handleCurrentChange"
        style="width: 100%">
        <el-table-column
@@ -211,7 +211,7 @@
        <el-button type="primary" @click="planConfirm('newconfirmForm')">确 定</el-button>
      </div>
    </el-dialog>
-    <el-table  cell-style="padding:2px;font-size:12px":data="middleProducts"  border style="width: 100%" :row-class-name="tableRowClassName">
+    <el-table  :cell-style="{padding:'2px',fontSize:'12px'}" :data="middleProducts"  border style="width: 100%" :row-class-name="tableRowClassName">
       <el-table-column
         type="selection"
         align="left"

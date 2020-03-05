@@ -51,7 +51,6 @@
           </div>
         </div>
         <div style="display: flex;justify-content: flex-start;width: 200px;text-align: left;">
-
           <el-menu background-color="#112943" text-color="#ffffff" class="el-menu-home" :collapse="isCollapse"
                    unique-opened router>
             <template v-for="(item,index) in menuitems" v-if="!item.hidden">

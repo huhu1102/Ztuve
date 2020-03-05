@@ -28,7 +28,7 @@
                 fit highlight-current-row
                 border
 
-                cell-style="padding:2px;font-size:12px"
+                :cell-style="{padding:'2px',fontSize:'12px'}"
                 tooltip-effect="light"
                 style="font-size:12px;width: 100%">
         <el-table-column

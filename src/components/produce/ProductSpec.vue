@@ -20,7 +20,7 @@
           <el-button type="primary" size="mini" style="margin-left: 5px" @click="addAndFlushEmp">添加</el-button>
         </div>
 
-        <el-table :data="units":cell-style="{padding:'2px',fontSize:'12px'}" fit  border style="width: 100%">
+        <el-table :data="units" :cell-style="{padding:'2px',fontSize:'12px'}" fit  border style="width: 100%">
           <el-table-column type="selection" align="left" v-loading="tableLoading" width="30">
           </el-table-column>
           <el-table-column prop="name" align="left" fixed label="名称" width="120">

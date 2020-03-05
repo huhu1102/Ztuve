@@ -21,7 +21,7 @@
           <el-button type="primary" size="mini" style="margin-left: 5px" @click="addAndFlush">添加</el-button>
           <el-button size="mini" type="success" @click="initData" icon="el-icon-refresh"></el-button>
         </div>
-        <el-table :cell-style="{padding:'2px',fontSize:'12px'}":data="units" fit border style="width: 100%">
+        <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="units" fit border style="width: 100%">
           <el-table-column
             type="selection"
             align="left"
@@ -112,9 +112,9 @@
 
     },
     methods: {
-      cellStyles({row, column, rowIndex, columnIndex}){
-        return "padding:2px;font-size:12px";
-      },
+      // cellStyles({row, column, rowIndex, columnIndex}){
+      //   return "padding:2px;font-size:12px";
+      // },
       initData() {
         this.loadDatas();
 

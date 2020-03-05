@@ -68,7 +68,7 @@
           </transition>
           <!--订单列表-->
           <div>
-            <el-table cell-style="padding:2px;font-size:12px":data="ordersList" border fit style="width: 100%;font-size: 12px;">
+            <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="ordersList" border fit style="width: 100%;font-size: 12px;">
 
               <el-table-column  align="left" fixed label="订单编号">
                 <template slot-scope="scope">
@@ -170,7 +170,7 @@
           </div>
         </div>
         <!-- 产品表 -->
-        <el-table :data="materialList" cell-style="padding:2px;font-size:12px"border style="width: 100%" @row-click="showRow">
+        <el-table :data="materialList" :cell-style="{padding:'2px',fontSize:'12px'}" border style="width: 100%" @row-click="showRow">
           <el-table-column align="center" fixed label="当前" width="80">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>
@@ -372,7 +372,7 @@
             <el-row style="text-align:start;">
               <el-button type="primary" style="padding: 6px 4px;margin: 5px;" @click="addSalesItem">添加</el-button>
             </el-row>
-            <el-table :data="items"cell-style="padding:2px;font-size:12px" fit border style="width: 100%">
+            <el-table :data="items" :cell-style="{padding:'2px',fontSize:'12px'}" fit border style="width: 100%">
               <el-table-column
 
                 align="left"
@@ -571,7 +571,7 @@
           </div>
         </div>
         <!-- 销售计划列表 -->
-        <el-table :data="orderitems"cell-style="padding:2px;font-size:12px" fit border style="width: 100%" @row-click="showitemRow">
+        <el-table :data="orderitems":cell-style="{padding:'2px',fontSize:'12px'}" fit border style="width: 100%" @row-click="showitemRow">
           <el-table-column align="center" fixed label="当前" width="80">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedSales'>&nbsp;</el-radio>

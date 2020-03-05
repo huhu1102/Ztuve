@@ -459,7 +459,7 @@
 
           <div>
             <div class="detail-head">请选择生产工序：</div>
-            <el-table cell-style="padding:2px;font-size:12px":data="selectSteps"
+            <el-table showDetails="padding:2px;font-size:12px":data="selectSteps"
                       ref="multipleTable"
                       :show-header="false"
                       :highlight-current-row="true"
@@ -723,7 +723,7 @@
           </div>
         </div>
         <!-- 数据源 -->
-        <el-table cell-style="padding:2px;font-size:12px":data="materialList" fit border style="width: 100%" @row-click="showRow">
+        <el-table  v-zt-cell-style :data="materialList" fit border style="width: 100%" @row-click="showRow">
           <el-table-column align="center" fixed label="当前">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>

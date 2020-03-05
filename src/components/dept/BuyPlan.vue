@@ -103,7 +103,7 @@
 
               <el-button size="mini" type="primary" @click="addBox">添加</el-button>
             </div>
-            <el-table :data="details" cell-style="padding:2px;font-size:12px" border height="200" style="width: 100%;">
+            <el-table :data="details" :cell-style="{padding:'2px',fontSize:'12px'}" border height="200" style="width: 100%;">
               <el-table-column prop="sid" align="left" label="序号" width="100">
               </el-table-column>
               <el-table-column prop="name" align="left" label="名称" width="100">
@@ -151,7 +151,7 @@
         </div>
         <!-- 原材料表 -->
 
-        <el-table :data="materialList" border cell-style="padding:2px;font-size:12px"style="width: 100%" @row-click="showRow">
+        <el-table :data="materialList" border  :cell-style="{padding:'2px',fontSize:'12px'}" style="width: 100%" @row-click="showRow">
           <el-table-column align="center" fixed label="当前" width="80">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>
@@ -181,7 +181,7 @@
         <el-button type="primary" @click="chooseMaterial()">确 定</el-button>
       </div>
     </el-dialog>
-    <el-table :data="plans" cell-style="padding:2px;font-size:12px"border style="width: 100%">
+    <el-table :data="plans" :cell-style="{padding:'2px',fontSize:'12px'}"  border style="width: 100%">
       <el-table-column type="expand">
         <template slot-scope="props">
           <el-form label-position="left" inline class="demo-table-expand" v-for="(child,index) in props.row.detail"
