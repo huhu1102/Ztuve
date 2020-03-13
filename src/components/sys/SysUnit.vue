@@ -28,7 +28,7 @@
                   @close="cancelOpt"
                   width="500px">
         <div style="width: 100% " v-if="dialogFormVisible">
-          <el-form  :model="unit" :rules="rules" ref="addEmpForm"  size="sam" label-width="90px" >
+          <el-form  :model="unit" :rules="rules" ref="addEmpForm"  size="mini" label-width="90px" >
   
             <el-form-item label="名称:" prop="name">
               <el-input prefix-icon="el-icon-edit" v-model="unit.name" size="mini" style="width: 200px"
@@ -120,13 +120,6 @@
           advanceSearchViewVisible: false,
           rules: {
             name: [{required: true, message: '必填:中文名', trigger: 'blur'}],
-            // code: [{required: true, message: '必填:单位英文缩写', trigger: 'blur'},
-            //   {
-            //     validator:phonevalidate,
-            //     message: '格式错误',
-            //     trigger: 'blur'
-            //   }]
-          
           },
           units:[],
           defaultProps: {

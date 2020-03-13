@@ -524,7 +524,7 @@ export default new Router({
         }
         }, {
         path: '/contact',
-        name: '测试',
+        name: '合同管理',
         component: Contact,
         hidden: true,
         meta: {

@@ -1723,7 +1723,6 @@
       },
       cancelsetpOpt() {
         this.progresses = [];
-
       },
 
       confirm(index, row) {

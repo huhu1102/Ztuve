@@ -88,7 +88,8 @@
               </el-row>
             </div>
           </transition>
-          <el-table  :cell-style="{padding:'2px',fontSize:'12px'}" :data="products" fit highlight-current-row style="width: 100%">
+          <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="products" fit highlight-current-row
+                    style="width: 100%">
             <el-table-column type="selection" align="left" v-loading="tableLoading" width="30">
 
             </el-table-column>
@@ -124,15 +125,21 @@
             </el-table-column>
             <el-table-column align="left" label="操作">
               <template slot-scope="scope">
-                <el-button @click="showProcessView(scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini">
-                  查看工序
-                </el-button>
-                <el-button @click="showEditEmpView(scope.$index,scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px"
-                           size="mini">编辑
-                </el-button>
-                <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
-                           @click="deleteData(scope.row)">删除
-                </el-button>
+                <tooltip content="查看工序" placement="top-start">
+                <span class="fa fa-list" @click="showProcessView(scope.row)"
+                      style="cursor: pointer; padding: 3px 4px 3px 4px;margin: 2px">
+                </span>
+                </tooltip>
+                <tooltip content="编辑" placement="top-start">
+                <span class="fa fa-pencil" @click="showEditEmpView(scope.$index, scope.row)"
+                      style="cursor: pointer;padding: 3px 4px 3px 4px;margin: 2px">
+                </span>
+                </tooltip>
+                <tooltip content="删除" placement="top-start">
+                <span class="fa fa-trash" @click="deleteData(scope.row)"
+                      style="cursor: pointer; color: red; padding: 3px 4px 3px 4px;margin: 2px">
+                </span>
+                </tooltip>
               </template>
             </el-table-column>
           </el-table>
@@ -145,159 +152,160 @@
       </el-container>
       <el-container v-show="tap===3">
         <el-header>
-        <el-button type="warning" icon="el-icon-caret-left" @click="cancelOpt" circle></el-button>
+          <el-button type="warning" icon="el-icon-caret-left" @click="cancelOpt" circle></el-button>
         </el-header>
         <el-main style="height: 100%;">
           <el-form :model="product" label-position="right" :rules="rules" ref="addEmpForm"
-                   size="small" style="display:flex;flex-direction:column;justify-content: center; " label-width="100px">
-              <el-row class="product-form-item">
-                <div>
-                  名称:
-                </div>
-                <div>
-                  <el-input style="border: none;width: 200px;" class="product-input-btn-class" prefix-icon="el-icon-edit"
-                            v-model="product.producteName"
-                            size="mini"
-                            placeholder="名称">
+                   size="small" style="display:flex;flex-direction:column;justify-content: center; "
+                   label-width="100px">
+            <el-row class="product-form-item">
+              <div>
+                名称:
+              </div>
+              <div>
+                <el-input style="border: none;width: 200px;" class="product-input-btn-class" prefix-icon="el-icon-edit"
+                          v-model="product.producteName"
+                          size="mini"
+                          placeholder="名称">
 
-                  </el-input>
-                </div>
-              </el-row>
-              <el-row class="product-form-item">
-                <div>
-                  用途:
-                </div>
-                <div>
-                  <el-select
-                    class="product-input-btn-class"
-                    v-model="product.proType"
-                    multiple size="mini"
-                    filterable
-                    remote
-                    style="width: 200px"
-                    placeholder="---请选择---">
-                    <el-option v-for="item in proTypes"
-                               :key="item.id"
-                               :label="item.name"
-                               :value="item.name">
-                    </el-option>
-                  </el-select>
-                </div>
+                </el-input>
+              </div>
+            </el-row>
+            <el-row class="product-form-item">
+              <div>
+                用途:
+              </div>
+              <div>
+                <el-select
+                  class="product-input-btn-class"
+                  v-model="product.proType"
+                  multiple size="mini"
+                  filterable
+                  remote
+                  style="width: 200px"
+                  placeholder="---请选择---">
+                  <el-option v-for="item in proTypes"
+                             :key="item.id"
+                             :label="item.name"
+                             :value="item.name">
+                  </el-option>
+                </el-select>
+              </div>
 
-              </el-row>
-              <el-row class="product-form-item">
-                <div>
-                  颜色:
-                </div>
-                <div>
-                  <el-select filterable
-                             remote
-                             v-model="product.color"
-                             multiple
-                             size="mini"
-                             style="width: 200px"
-                             placeholder="请选择产品颜色">
-                    <el-option v-for="item in colors" :key="item.id" :label="item.name" :value="item.id">
-                    </el-option>
-                  </el-select>
-                </div>
+            </el-row>
+            <el-row class="product-form-item">
+              <div>
+                颜色:
+              </div>
+              <div>
+                <el-select filterable
+                           remote
+                           v-model="product.color"
+                           multiple
+                           size="mini"
+                           style="width: 200px"
+                           placeholder="请选择产品颜色">
+                  <el-option v-for="item in colors" :key="item.id" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
+              </div>
 
-              </el-row>
-              <el-row class="product-form-item">
-                <div>
-                  规格:
-                </div>
-                <div>
-                  <el-select
-                    filterable
-                    v-model="product.specification"
-                    multiple
-                    style="width: 200px"
-                    size="mini"
-                    placeholder="请选择规格">
-                    <el-option v-for="item in specs" :key="item.id" :label="item.name" :value="item.id">
-                    </el-option>
-                  </el-select>
-                </div>
+            </el-row>
+            <el-row class="product-form-item">
+              <div>
+                规格:
+              </div>
+              <div>
+                <el-select
+                  filterable
+                  v-model="product.specification"
+                  multiple
+                  style="width: 200px"
+                  size="mini"
+                  placeholder="请选择规格">
+                  <el-option v-for="item in specs" :key="item.id" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
+              </div>
 
-              </el-row>
-              <el-row class="product-form-item">
-                <div>
-                  单位:
-                </div>
-                <div>
-                  <el-select filterable
-                             remote
-                             class="product-input-btn-class"
-                             v-model="product.sysUnitId"
-                             size="mini"
-                             style="width: 200px"
-                             placeholder="请选择产品颜色">
-                    <el-option v-for="item in units" :key="item.id" :label="item.name" :value="item.id">
-                    </el-option>
-                  </el-select>
-                </div>
+            </el-row>
+            <el-row class="product-form-item">
+              <div>
+                单位:
+              </div>
+              <div>
+                <el-select filterable
+                           remote
+                           class="product-input-btn-class"
+                           v-model="product.sysUnitId"
+                           size="mini"
+                           style="width: 200px"
+                           placeholder="请选择产品颜色">
+                  <el-option v-for="item in units" :key="item.id" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
+              </div>
 
-              </el-row>
-              <el-row class="product-form-item">
-                <div>
-                  备注:
-                </div>
-                <div>
-                  <el-input class="product-input-btn-class"
-                            prefix-icon="el-icon-edit"
-                            v-model="product.note"
-                            size="mini"
-                            style="width:200px;"
-                            type="textarea"
-                            placeholder="备注。。。">
-                  </el-input>
-                </div>
-              </el-row>
-              <el-row>
-                产品图片：
-                <el-upload
-                  class="avatar-uploader"
-                  action=""
-                  :http-request="uploadPic"
-                  :show-file-list="false"
-                  list-type="picture-card"
-                  :on-preview="handlePictureCardPreview"
-                  :on-remove="handleRemove">
-                  <img v-if="ImageUrl" :src="ImageUrl" class="avatar">
-                  <i v-else class="el-icon-plus "></i>
-                </el-upload>
-                <el-dialog :visible.sync="imgVisible">
-                  <img width="100%" :src="ImageUrl" alt="">
-                </el-dialog>
-<!--                <el-upload-->
-<!--                  action=""-->
-<!--                  :http-request="uploadPic"-->
-<!--                  list-type="picture-card"-->
-<!--                  :on-preview="handlePictureCardPreview"-->
-<!--                  :on-remove="handleRemove">-->
-<!--                  <i class="el-icon-plus"></i>-->
-<!--                </el-upload>-->
-<!--                <el-dialog :visible.sync="imgVisible">-->
-<!--                  <img width="100%" :src="ImageUrl" alt="">-->
-<!--                </el-dialog>-->
-<!--                <el-image  style="width: 100px; height: 100px"  :src="ImageUrl">-->
-<!--                  <div slot="error" class="image-slot">-->
-<!--                    <i class="el-icon-picture-outline"></i>-->
-<!--                  </div>-->
-<!--                </el-image>-->
-              </el-row>
-                <div style="text-align: center;padding:0 0 12px 0; ">
-                  <span class="labels-style">消耗原料清单: </span>
-                </div>
+            </el-row>
+            <el-row class="product-form-item">
+              <div>
+                备注:
+              </div>
+              <div>
+                <el-input class="product-input-btn-class"
+                          prefix-icon="el-icon-edit"
+                          v-model="product.note"
+                          size="mini"
+                          style="width:200px;"
+                          type="textarea"
+                          placeholder="备注。。。">
+                </el-input>
+              </div>
+            </el-row>
+            <el-row>
+              产品图片：
+              <el-upload
+                class="avatar-uploader"
+                action=""
+                :http-request="uploadPic"
+                :show-file-list="false"
+                list-type="picture-card"
+                :on-preview="handlePictureCardPreview"
+                :on-remove="handleRemove">
+                <img v-if="ImageUrl" :src="ImageUrl" class="avatar">
+                <i v-else class="el-icon-plus "></i>
+              </el-upload>
+              <el-dialog :visible.sync="imgVisible">
+                <img width="100%" :src="ImageUrl" alt="">
+              </el-dialog>
+              <!--                <el-upload-->
+              <!--                  action=""-->
+              <!--                  :http-request="uploadPic"-->
+              <!--                  list-type="picture-card"-->
+              <!--                  :on-preview="handlePictureCardPreview"-->
+              <!--                  :on-remove="handleRemove">-->
+              <!--                  <i class="el-icon-plus"></i>-->
+              <!--                </el-upload>-->
+              <!--                <el-dialog :visible.sync="imgVisible">-->
+              <!--                  <img width="100%" :src="ImageUrl" alt="">-->
+              <!--                </el-dialog>-->
+              <!--                <el-image  style="width: 100px; height: 100px"  :src="ImageUrl">-->
+              <!--                  <div slot="error" class="image-slot">-->
+              <!--                    <i class="el-icon-picture-outline"></i>-->
+              <!--                  </div>-->
+              <!--                </el-image>-->
+            </el-row>
+            <div style="text-align: center;padding:0 0 12px 0; ">
+              <span class="labels-style">消耗原料清单: </span>
+            </div>
             <el-row class="product-form-item">
               <div>原料:</div>
               <div>
-                  <el-select v-model="detail.name" @change='matterSelect' @clear='emptyDetail' style="width: 200px"
-                             clearable size="mini" placeholder="请选择原料">
-                    <el-option v-for="item in midProduct" :key="item.name" :label="item.name" :value="item.id">
-                    </el-option>
-                  </el-select>
+                <el-select v-model="detail.name" @change='matterSelect' @clear='emptyDetail' style="width: 200px"
+                           clearable size="mini" placeholder="请选择原料">
+                  <el-option v-for="item in midProduct" :key="item.name" :label="item.name" :value="item.id">
+                  </el-option>
+                </el-select>
               </div>
             </el-row>
             <el-row class="product-form-item">
@@ -310,35 +318,33 @@
                 </el-input>
               </div>
             </el-row>
-                <span class="fa fa-plus" style="color: blue;" @click.stop.prevent="addBox"> 添加</span>
+            <span class="fa fa-plus" style="color: blue;" @click.stop.prevent="addBox"> 添加</span>
 
 
-              <el-row style="display: flex;flex-direction: column;justify-content: center;">
-                <div v-if=" details.length!==0" style="width:100%;display:flex;flex-direction: column;justify-content: center;">
-                  <div style="width: 100%;" v-for="(mitem,key,index) in details" :key="mitem.sid">
-                    {{mitem.sid}}
-                    {{mitem.quantity}}
-                    {{mitem.name}}
-                    <span @click="editeDetail(index,mitem)"> 编辑</span>
-                    <span @click="deleteDetail(index,mitem)"> 删除</span>
-                  </div>
+            <el-row style="display: flex;flex-direction: column;justify-content: center;">
+              <div v-if=" details.length!==0"
+                   style="width:100%;display:flex;flex-direction: column;justify-content: center;">
+                <div style="width: 100%;" v-for="(mitem,key,index) in details" :key="mitem.sid">
+                  {{mitem.sid}}
+                  {{mitem.quantity}}
+                  {{mitem.name}}
+                  <span @click="editeDetail(index,mitem)"> 编辑</span>
+                  <span @click="deleteDetail(index,mitem)"> 删除</span>
                 </div>
-                <div style="width: 100%; text-align: center;" v-else>
-                  暂无原料
-                </div>
+              </div>
+              <div style="width: 100%; text-align: center;" v-else>
+                暂无原料
+              </div>
 
-              </el-row>
-
-
+            </el-row>
 
 
           </el-form>
-          <div  class="dialog-footer">
+          <div class="dialog-footer">
             <el-button @click="cancelOpt">取 消</el-button>
             <el-button type="primary" @click.prevent="add('addEmpForm')">确 定</el-button>
           </div>
         </el-main>
-
 
 
       </el-container>
@@ -366,7 +372,7 @@
                @close="cancelOpt"></el-dialog>
 
     <!-- 选择工序 -->
-    <el-dialog  :title="dialogMaterialTitle" style="padding: 0;"
+    <el-dialog :title="dialogMaterialTitle" style="padding: 0;"
                :close-on-click-modal="false"
                :visible.sync="dialogMaterialVisible" @close="cancelchoose" width="480px">
       <div style="width: 100% " v-if="dialogMaterialVisible">
@@ -385,7 +391,8 @@
         </div>
 
 
-        <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="materialList" border style="width: 100%" @row-click="showRow">
+        <el-table :cell-style="{padding:'2px',fontSize:'12px'}" :data="materialList" border style="width: 100%"
+                  @row-click="showRow">
           <el-table-column align="center" fixed label="当前" width="80">
             <template slot-scope="scope">
               <el-radio :label="scope.$index" v-model='selectedM'>&nbsp;</el-radio>
@@ -465,59 +472,59 @@
     <!--    'gress': ProductProgress,-->
 
     <el-dialog
-                :modal="false"
-                :title="dialogset"
-               :close-on-click-modal="false"
-               :visible.sync="dialogspecVisible"
-               @close="cancelOpt"
-               width="500px" v-dialog-drag >
+      :modal="false"
+      :title="dialogset"
+      :close-on-click-modal="false"
+      :visible.sync="dialogspecVisible"
+      @close="cancelOpt"
+      width="500px" v-dialog-drag>
       <div>
         <specs></specs>
       </div>
     </el-dialog>
     <el-dialog
-                 :modal="false"
-               :title="dialogset"
-               :close-on-click-modal="false"
-               :visible.sync="dialogcolorVisible"
-               @close="cancelOpt"
-               width="500px"v-dialog-drag>
+      :modal="false"
+      :title="dialogset"
+      :close-on-click-modal="false"
+      :visible.sync="dialogcolorVisible"
+      @close="cancelOpt"
+      width="500px" v-dialog-drag>
       <div>
         <color></color>
       </div>
     </el-dialog>
     <el-dialog
-            :modal="false"
-            :title="dialogset"
-               style="padding: 0;"
-               :close-on-click-modal="false"
-               :visible.sync="dialogstepVisible"
-               @close="cancelOpt"
-               width="500px"v-dialog-drag>
+      :modal="false"
+      :title="dialogset"
+      style="padding: 0;"
+      :close-on-click-modal="false"
+      :visible.sync="dialogstepVisible"
+      @close="cancelOpt"
+      width="500px" v-dialog-drag>
       <div>
         <step></step>
       </div>
     </el-dialog>
-    <el-dialog  :title="dialogset"
+    <el-dialog :title="dialogset"
                style="padding: 0;"
                :fullscreen="true"
-                :modal="false"
+               :modal="false"
                :close-on-click-modal="false"
                :visible.sync="dialoggressVisible"
                @close="cancelOpt"
-               width="500px"v-dialog-drag>
+               width="500px" v-dialog-drag>
       <div>
         <gress></gress>
       </div>
     </el-dialog>
-    <el-dialog  :title="dialogset"
+    <el-dialog :title="dialogset"
                style="padding: 0;"
                :close-on-click-modal="false"
                :visible.sync="dialoguseVisible"
                @close="cancelOpt"
-                :modal="false"
-                  width="500px"
-                v-dialog-drag>
+               :modal="false"
+               width="500px"
+               v-dialog-drag>
       <div>
         <uses></uses>
       </div>
@@ -598,8 +605,8 @@
           clientName: '',
           clientId: '',
           sysUnitId: 0,
-          imageUrl:'',
-          uploadName:''
+          imageUrl: '',
+          uploadName: ''
         },
         processModel: {
           currentSteps: '',
@@ -652,8 +659,8 @@
         currentMaterialPage: 1,
         selectMaterial: {},
         currentSelectStepIds: [],
-        imgVisible:false,
-        ImageUrl:'',
+        imgVisible: false,
+        ImageUrl: '',
       }
     },
     mounted: function () {
@@ -674,30 +681,30 @@
       //   }
       // },
       //图片上传`
-      uploadPic(param){
-        let _this=this;
+      uploadPic(param) {
+        let _this = this;
         console.log(param);
 
-        let formData=new FormData()
-        let  file=param.file;
+        let formData = new FormData()
+        let file = param.file;
         console.log(file);
-        if(file){
-          _this.product.uploadName=file.name
+        if (file) {
+          _this.product.uploadName = file.name
         }
         // let  uploadName=file.name;
-        formData.append("file",file);
-        _this.uploadFileRequest("/uploadfile/file/upload",formData).then(resp => {
+        formData.append("file", file);
+        _this.uploadFileRequest("/uploadfile/file/upload", formData).then(resp => {
           if (resp && resp.status === 200) {
-            const  imgUrl=resp.data;
-            _this.ImageUrl=imgUrl;
-            _this.product.imageUrl=imgUrl;
+            const imgUrl = resp.data;
+            _this.ImageUrl = imgUrl;
+            _this.product.imageUrl = imgUrl;
           }
         })
       },
       //删除图片
       handleRemove(file, fileList) {
         console.log(file, fileList);
-        this.ImageUrl='';
+        this.ImageUrl = '';
       },
       // 预览图片
       handlePictureCardPreview(file) {
@@ -1068,7 +1075,7 @@
         console.log(row);
         this.dialogTitle = "编辑信息";
         this.product = row;
-        this.ImageUrl=row.imageUrl;
+        this.ImageUrl = row.imageUrl;
         this.product.proType = this.product.proType.split(',') || [];
         this.currentRowData = _.cloneDeep(row);
         this.currentIndex = index;
@@ -1228,7 +1235,7 @@
           specification: '',
           proType: '',
           color: '',
-          ImageUrl:'',
+          ImageUrl: '',
         };
         this.currentSelectStepIds = []
       }
@@ -1377,22 +1384,26 @@
     color: #ffffff;
     margin: 2px;
   }
-  .product-form-item{
+
+  .product-form-item {
     display: inline-flex;
     flex-direction: row;
     justify-content: center;
     margin-top: 10px;
   }
-  .product-form-item>div:first-child{
+
+  .product-form-item > div:first-child {
     text-align: right;
     width: 40%;
 
   }
-  .product-form-item>div:last-child{
+
+  .product-form-item > div:last-child {
     text-align: left;
     width: 60%;
   }
-   /*图片样式*/
+
+  /*图片样式*/
   .avatar-uploader .el-upload {
     border: 1px dashed #d9d9d9;
     border-radius: 6px;
@@ -1400,9 +1411,11 @@
     position: relative;
     overflow: hidden;
   }
+
   .avatar-uploader .el-upload:hover {
     border-color: #409EFF;
   }
+
   .avatar-uploader-icon {
     font-size: 28px;
     color: #8c939d;
@@ -1411,25 +1424,28 @@
     line-height: 178px;
     text-align: center;
   }
+
   .avatar {
     width: 178px;
     height: 178px;
     display: block;
   }
-  .el-dialog{
+
+  .el-dialog {
     display: flex;
     flex-direction: column;
-    margin:0 !important;
-    position:absolute;
-    top:50%;
-    left:50%;
-    transform:translate(-50%,-50%);
+    margin: 0 !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     /*height:600px;*/
-    max-height:calc(100% - 30px);
-    max-width:calc(100% - 30px);
+    max-height: calc(100% - 30px);
+    max-width: calc(100% - 30px);
   }
-  .el-dialog .el-dialog__body{
-    flex:1;
+
+  .el-dialog .el-dialog__body {
+    flex: 1;
     overflow: auto;
   }
 

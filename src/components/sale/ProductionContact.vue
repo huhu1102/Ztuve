@@ -1,22 +1,22 @@
-
 <!--合同管理-->
 <template>
   <div>
     <el-container>
-      <el-header>
+      <el-header class="new-contact">
         <div style=" text-align:left; ">
           <strong>合同管理</strong>
+          <el-button type="primary" size="mini" v-show="tap===2" @click="addNewContact"> 新增</el-button>
+          <el-button type="primary" size="mini" v-show="tap===1" @click="tap=2"> 返回</el-button>
         </div>
-        <div style="text-align: left;margin-left: 20px;">
-<!--          <div class="fa fa-list-ul" :class="{stamp:tap===2}" @click="tap=2" style="cursor: pointer;">-->
-<!--            列表展示-->
-<!--          </div>-->
-<!--          <div class="fa fa-window-restore" :class="{stamp:tap===1}" @click="tap=1" style="margin-left: 30px;cursor: pointer;">产品分类（用途）-->
-<!--          </div>-->
-
-        </div>
+        <!--        <div style="text-align: left;margin-left: 20px;">-->
+        <!--          <div class="fa fa-list-ul" :class="{stamp:tap===2}" @click="tap=2" style="cursor: pointer;">-->
+        <!--            列表展示-->
+        <!--          </div>-->
+        <!--          <div class="fa fa-window-restore" :class="{stamp:tap===1}" @click="tap=1" style="margin-left: 30px;cursor: pointer;">产品分类（用途）-->
+        <!--          </div>-->
+        <!--        </div>-->
       </el-header>
-      <el-container  style="display: flex;flex-direction: column;" v-if="tap===2">
+      <el-container style="display: flex;flex-direction: column;" v-show="tap===2">
         <div style="height: 30px;margin: 0 20px;display: flex;flex-direction: row;justify-content: space-between;">
           <div style="display: inline">
             <el-input
@@ -38,10 +38,10 @@
               v-bind:class="[advanceSearchViewVisible ? faangledoubleup:faangledoubledown]"
             ></i>高级搜索
             </el-button>
+
           </div>
           <div style="margin-left: 5px;margin-right: 20px;display: inline">
 
-<!--            <el-button type="primary" @click="addAndFlushEmp" size="mini" icon="el-icon-plus">添加员工</el-button>-->
           </div>
         </div>
         <el-main style="margin: 0 20px">
@@ -63,27 +63,21 @@
                 </el-col>
                 <el-col :span='6'>
                   类型:
-                  <el-input prefix-icon="el-icon-edit" v-model="keyType" size="mini" style="width: 200px"
-                            placeholder="合同类型。。。">
-                  </el-input>
+                  <!--                  <el-input prefix-icon="el-icon-edit" v-model="keyType" size="mini" style="width: 200px"-->
+                  <!--                            placeholder="合同类型。。。">-->
+                  <!--                  </el-input>-->
                 </el-col>
-
-<!--                <el-col :span='6'>-->
-<!--                  部门:-->
-<!--                  <el-input prefix-icon="el-icon-edit" v-model="keydep" size="mini" style="width: 200px"-->
-<!--                            placeholder="部门名称。。。">-->
-<!--                  </el-input>-->
-<!--                </el-col>-->
               </el-row>
               <el-row style="margin-top: 10px;display: flex;justify-content: flex-end;">
                 <el-col :span="5" :offset="4">
-                  <el-button size="mini" @click="cancelSearch">取消</el-button>
+                  <el-button size="mini" @click="">取消</el-button>
                   <el-button icon="el-icon-search" type="primary" size="mini" @click="searchEmp">搜索</el-button>
                 </el-col>
               </el-row>
             </div>
           </transition>
-          <el-table   v-zt-cell-style fit :data="contactList"  style=" width: 100%;border: 1px solid #F7F7F7">
+          <el-table :cell-style="{padding:'2px',fontSize:'12px'}" fit :data="contactList"
+                    style=" width: 100%;border: 1px solid #F7F7F7">
             <el-table-column
               type="selection"
               align="left"
@@ -94,20 +88,20 @@
               prop="name"
               align="left"
               fixed
-              label="姓名"
+              label="合同号"
             >
             </el-table-column>
             <el-table-column
               prop="contractName"
               align="left"
               fixed
-              label="合同名称"
+              label="客户名称"
             >
             </el-table-column>
             <el-table-column
               prop="contractNumber"
               align="left"
-              label="合同编号"
+              label="合同金额"
             >
             </el-table-column>
 
@@ -115,60 +109,32 @@
               prop="qualityDeposit"
 
               align="left"
-              label="质保金">
+              label="签订时间">
             </el-table-column>
             <el-table-column
               prop="type"
 
               align="left"
-              label="合同类型">
+              label="合同内容">
             </el-table-column>
             <el-table-column
-            prop="totalMoney"
+              prop="totalMoney"
 
-            align="left"
-            label="总金额">
-          </el-table-column>
+              align="left"
+              label="合同进度">
+            </el-table-column>
             <el-table-column
               prop="signContractDate"
 
               align="left"
-              label="签约时间">
+              label="质保状态">
               <template slot-scope="scope">
                 <div>
                   {{signContractDate|formatDateTime}}
                 </div>
               </template>
             </el-table-column>
-            <el-table-column
-            prop="startDate"
 
-            align="left"
-            label="开始时间">
-            <template slot-scope="scope">
-              <div>
-                {{startDate|formatDateTime}}
-              </div>
-            </template>
-          </el-table-column>
-            <el-table-column
-              prop="endDate"
-              align="left"
-              label="截止时间">
-              <template slot-scope="scope">
-                <div>
-                  {{endDate|formatDateTime}}
-                </div>
-              </template>
-            </el-table-column>
-<!--            <el-table-column-->
-<!--              prop="gender"-->
-<!--              align="left"-->
-<!--              :formatter="formatSex"-->
-<!--              label="性别">-->
-
-<!--            </el-table-
--->
             <el-table-column
               align="left"
               label="操作"
@@ -176,7 +142,7 @@
             >
               <template slot-scope="scope">
                 <span @click="showDetails(scope.$index,scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px"
-                           size="mini">编辑
+                      size="mini">编辑
                 </span>
 
                 <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
@@ -197,116 +163,203 @@
             </el-pagination>
           </div>
         </el-main>
-
       </el-container>
-      <!--      //模块展示-->
-      <el-container v-else class="product-model-base">
-        <div class="product-model-item" v-for="item in depItems" :key="item.id" @click="used(item)">
-          <span class="fa fa-bomb"></span>
-          <span>{{item.name}}</span>
-          <span>（{{item.num}}）</span>
-        </div>
+      <!--  添加合同 -->
+      <el-container v-show="tap===1" class="new-contact">
+        <el-form ref="form" size="mini" :model="form" label-width="100px">
+
+          <el-form-item label="序号:">
+            <el-input size="mini" v-model="form.sequence"></el-input>
+          </el-form-item>
+          <el-form-item label="合同编号">
+            <el-input v-model="form.contractNumber"></el-input>
+          </el-form-item>
+          <el-form-item label="合同名称">
+            <el-input v-model="form.contractName"></el-input>
+          </el-form-item>
+          <el-form-item label="客户名称">
+            <el-input v-model="form.clientName"></el-input>
+          </el-form-item>
+          <el-form-item size="mini" label="合同金额">
+            <el-input size="mini" style="height: 28px;" v-model="form.totalMoney"></el-input>
+          </el-form-item>
+          <el-form-item label="签订时间">
+            <el-date-picker
+              v-model="form.signContractDate"
+              type="datetime"
+              placeholder="选择日期时间"
+              align="right"
+              :picker-options="pickerOptions">
+            </el-date-picker>
+          </el-form-item>
+
+          <!--          <el-form-item label="履约期限">-->
+          <!--            <el-date-picker-->
+          <!--              v-model="startDate1"-->
+          <!--              type="datetimerange"-->
+          <!--              start-placeholder="开始日期"-->
+          <!--              end-placeholder="结束日期"-->
+          <!--              :default-time="['12:00:00']">-->
+          <!--            </el-date-picker>-->
+
+          <!--          </el-form-item>-->
+          <!--          <el-form-item label="即时配送">-->
+          <!--            <el-switch v-model="form.delivery"></el-switch>-->
+          <!--          </el-form-item>-->
+          <!--          <el-form-item label="质保金状态">-->
+          <!--            <el-radio-group v-model="form.resource">-->
+          <!--              <el-radio label="已支付"></el-radio>-->
+          <!--              <el-radio label="未支付"></el-radio>-->
+          <!--            </el-radio-group>-->
+          <!--          </el-form-item>-->
+          <!--              <el-form-item label="附件">-->
+          <!--                <el-upload-->
+          <!--                  class="upload-demo"-->
+          <!--                  action="https://jsonplaceholder.typicode.com/posts/"-->
+          <!--                  :on-preview="handlePreview"-->
+          <!--                  :on-remove="handleRemove"-->
+          <!--                  :before-remove="beforeRemove"-->
+          <!--                  multiple-->
+          <!--                  :limit="3"-->
+          <!--                  :on-exceed="handleExceed"-->
+          <!--                  :file-list="fileList">-->
+          <!--                  <el-button size="mini" type="primary">点击上传</el-button>-->
+          <!--                  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>-->
+          <!--                </el-upload>-->
+          <!--              </el-form-item>-->
+          <el-form-item label="备注">
+            <el-input type="textarea" v-model="form.notes"></el-input>
+          </el-form-item>
+          <el-form-item label="合同进度">
+
+            <span @click="updateContact"><a herf="#">请更新合同进度</a></span>
+            <el-radio-group v-model="form.speed">-->
+              <el-radio label="正在办"></el-radio>
+              <el-radio label="办理完"></el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="合同详情">
+            <a herf="#">添加生产计划</a>
+          </el-form-item>
+
+
+          <div style="text-align: center;  width: 800px;">
+            <el-button type="primary" size="mini" @click="createContract">立即创建</el-button>
+            <el-button size="mini">取消</el-button>
+          </div>
+        </el-form>
       </el-container>
     </el-container>
-<!--    <el-dialog v-dialogDrag :title="dialogTitle"-->
-<!--               style="padding: 0px;"-->
-<!--               :close-on-click-modal="false"-->
-<!--               :visible.sync="dialogFormVisible"-->
-<!--               @close="cancelOpt"-->
-<!--               width="500px">-->
-<!--      <div style="width: 100% " v-if="dialogFormVisible">-->
-<!--        <el-form :model="employee" :rules="rules" ref="addEmpForm" size="sam" label-width="120px">-->
+    <!--    合同进度添加 -->
+    <el-dialog
+      v-dialog-drag :title="contentTitle" style="padding: 0px;" :close-on-click-modal="false"
+      :visible.sync="contentVisible" @close="cancelcontent" width="650px"
+    >
+      <div class="detail-product">
+        <div>
+          <tooltip content="进度编辑">
+            <a herf="#"> <span class="fa fa-cog" @click="andSNewCode"></span></a>
+          </tooltip>
 
-<!--          <el-form-item style="text-align: left" label="姓名:" prop="name">-->
-<!--            <el-input prefix-icon="el-icon-edit" v-model="employee.name" size="mini" class="product-input-btn-class"-->
-<!--                      placeholder="请输入员工姓名"></el-input>-->
-<!--          </el-form-item>-->
-<!--          <el-form-item label="电话:" prop="phone">-->
-<!--            <el-input prefix-icon="el-icon-phone" v-model="employee.phone" size="mini"-->
-<!--                      class="product-input-btn-class"-->
-<!--                      placeholder="电话号码..."></el-input>-->
-<!--          </el-form-item>-->
-<!--          <el-form-item label="性别:" prop="gender">-->
-<!--            <el-radio-group v-model="employee.gender" class="product-input-btn-class">-->
-<!--              <el-radio :label=1>男</el-radio>-->
-<!--              <el-radio style="margin-left: 15px" :label=2>女</el-radio>-->
-<!--            </el-radio-group>-->
-<!--          </el-form-item>-->
-<!--          <el-form-item label="部门:" prop="departmentName">-->
-<!--            <el-popover-->
-<!--              v-model="showOrHidePop"-->
-<!--              placement="right"-->
-<!--              title="请选择部门"-->
-<!--              trigger="hover"-->
-<!--              class="product-input-btn-class">-->
-<!--              &lt;!&ndash;              @hide="getDeptTreeData"&ndash;&gt;-->
-<!--              <el-tree :data="deps"-->
-<!--                       :default-expand-all="true"-->
-<!--                       multiple-->
-<!--                       :props="defaultProps"-->
-<!--                       :expand-on-click-node="false"-->
-<!--                       show-checkbox-->
-<!--                       ref="deptTree"-->
-<!--                       @check="handleNodeClick"-->
-<!--              ></el-tree>-->
-<!--              &lt;!&ndash;              &ndash;&gt;-->
-<!--              <div slot="reference"-->
-<!--                   class="dept-tree"-->
-<!--                   @click="showDepTree" v-bind:style="{color: depTextColor}">{{employee.departmentName}}-->
-<!--              </div>-->
-<!--            </el-popover>-->
-<!--          </el-form-item>-->
-<!--          <el-form-item label="邮箱:" prop="email">-->
-<!--            <el-input prefix-icon="el-icon-message" v-model="employee.email" size="mini"-->
-<!--                      class="product-input-btn-class"-->
-<!--                      placeholder="电子邮箱地址..."></el-input>-->
-<!--          </el-form-item>-->
-<!--          <el-form-item label="职位:"  prop="positionIds">-->
-<!--            <el-select v-model="employee.positionIds" multiple class="product-input-btn-class" size="mini"-->
-<!--                       placeholder="请选择职位">-->
-<!--              <el-option-->
-<!--                v-for="item in posts"-->
-<!--                :key="item.id"-->
-<!--                :label="item.name"-->
-<!--                :value="item.id">-->
-<!--              </el-option>-->
-<!--            </el-select>-->
-<!--          </el-form-item>-->
-<!--          <el-form-item label="出生日期:" prop="birthday">-->
-<!--            <el-date-picker-->
-<!--              v-model="employee.birthday"-->
-<!--              size="mini"-->
-<!--              value-format="yyyy-MM-dd"-->
-<!--              class="product-input-btn-class"-->
-<!--              type="date"-->
-<!--              placeholder="出生日期">-->
-<!--            </el-date-picker>-->
-<!--          </el-form-item>-->
-<!--          <el-form-item label="联系地址:" prop="address">-->
-<!--            <el-input prefix-icon="el-icon-edit" v-model="employee.address" size="mini"-->
-<!--                      class="product-input-btn-class"-->
-<!--                      placeholder="联系地址..."></el-input>-->
-<!--          </el-form-item>-->
-<!--          <el-form-item label="入职日期:" prop="entryDate">-->
-<!--            <el-date-picker-->
-<!--              v-model="employee.entryDate"-->
-<!--              size="mini"-->
-<!--              type="date"-->
-<!--              class="product-input-btn-class"-->
-<!--              value-format="yyyy-MM-dd"-->
-<!--              placeholder="入职日期">-->
-<!--            </el-date-picker>-->
-<!--          </el-form-item>-->
+        </div>
+        <!--         嵌套的弹出框-->
+        <el-dialog
+          width="50%"
+          title="编辑"
+          :visible.sync="innerVisible"
+          append-to-body>
+          <el-form :model="codeModel" :rules="coderules" ref="addEmpForm" size="mini" label-width="90px">
+            <el-form-item prop="codeName">
+              <el-input prefix-icon="el-icon-edit" v-model="codeModel.codeName" size="mini" style="width: 200px"
+                        placeholder="请输入合同进度名称"></el-input>
+              <el-button type="primary" size="mini" @click="andSpeed">添加</el-button>
+            </el-form-item>
+            <el-table :data="codeList"
+                      fit
+                      border
+                      :cell-style="{padding:'2px',fontSize:'12px'}"
+                      v-model="codeModel" >
+              <el-table-column prop="codeName"
+                               align="left"
+                               sortable
+                               label="名称">
+              </el-table-column>
+              <el-table-column align="left" label="操作">
+                <template slot-scope="scope">
+                  <div style="margin-top: 10px;">
+                    <tooltip content="编辑">
+                      <span class="fa fa-pencil opt-color" @click="editCode(scope.$index,scope.row)"></span>
+                    </tooltip>
+                    <tooltip content="删除">
+                      <span class="fa fa-trash del-color" @click="deleteCode(scope.$index,scope.row)"></span>
+                    </tooltip>
+                  </div>
+                </template>
+              </el-table-column>
 
-<!--        </el-form>-->
-<!--      </div>-->
-<!--      <div slot="footer" class="dialog-footer">-->
-<!--        <el-button @click="dialogFormVisible=false">取 消</el-button>-->
-<!--        <el-button type="primary" @click="addEmp('addEmpForm')">确 定</el-button>-->
-<!--      </div>-->
-<!--    </el-dialog>-->
+            </el-table>
+
+          </el-form>
+        </el-dialog>
+
+        <el-table :data="contentCodeRecord"
+                  fit
+                  border
+                  :cell-style="{padding:'2px',fontSize:'12px'}"
+                  :model="ContractSchedule"
+
+                  style="width: 100%">
+          <el-table-column align="left" prop="createDate" sortable label="操作时间">
+            <template slot-scope="scope">
+              <!--              v-if="scope.row.id!=0"-->
+              <span>
+                 {{ scope.row.createDate|formatDateTime}}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="codeName"
+                           align="left"
+                           sortable
+                           label="当前进度">
+            <template slot-scope="scope">
+              <!--              <el-input placeholder="请输入进度名" v-show="scope.row.show"-->
+              <!--                        min="0" step="1000"-->
+              <!--                        type="number"-->
+              <!--                        @change="readAcount"-->
+              <!--                        v-model="scope.row.codeName"></el-input>-->
+              <!--              v-show="!scope.row.show"-->
+              <span>{{scope.row.codeName}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column align="left" label="备注">
+            <template slot-scope="scope">
+              <el-input placeholder="请输入备注" v-show="scope.row.show"
+                        @change="readNote"
+                        v-model="scope.row.notes"></el-input>
+              <span v-show="!scope.row.show">{{scope.row.notes}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column align="left" label="操作">
+            <template slot-scope="scope">
+              <div style="margin-top: 10px;">
+                <tooltip content="编辑">
+                  <span class="fa fa-pencil opt-color" @click="editDetails(scope.$index,scope.row)"></span>
+                </tooltip>
+                <tooltip content="保存">
+                  <span class="fa fa-save opt-color" @click="finishSave(scope.$index, scope.row)"></span>
+                </tooltip>
+                <tooltip content="删除">
+                  <span class="fa fa-trash del-color" @click="deleteDetails(scope.$index,scope.row)"></span>
+                </tooltip>
+              </div>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
+    </el-dialog>
+
+
   </div>
-
 </template>
 <script>
   export default {
@@ -323,21 +376,79 @@
         }
       };
       return {
+        //进度名列表
+        codeList: [],
+        innerVisible: false,
+        codeModel: {
+          codeName: '',
+        },
+
+        coderules: {
+          codeName: [{required: true, message: '必填:中文名', trigger: 'blur'}],
+        },
+        keyContractNumber: '',
+        // 编辑合同进度
+        ContractSchedule: {
+          id: 0,
+          codeName: '',
+          notes: '',
+          operator: '',
+        },
+        contentVisible: false,
+        contentTitle: '',
+        contentCodeRecord: [],
+        // 上传文件列表
+        fileList: [
+          {
+            name: 'food.jpeg',
+            url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
+          },
+          {
+            name: 'food2.jpeg',
+            url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
+          }
+        ],
+        pickerOptions: {
+          shortcuts: [{
+            text: '今天',
+            onClick(picker) {
+              picker.$emit('pick', new Date());
+            }
+          }, {
+            text: '昨天',
+            onClick(picker) {
+              const date = new Date();
+              date.setTime(date.getTime() - 3600 * 1000 * 24);
+              picker.$emit('pick', date);
+            }
+          }, {
+            text: '一周前',
+            onClick(picker) {
+              const date = new Date();
+              date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
+              picker.$emit('pick', date);
+            }
+          }]
+        },
+        form: {
+          sequence: '',
+          contractName: '',
+          contractNumber: '',
+          clientName: '',
+          totalMoney: '',
+          signContractDacodeListte: '',
+          notes: '',
+          speed: '',
+        },
         depItems: [],
         dialogVisible: false,
         showOrHidePop: false,
         depTextColor: '#c0c4cc',
         keywords: '',
-
-        currentTreeData:'',
-        currentTreeIds:[],
+        currentTreeData: '',
+        currentTreeIds: [],
         rules: {
           name: [{required: true, message: '必填:姓名', trigger: 'blur'}],
-          // phone: [{required: true, message: '必填:电话号码', trigger: 'blur'},
-          //   {
-          //     validator: phonevalidate,
-          //     trigger: 'blur'
-          //   }],
         },
 
         defaultProps: {
@@ -365,13 +476,13 @@
         keydep: '',
         tap: 2,
         //
-        createDateStart:'',
-        createDateEnd:'',
-        startDateStart:'',
-        startDateEnd:'',
-        endDateStart:'',
-        endDateEnd:'',
-        contactStatus:'',
+        createDateStart: '',
+        createDateEnd: '',
+        startDateStart: '',
+        startDateEnd: '',
+        endDateStart: '',
+        endDateEnd: '',
+        contactStatus: '',
         contactList: [],
         contact: {
           contractName: '',//合同名称
@@ -393,6 +504,147 @@
       this.initData();
     },
     methods: {
+      andSNewCode() {
+        this.innerVisible = true;
+        //加载所有进度名称
+        this.loadAllCode();
+      },
+      loadAllCode() {
+        let _this = this;
+        _this.getRequest("/contractcode/findAll").then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+            let data = resp.data;
+            console.log("codeList" + resp.data);
+            // _this.nations = data.nations;
+            _this.codeList = data.data || []
+          }
+        })
+      },
+      //进度字典新增进度名称
+      andSpeed() {
+        let _this = this;
+            if (this.codeModel.name == '') {
+          return;
+        }
+        let contractCode = {
+          codeName: this.codeModel.name,
+        };
+        if(this.codeModel.id>0){
+          contractCode.id=this.codeModel.id;
+          contractCode.createDate=this.codeModel.createDate;
+        }
+
+        this.postRequest("/contractcode/add", contractCode).then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+
+            // _this.innerVisible = false;
+            _this.codeModel.codeName = '';
+            _this.codeModel.id = 0;
+            _this.codeModel.createDate = '';
+
+            _this.loadAllCode();
+
+          } else {
+            this.Message("添加失败 ，请重试")
+          }
+        })
+
+
+        this.codeModel.name = '';
+      },
+      //编辑
+      editCode(index,row) {
+        console.log('edit')
+        this.codeModel.codeName=row.codeName;
+        this.codeModel.id=row.id;
+        this.codeModel.createDate=row.createDate;
+      },
+      //保存
+      finishSave() {
+
+      },
+      // 字典删除
+      deleteCode(index,row){
+       let that=this;
+        this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          that.doDeletecode(row.id);
+        }).catch(() => {
+        });
+      },
+      doDeletecode(ids){
+        this.tableLoading = true;
+        var _this = this;
+        this.getRequest("/contractcode/delete?id=" + ids).then(resp=> {
+          _this.tableLoading = false;
+          if (resp && resp.status == 200) {
+            _this.codeModel.codeName='';
+            _this.loadAllCode();
+
+          }
+        })
+      },
+      //合同新建方法
+      createContract() {
+
+      },
+      // 更新合同進度  查询到后台1. 该合同对应的进度 
+      updateContact() {
+        let _this=this;
+        this.contentTitle = "更新合同进度";
+        _this.getRequest("/contractcode/findAll").then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+            let data = resp.data;
+            console.log("codeList" + resp.data);
+            // _this.nations = data.nations;
+            _this.codeList = data.data || [];
+            _this.contentCodeRecord= [];
+            for (let i = 0; i <_this.codeList.length ; i++) {
+              _this.contentCodeRecord.push({
+                codeName:_this.codeList[i].codeName,
+                createDate:new Date()
+              });
+            }
+            this.contentVisible = true;
+          }
+        })
+        // this.getRequest("/contractSchedule/findAll?id=" + ids).then(resp=> {
+        //   _this.tableLoading = false;
+        //   if (resp && resp.status == 200) {
+        //     _this.codeModel.codeName='';
+        //
+        //
+        //   }
+        // })
+        //
+      },
+      cancelcontent() {
+        this.contentVisible = false;
+        this.loadContact();
+      },
+      //新增合同方法  该方法要求 在新增加合同时同时新建立订单
+      addNewContact() {
+        this.tap = 1;
+        console.log('1');
+      },
+      //***********  合同附件上传
+      handleRemove(file, fileList) {
+        console.log(file, fileList);
+      },
+      handlePreview(file) {
+        console.log(file);
+      },
+      handleExceed(files, fileList) {
+        this.$message.warning(`当前限制选择 3 个文件，本次选择了 ${files.length} 个文件，共选择了 ${files.length + fileList.length} 个文件`);
+      },
+      beforeRemove(file, fileList) {
+        return this.$confirm(`确定移除 ${file.name}？`);
+      },
+      //**************************
+
       showAdvanceSearchView() {
         this.advanceSearchViewVisible = !this.advanceSearchViewVisible;
         this.keywords = '';
@@ -413,32 +665,33 @@
         this.showOrHidePop = !this.showOrHidePop;
       },
       handleNodeClick(data) {
-        let that=this;
-        let nodes=  this.$refs.deptTree.getCheckedNodes()||[];
+        let that = this;
+        let nodes = this.$refs.deptTree.getCheckedNodes() || [];
         console.log(nodes);
-        this.currentTreeIds=[];
-        that.employee.departmentName='';
-        for (let i = 0;i<=nodes.length-1;  i++) {
-          if(that.employee.departmentName===''){
+        this.currentTreeIds = [];
+        that.employee.departmentName = '';
+        for (let i = 0; i <= nodes.length - 1; i++) {
+          if (that.employee.departmentName === '') {
             that.employee.departmentName = nodes[i].name;
-          }else{
-            that.employee.departmentName=that.employee.departmentName+","+nodes[i].name;
+          } else {
+            that.employee.departmentName = that.employee.departmentName + "," + nodes[i].name;
           }
           that.currentTreeIds.push(nodes[i].id)
-        };
+        }
+        ;
         this.depTextColor = '#606266';
       },
-      getDeptTreeData(){
-        let _this=this;
-        let allnodes=  this.$refs.deptTree.getCheckedNodes()||[];
+      getDeptTreeData() {
+        let _this = this;
+        let allnodes = this.$refs.deptTree.getCheckedNodes() || [];
         console.log(allnodes);
-        this.currentTreeData='';
-        this.currentTreeIds=[];
+        this.currentTreeData = '';
+        this.currentTreeIds = [];
         allnodes.forEach(function (value) {
           _this.currentTreeIds.push(value.id);
-          _this.currentTreeData+=value.name+",";
+          _this.currentTreeData += value.name + ",";
         });
-        this.employee.departmentName=_this.currentTreeData;
+        this.employee.departmentName = _this.currentTreeData;
       },
       initData() {
         let _this = this;
@@ -452,13 +705,13 @@
           if (resp && resp.status === 200 && resp.data.success) {
             let data = resp.data;
             // _this.nations = data.nations;
-            let  det=data.root.deptlist || [];
-            let dets=[];
+            let det = data.root.deptlist || [];
+            let dets = [];
             det.forEach(function (v) {
               dets.push({
-                id:v[0],
-                num:v[1],
-                name:v[2]
+                id: v[0],
+                num: v[1],
+                name: v[2]
               })
             })
             _this.depItems = dets;
@@ -507,16 +760,16 @@
       addEmp(addEmpForm) {
         var _this = this;
         this.dialogFormVisible = true;
-        let deptIds='';
-        if(this.currentTreeIds){
-          deptIds=this.currentTreeIds.join()
+        let deptIds = '';
+        if (this.currentTreeIds) {
+          deptIds = this.currentTreeIds.join()
         }
-        var postIds='';
-        if(this.employee.positionIds){
-          postIds=this.employee.positionIds.join();
+        var postIds = '';
+        if (this.employee.positionIds) {
+          postIds = this.employee.positionIds.join();
         }
-        this.employee.positionId=0;
-        this.employee.departmentId=0;
+        this.employee.positionId = 0;
+        this.employee.departmentId = 0;
         this.$refs[addEmpForm].validate((valid) => {
           if (valid) {
             // this.employee.birthday=new Date(this.employee.birthday);
@@ -540,7 +793,7 @@
               //添加
               this.tableLoading = true;
               console.log(_this.employee);
-              this.postRequest("/emp/empAdd?deptIds="+deptIds+"&postIds="+postIds, this.employee).then(resp => {
+              this.postRequest("/emp/empAdd?deptIds=" + deptIds + "&postIds=" + postIds, this.employee).then(resp => {
                 _this.tableLoading = false;
                 if (resp && resp.status === 200 && resp.data.success) {
                   var data = resp.data;
@@ -582,13 +835,13 @@
           }
         })
       },
-      used(item){
-        let that=this;
-        this.keydep=item.name;
-        if(item.num>0){
-          that.tap=2;
+      used(item) {
+        let that = this;
+        this.keydep = item.name;
+        if (item.num > 0) {
+          that.tap = 2;
         }
-        this.keydep='';
+        this.keydep = '';
       },
       loadContact() {
         var _this = this;
@@ -659,9 +912,14 @@
     }
   }
 </script>
-<style>
+<style scoped>
+  .del-color{
+    color: red;
+    margin-left: 10px;
+  }
   .send-input {
     width: 160px;
+    height: 28px;
   }
 
   .send-head {
@@ -735,7 +993,12 @@
     cursor: pointer;
     align-items: center
   }
-  .el-table td, .el-table th{
+
+  .el-table td, .el-table th {
     padding: 9px 0;
+  }
+
+  .new-contact {
+    background-color: #E5EFF1;
   }
 </style>
