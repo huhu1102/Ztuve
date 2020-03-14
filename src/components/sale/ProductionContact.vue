@@ -20,7 +20,7 @@
         <div style="height: 30px;margin: 0 20px;display: flex;flex-direction: row;justify-content: space-between;">
           <div style="display: inline">
             <el-input
-              placeholder="通过员工名搜索员工,记得回车哦..."
+              placeholder="通过名称搜索,记得回车哦..."
               clearable
               @change="keywordsChange"
               style="width: 300px;margin: 0;padding: 0;"
@@ -192,41 +192,6 @@
               :picker-options="pickerOptions">
             </el-date-picker>
           </el-form-item>
-
-          <!--          <el-form-item label="履约期限">-->
-          <!--            <el-date-picker-->
-          <!--              v-model="startDate1"-->
-          <!--              type="datetimerange"-->
-          <!--              start-placeholder="开始日期"-->
-          <!--              end-placeholder="结束日期"-->
-          <!--              :default-time="['12:00:00']">-->
-          <!--            </el-date-picker>-->
-
-          <!--          </el-form-item>-->
-          <!--          <el-form-item label="即时配送">-->
-          <!--            <el-switch v-model="form.delivery"></el-switch>-->
-          <!--          </el-form-item>-->
-          <!--          <el-form-item label="质保金状态">-->
-          <!--            <el-radio-group v-model="form.resource">-->
-          <!--              <el-radio label="已支付"></el-radio>-->
-          <!--              <el-radio label="未支付"></el-radio>-->
-          <!--            </el-radio-group>-->
-          <!--          </el-form-item>-->
-          <!--              <el-form-item label="附件">-->
-          <!--                <el-upload-->
-          <!--                  class="upload-demo"-->
-          <!--                  action="https://jsonplaceholder.typicode.com/posts/"-->
-          <!--                  :on-preview="handlePreview"-->
-          <!--                  :on-remove="handleRemove"-->
-          <!--                  :before-remove="beforeRemove"-->
-          <!--                  multiple-->
-          <!--                  :limit="3"-->
-          <!--                  :on-exceed="handleExceed"-->
-          <!--                  :file-list="fileList">-->
-          <!--                  <el-button size="mini" type="primary">点击上传</el-button>-->
-          <!--                  <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>-->
-          <!--                </el-upload>-->
-          <!--              </el-form-item>-->
           <el-form-item label="备注">
             <el-input type="textarea" v-model="form.notes"></el-input>
           </el-form-item>
@@ -256,51 +221,69 @@
       :visible.sync="contentVisible" @close="cancelcontent" width="650px"
     >
       <div class="detail-product">
-        <div>
-          <tooltip content="进度编辑">
-            <a herf="#"> <span class="fa fa-cog" @click="andSNewCode"></span></a>
-          </tooltip>
+        <!--        <div>-->
+        <!--          <tooltip content="进度编辑">-->
+        <!--            <a herf="#"> <span class="fa fa-cog" @click="andSNewCode"></span></a>-->
+        <!--          </tooltip>-->
 
-        </div>
+        <!--        </div>-->
         <!--         嵌套的弹出框-->
-        <el-dialog
-          width="50%"
-          title="编辑"
-          :visible.sync="innerVisible"
-          append-to-body>
-          <el-form :model="codeModel" :rules="coderules" ref="addEmpForm" size="mini" label-width="90px">
-            <el-form-item prop="codeName">
-              <el-input prefix-icon="el-icon-edit" v-model="codeModel.codeName" size="mini" style="width: 200px"
-                        placeholder="请输入合同进度名称"></el-input>
-              <el-button type="primary" size="mini" @click="andSpeed">添加</el-button>
-            </el-form-item>
-            <el-table :data="codeList"
-                      fit
-                      border
-                      :cell-style="{padding:'2px',fontSize:'12px'}"
-                      v-model="codeModel" >
-              <el-table-column prop="codeName"
-                               align="left"
-                               sortable
-                               label="名称">
-              </el-table-column>
-              <el-table-column align="left" label="操作">
-                <template slot-scope="scope">
-                  <div style="margin-top: 10px;">
-                    <tooltip content="编辑">
-                      <span class="fa fa-pencil opt-color" @click="editCode(scope.$index,scope.row)"></span>
-                    </tooltip>
-                    <tooltip content="删除">
-                      <span class="fa fa-trash del-color" @click="deleteCode(scope.$index,scope.row)"></span>
-                    </tooltip>
-                  </div>
-                </template>
-              </el-table-column>
+        <!--        <el-dialog-->
+        <!--          width="50%"-->
+        <!--          title="编辑"-->
+        <!--          :visible.sync="innerVisible"-->
+        <!--          append-to-body>-->
+        <!--          <el-form :model="codeModel" :rules="coderules" ref="addEmpForm" size="mini" label-width="90px">-->
+        <!--            <el-form-item prop="codeName">-->
+        <!--              <el-input prefix-icon="el-icon-edit" v-model="codeModel.codeName" size="mini" style="width: 200px"-->
+        <!--                        placeholder="请输入合同进度名称"></el-input>-->
+        <!--              <el-button type="primary" size="mini" @click="andSpeed">添加</el-button>-->
+        <!--            </el-form-item>-->
+        <!--            <el-table :data="codeList"-->
+        <!--                      fit-->
+        <!--                      border-->
+        <!--                      :cell-style="{padding:'2px',fontSize:'12px'}"-->
+        <!--                      v-model="codeModel" >-->
+        <!--              <el-table-column prop="codeName"-->
+        <!--                               align="left"-->
+        <!--                               sortable-->
+        <!--                               label="名称">-->
+        <!--              </el-table-column>-->
+        <!--              <el-table-column align="left" label="操作">-->
+        <!--                <template slot-scope="scope">-->
+        <!--                  <div style="margin-top: 10px;">-->
+        <!--                    <tooltip content="编辑">-->
+        <!--                      <span class="fa fa-pencil opt-color" @click="editCode(scope.$index,scope.row)"></span>-->
+        <!--                    </tooltip>-->
+        <!--                    <tooltip content="删除">-->
+        <!--                      <span class="fa fa-trash del-color" @click="deleteCode(scope.$index,scope.row)"></span>-->
+        <!--                    </tooltip>-->
+        <!--                  </div>-->
+        <!--                </template>-->
+        <!--              </el-table-column>-->
 
-            </el-table>
+        <!--            </el-table>-->
 
-          </el-form>
-        </el-dialog>
+        <!--          </el-form>-->
+        <!--        </el-dialog>-->
+        <div>
+          <el-checkbox-group class="code-class"
+                             v-model="codeProcess"
+                             @change="currentProcess">
+            <el-checkbox size="mini" class="code-class-item"
+                         v-for="(item,index) in codeList"
+                         :key="'codelist'+index"
+                         :label="item.codeName"
+                         v-model="item.id"
+                         border>
+            </el-checkbox>
+            +
+            <el-checkbox-button
+              size="mini"
+              @click="andSNewCode">
+            </el-checkbox-button>
+          </el-checkbox-group>
+        </div>
 
         <el-table :data="contentCodeRecord"
                   fit
@@ -309,47 +292,51 @@
                   :model="ContractSchedule"
 
                   style="width: 100%">
-          <el-table-column align="left" prop="createDate" sortable label="操作时间">
+
+          <el-table-column align="left" label="合同状态">
             <template slot-scope="scope">
-              <!--              v-if="scope.row.id!=0"-->
-              <span>
-                 {{ scope.row.createDate|formatDateTime}}
-              </span>
+              <el-radio-group v-model="scope.row.state" @change="changeCodeState">
+                <el-radio-button v-for="(item,index) in codeStates" :label="item.name"></el-radio-button>
+              </el-radio-group>
             </template>
           </el-table-column>
-          <el-table-column prop="codeName"
-                           align="left"
-                           sortable
-                           label="当前进度">
+          <el-table-column align="left" label="">
             <template slot-scope="scope">
-              <!--              <el-input placeholder="请输入进度名" v-show="scope.row.show"-->
-              <!--                        min="0" step="1000"-->
-              <!--                        type="number"-->
-              <!--                        @change="readAcount"-->
-              <!--                        v-model="scope.row.codeName"></el-input>-->
-              <!--              v-show="!scope.row.show"-->
-              <span>{{scope.row.codeName}}</span>
+              <el-checkbox v-model="scope.row.isgo">{{scope.row.codeName}}</el-checkbox>
             </template>
           </el-table-column>
           <el-table-column align="left" label="备注">
             <template slot-scope="scope">
               <el-input placeholder="请输入备注" v-show="scope.row.show"
-                        @change="readNote"
+                        @change="readcodeNote"
                         v-model="scope.row.notes"></el-input>
               <span v-show="!scope.row.show">{{scope.row.notes}}</span>
+            </template>
+          </el-table-column>
+
+          <el-table-column align="left" label="操作人">
+            <template slot-scope="scope">
+              <el-input placeholder="请选择操作人" v-show="scope.row.show"
+                        @change="readcodeNote"
+                        v-model="scope.row.notes"></el-input>
+              <span v-show="!scope.row.show">{{scope.row.notes}}</span>
+            </template>
+          </el-table-column>
+          <el-table-column align="left" prop="createDate" sortable label="操作时间">
+            <template slot-scope="scope">
+              <span>
+                 {{ scope.row.createDate|formatDateTime}}
+              </span>
             </template>
           </el-table-column>
           <el-table-column align="left" label="操作">
             <template slot-scope="scope">
               <div style="margin-top: 10px;">
-                <tooltip content="编辑">
-                  <span class="fa fa-pencil opt-color" @click="editDetails(scope.$index,scope.row)"></span>
-                </tooltip>
+                <!--                <tooltip content="编辑">-->
+                <!--                  <span class="fa fa-pencil opt-color" @click="editCodeProgress(scope.$index,scope.row)"></span>-->
+                <!--                </tooltip>-->
                 <tooltip content="保存">
-                  <span class="fa fa-save opt-color" @click="finishSave(scope.$index, scope.row)"></span>
-                </tooltip>
-                <tooltip content="删除">
-                  <span class="fa fa-trash del-color" @click="deleteDetails(scope.$index,scope.row)"></span>
+                  <span class="fa fa-save opt-color opt-margin" @click="finishcodeSave(scope.$index, scope.row)"></span>
                 </tooltip>
               </div>
             </template>
@@ -498,12 +485,121 @@
           imageUrl: '',//附件url
         },
         tableLoading: false,
+        codeProcess: [],
+        codeStates: [
+          {
+            name: '进行中',
+            code: '1'
+          },
+          {
+            name: "已完成",
+            code: "2"
+          },
+          {
+            name: "下一步",
+            code: '3'
+          }
+        ]
       }
     },
     mounted: function () {
       this.initData();
     },
     methods: {
+      changeCodeState() {
+
+      },
+      //选择进度 步骤
+      currentProcess(e, o, l) {
+        let that = this;
+        console.log(e);//当前选择的
+        console.log(this.codeProcess);
+        var nowArr = this.codeProcess;//当时数据
+        var oldArr = this.contentCodeRecord;//旧数据
+        var currentArr = this.compareArr(oldArr, nowArr);
+
+        // this.contentCodeRecord = [];
+        console.log(currentArr);
+        this.contentCodeRecord= currentArr;
+      },
+      // 比较两个数组 并返回当前的
+      compareArr(oldArr, nowArr) {
+        let that = this;
+        var temp = [];
+        if (oldArr.length == 0) {
+          for (var i = 0, n = nowArr.length; n > i; i++) {
+            temp.push({
+              codeName: nowArr[i],
+              createDate: new Date(),
+              state: '1',
+              note: '',
+            })
+          }
+
+        } else if (nowArr.length === 0) {
+
+        } else {
+          var falg = false;
+          if (oldArr.length >= nowArr.length) {
+            for (var j = oldArr.length-1; j > 0; j--) {
+              var codeItem = oldArr[j];
+              for (var k = nowArr.length-1; k > 0; k--) {
+                var nowItem = nowArr[k];
+                if (nowItem === codeItem.codeName) {
+                  temp.push(codeItem);
+                }
+              }
+            }
+          } else {//获取新增加进度值
+            var su = [];
+            for (var m = 0; m < oldArr.length; m++) {
+              su.push(oldArr[m].codeName);
+            }
+            ;
+            var dif = this.getArrDifference(su, nowArr);
+            //新增的
+            for (let n = 0; n < dif.length; n++) {
+              var newObj = {
+                codeName: dif[n],
+                createDate: new Date(),
+                state: '1',
+                note: '',
+              };
+            }
+            oldArr.push(newObj);
+            temp = oldArr;
+          }
+        }
+
+        return temp;
+      },
+      //获取两个数组 不同值；
+      getArrDifference(arr1, arr2) {
+        return arr1.concat(arr2).filter(function (v, i, arr) {
+          return arr.indexOf(v) === arr.lastIndexOf(v);
+        });
+      },
+
+      readcodeNote(e, row, l) {
+        console.log(e);
+        console.log(row);
+        console.log(l);
+      },
+      // 编辑进度备注
+      editCodeProgress(row, column, cell, event, index) {
+        console.log(row);
+        console.log(column);
+        console.log(cell);
+        console.log(event);
+        console.log(index);
+        row.show = true;
+        // this.contentCodeRecord.splice(index,1,row);
+      },
+      finishcodeSave(index, row) {
+        console.log(row);
+        row.show = false;
+        this.contentCodeRecord.splice(index, 1, row);
+      },
       andSNewCode() {
         this.innerVisible = true;
         //加载所有进度名称
@@ -523,15 +619,15 @@
       //进度字典新增进度名称
       andSpeed() {
         let _this = this;
-            if (this.codeModel.name == '') {
+        if (this.codeModel.name == '') {
           return;
         }
         let contractCode = {
           codeName: this.codeModel.name,
         };
-        if(this.codeModel.id>0){
-          contractCode.id=this.codeModel.id;
-          contractCode.createDate=this.codeModel.createDate;
+        if (this.codeModel.id > 0) {
+          contractCode.id = this.codeModel.id;
+          contractCode.createDate = this.codeModel.createDate;
         }
 
         this.postRequest("/contractcode/add", contractCode).then(resp => {
@@ -553,19 +649,19 @@
         this.codeModel.name = '';
       },
       //编辑
-      editCode(index,row) {
+      editCode(index, row) {
         console.log('edit')
-        this.codeModel.codeName=row.codeName;
-        this.codeModel.id=row.id;
-        this.codeModel.createDate=row.createDate;
+        this.codeModel.codeName = row.codeName;
+        this.codeModel.id = row.id;
+        this.codeModel.createDate = row.createDate;
       },
       //保存
       finishSave() {
 
       },
       // 字典删除
-      deleteCode(index,row){
-       let that=this;
+      deleteCode(index, row) {
+        let that = this;
         this.$confirm('此操作将删除该数据, 是否继续?', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
@@ -575,13 +671,13 @@
         }).catch(() => {
         });
       },
-      doDeletecode(ids){
+      doDeletecode(ids) {
         this.tableLoading = true;
         var _this = this;
-        this.getRequest("/contractcode/delete?id=" + ids).then(resp=> {
+        this.getRequest("/contractcode/delete?id=" + ids).then(resp => {
           _this.tableLoading = false;
           if (resp && resp.status == 200) {
-            _this.codeModel.codeName='';
+            _this.codeModel.codeName = '';
             _this.loadAllCode();
 
           }
@@ -593,7 +689,7 @@
       },
       // 更新合同進度  查询到后台1. 该合同对应的进度 
       updateContact() {
-        let _this=this;
+        let _this = this;
         this.contentTitle = "更新合同进度";
         _this.getRequest("/contractcode/findAll").then(resp => {
           if (resp && resp.status === 200 && resp.data.success) {
@@ -601,13 +697,13 @@
             console.log("codeList" + resp.data);
             // _this.nations = data.nations;
             _this.codeList = data.data || [];
-            _this.contentCodeRecord= [];
-            for (let i = 0; i <_this.codeList.length ; i++) {
-              _this.contentCodeRecord.push({
-                codeName:_this.codeList[i].codeName,
-                createDate:new Date()
-              });
-            }
+            _this.contentCodeRecord = [];
+            //   for (let i = 0; i <_this.codeList.length ; i++) {
+            //     _this.contentCodeRecord.push({
+            //       codeName:_this.codeList[i].codeName,
+            //       createDate:new Date()
+            //     });
+            // }
             this.contentVisible = true;
           }
         })
@@ -913,10 +1009,27 @@
   }
 </script>
 <style scoped>
-  .del-color{
+  .code-class {
+    display: flex;
+    flex-direction: row;
+    justify-content: stretch;
+    flex-wrap: wrap;
+
+  }
+
+  .code-class-item {
+    margin: 5px;
+  }
+
+  .opt-margin {
+    margin-left: 10px;
+  }
+
+  .del-color {
     color: red;
     margin-left: 10px;
   }
+
   .send-input {
     width: 160px;
     height: 28px;
