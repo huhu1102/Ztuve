@@ -167,7 +167,6 @@
       <!--  添加合同 -->
       <el-container v-show="tap===1" class="new-contact">
         <el-form ref="form" size="mini" :model="form" label-width="100px">
-
           <el-form-item label="序号:">
             <el-input size="mini" v-model="form.sequence"></el-input>
           </el-form-item>
@@ -198,16 +197,14 @@
           <el-form-item label="合同进度">
 
             <span @click="updateContact"><a herf="#">请更新合同进度</a></span>
-            <el-radio-group v-model="form.speed">-->
-              <el-radio label="正在办"></el-radio>
-              <el-radio label="办理完"></el-radio>
-            </el-radio-group>
+            <!--            <el-radio-group v-model="form.speed">&ndash;&gt;-->
+            <!--              <el-radio label="正在办"></el-radio>-->
+            <!--              <el-radio label="办理完"></el-radio>-->
+            <!--            </el-radio-group>-->
           </el-form-item>
           <el-form-item label="合同详情">
             <a herf="#">添加生产计划</a>
           </el-form-item>
-
-
           <div style="text-align: center;  width: 800px;">
             <el-button type="primary" size="mini" @click="createContract">立即创建</el-button>
             <el-button size="mini">取消</el-button>
@@ -218,97 +215,77 @@
     <!--    合同进度添加 -->
     <el-dialog
       v-dialog-drag :title="contentTitle" style="padding: 0px;" :close-on-click-modal="false"
-      :visible.sync="contentVisible" @close="cancelcontent" width="650px"
-    >
+      :visible.sync="contentVisible" @close="cancelcontent" width="850px">
       <div class="detail-product">
-        <!--        <div>-->
-        <!--          <tooltip content="进度编辑">-->
-        <!--            <a herf="#"> <span class="fa fa-cog" @click="andSNewCode"></span></a>-->
-        <!--          </tooltip>-->
+        <div style="display: flex;flex-direction: row;justify-content: flex-start;">
+          <el-radio-group class="code-class"
+                          v-model="codeProcess"
+                          @change="currentProcess">
+            <el-radio size="mini" class="code-class-item"
+                      v-for="(item,index) in codeList"
+                      :key="'codelist'+index"
+                      :label="item.codeName"
+                      v-model="item.id"
+                      @dblclick.native="codedbclick(item,index)"
+                      border>
+                  {{item.codeName}}
+                <div class="top-tip-top" v-show="item.codeTopShow" @click="deleteCode(index,item)" >x</div>
+            </el-radio>
 
-        <!--        </div>-->
-        <!--         嵌套的弹出框-->
-        <!--        <el-dialog-->
-        <!--          width="50%"-->
-        <!--          title="编辑"-->
-        <!--          :visible.sync="innerVisible"-->
-        <!--          append-to-body>-->
-        <!--          <el-form :model="codeModel" :rules="coderules" ref="addEmpForm" size="mini" label-width="90px">-->
-        <!--            <el-form-item prop="codeName">-->
-        <!--              <el-input prefix-icon="el-icon-edit" v-model="codeModel.codeName" size="mini" style="width: 200px"-->
-        <!--                        placeholder="请输入合同进度名称"></el-input>-->
-        <!--              <el-button type="primary" size="mini" @click="andSpeed">添加</el-button>-->
-        <!--            </el-form-item>-->
-        <!--            <el-table :data="codeList"-->
-        <!--                      fit-->
-        <!--                      border-->
-        <!--                      :cell-style="{padding:'2px',fontSize:'12px'}"-->
-        <!--                      v-model="codeModel" >-->
-        <!--              <el-table-column prop="codeName"-->
-        <!--                               align="left"-->
-        <!--                               sortable-->
-        <!--                               label="名称">-->
-        <!--              </el-table-column>-->
-        <!--              <el-table-column align="left" label="操作">-->
-        <!--                <template slot-scope="scope">-->
-        <!--                  <div style="margin-top: 10px;">-->
-        <!--                    <tooltip content="编辑">-->
-        <!--                      <span class="fa fa-pencil opt-color" @click="editCode(scope.$index,scope.row)"></span>-->
-        <!--                    </tooltip>-->
-        <!--                    <tooltip content="删除">-->
-        <!--                      <span class="fa fa-trash del-color" @click="deleteCode(scope.$index,scope.row)"></span>-->
-        <!--                    </tooltip>-->
-        <!--                  </div>-->
-        <!--                </template>-->
-        <!--              </el-table-column>-->
+            <el-button class="code-class-item"
+                       size="mini"
+                       border
+                       @click="andSNewCode">+
+            </el-button>
+            <div v-show="fastcodeShow" class="code-class-item code-add-class">
+              <el-input v-model="fastCodeName" size="mini"></el-input>
+              <el-button type="primary" size="mini" @click="fastAddCode">提交</el-button>
+            </div>
+          </el-radio-group>
 
-        <!--            </el-table>-->
-
-        <!--          </el-form>-->
-        <!--        </el-dialog>-->
-        <div>
-          <el-checkbox-group class="code-class"
-                             v-model="codeProcess"
-                             @change="currentProcess">
-            <el-checkbox size="mini" class="code-class-item"
-                         v-for="(item,index) in codeList"
-                         :key="'codelist'+index"
-                         :label="item.codeName"
-                         v-model="item.id"
-                         border>
-            </el-checkbox>
-            +
-            <el-checkbox-button
-              size="mini"
-              @click="andSNewCode">
-            </el-checkbox-button>
-          </el-checkbox-group>
         </div>
+        <!--        <el-dialog-->
+        <!--          title="提示"-->
+        <!--          :visible.sync="dialogCodeAddVisible"-->
+        <!--          width="30%"-->
+        <!--          @close="handleClose">-->
+        <!--          <span>请输入添加名称</span>-->
+        <!--          -->
+        <!--          <span slot="footer" class="dialog-footer">-->
+        <!--          <el-button @click="dialogCodeAddVisible = false">取 消</el-button>-->
+        <!--          <el-button type="primary" @click="fastAddCode">确 定</el-button>-->
+        <!--          </span>-->
+        <!--        </el-dialog>-->
 
+        <el-form>
+          <el-form-item>
+
+          </el-form-item>
+        </el-form>
         <el-table :data="contentCodeRecord"
                   fit
                   border
                   :cell-style="{padding:'2px',fontSize:'12px'}"
                   :model="ContractSchedule"
-
+                  @cell-dblclick=getRowDate
                   style="width: 100%">
-
-          <el-table-column align="left" label="合同状态">
+          <el-table-column align="left" label="进度">
             <template slot-scope="scope">
-              <el-radio-group v-model="scope.row.state" @change="changeCodeState">
-                <el-radio-button v-for="(item,index) in codeStates" :label="item.name"></el-radio-button>
-              </el-radio-group>
+              <el-radio>{{scope.row.codeName}}</el-radio>
             </template>
           </el-table-column>
-          <el-table-column align="left" label="">
+          <el-table-column align="left" label="状态">
             <template slot-scope="scope">
-              <el-checkbox v-model="scope.row.isgo">{{scope.row.codeName}}</el-checkbox>
+              <el-radio-group v-model="scope.row.state" @change="changeCodeState">
+                <el-radio v-for="(item,index) in codeStates" :label="item.name"></el-radio>
+              </el-radio-group>
             </template>
           </el-table-column>
           <el-table-column align="left" label="备注">
             <template slot-scope="scope">
-              <el-input placeholder="请输入备注" v-show="scope.row.show"
+              <el-input type="area" placeholder="请输入备注" v-show="scope.row.show"
                         @change="readcodeNote"
+
                         v-model="scope.row.notes"></el-input>
               <span v-show="!scope.row.show">{{scope.row.notes}}</span>
             </template>
@@ -316,10 +293,17 @@
 
           <el-table-column align="left" label="操作人">
             <template slot-scope="scope">
-              <el-input placeholder="请选择操作人" v-show="scope.row.show"
-                        @change="readcodeNote"
-                        v-model="scope.row.notes"></el-input>
-              <span v-show="!scope.row.show">{{scope.row.notes}}</span>
+              <el-select v-show="scope.row.show" v-model="scope.row.epmId" class="product-input-btn-class" size="mini"
+                         @change="fastCodeChange"
+                         placeholder="请选择">
+                <el-option
+                  v-for="item in emps"
+                  :key="item.id"
+                  :label="item.name"
+                  :value="item.id">
+                </el-option>
+              </el-select>
+              <span v-show="!scope.row.show">{{scope.row.empName}}</span>
             </template>
           </el-table-column>
           <el-table-column align="left" prop="createDate" sortable label="操作时间">
@@ -329,19 +313,22 @@
               </span>
             </template>
           </el-table-column>
-          <el-table-column align="left" label="操作">
-            <template slot-scope="scope">
-              <div style="margin-top: 10px;">
-                <!--                <tooltip content="编辑">-->
-                <!--                  <span class="fa fa-pencil opt-color" @click="editCodeProgress(scope.$index,scope.row)"></span>-->
-                <!--                </tooltip>-->
-                <tooltip content="保存">
-                  <span class="fa fa-save opt-color opt-margin" @click="finishcodeSave(scope.$index, scope.row)"></span>
-                </tooltip>
-              </div>
-            </template>
-          </el-table-column>
+          <!--          <el-table-column align="left" label="操作">-->
+          <!--            <template slot-scope="scope">-->
+          <!--              <div style="margin-top: 10px;">-->
+          <!--                &lt;!&ndash;                <tooltip content="编辑">&ndash;&gt;-->
+          <!--                &lt;!&ndash;                  <span class="fa fa-pencil opt-color" @click="editCodeProgress(scope.$index,scope.row)"></span>&ndash;&gt;-->
+          <!--                &lt;!&ndash;                </tooltip>&ndash;&gt;-->
+          <!--                <tooltip content="保存">-->
+          <!--                  <span class="fa fa-save opt-color opt-margin" @click="finishcodeSave(scope.$index, scope.row)"></span>-->
+          <!--                </tooltip>-->
+          <!--              </div>-->
+          <!--            </template>-->
+          <!--          </el-table-column>-->
         </el-table>
+        <div style="display:flex; flex-direction: row;justify-content: flex-end;">
+          <el-button size="mini" type="primary" @click="submitContactProgress">确认</el-button>
+        </div>
       </div>
     </el-dialog>
 
@@ -363,11 +350,19 @@
         }
       };
       return {
+        emps: [],
         //进度名列表
         codeList: [],
         innerVisible: false,
         codeModel: {
+          id: '',
           codeName: '',
+          createDate: '',
+          state: '进行中',
+          note: '',
+          empId: '',
+          empName: '',
+          show: false,
         },
 
         coderules: {
@@ -486,6 +481,11 @@
         },
         tableLoading: false,
         codeProcess: [],
+        // 快速添加字典字段
+        dialogCodeAddVisible: false,
+        fastCodeName: '',
+        fastcodeShow: false,
+
         codeStates: [
           {
             name: '进行中',
@@ -506,79 +506,113 @@
       this.initData();
     },
     methods: {
-      changeCodeState() {
+      // 快速添加code字典值
+      fastAddCode() {
+        let _this = this;
+        if (this.fastCodeName === '') {
+          return false;
+        }
+        var codeObject = {
+          codeName: this.fastCodeName,
+          createDate: new Date()
+        };
+        this.postRequest("/contractcode/add", codeObject).then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
 
+            // _this.innerVisible = false;
+            this.fastCodeName = '';
+            this.fastcodeShow = false;
+            _this.loadAllCode();
+          } else {
+            this.Message("添加失败 ，请重试")
+          }
+        });
+
+      },
+      codedbclick(item,index) {
+        // this.$message('这是一条消息提示');
+        item.codeTopShow=!item.codeTopShow;
+        this.codeList.splice(index,1,item);
+      },
+      changeCodeState(se) {
+        console.log(se);
+        // this.codeModel.state=se=="进行中"?1:se=="已完成"?2:"下一步";
+
+      },
+      handleClose() {
+
+      },
+      getRowDate(row, column, cell, event) {
+        console.log(row,);
+        console.log(column,);
+        console.log(cell,);
+        console.log(event,);
+        row.show = !row.show;
       },
       //选择进度 步骤
       currentProcess(e, o, l) {
         let that = this;
         console.log(e);//当前选择的
         console.log(this.codeProcess);
-        var nowArr = this.codeProcess;//当时数据
-        var oldArr = this.contentCodeRecord;//旧数据
-        var currentArr = this.compareArr(oldArr, nowArr);
-
-        // this.contentCodeRecord = [];
-        console.log(currentArr);
-        this.contentCodeRecord= currentArr;
+        this.contentCodeRecord = [];
+        var temp = {
+          codeName: e,
+          createDate: new Date(),
+          state: '进行中',
+          note: '',
+          empId: '',
+          empName: '',
+          show: false,
+        };
+        this.contentCodeRecord.push(temp);
       },
-      // 比较两个数组 并返回当前的
-      compareArr(oldArr, nowArr) {
-        let that = this;
-        var temp = [];
-        if (oldArr.length == 0) {
-          for (var i = 0, n = nowArr.length; n > i; i++) {
-            temp.push({
-              codeName: nowArr[i],
-              createDate: new Date(),
-              state: '1',
-              note: '',
-            })
-          }
 
-        } else if (nowArr.length === 0) {
-
-        } else {
-          var falg = false;
-          if (oldArr.length >= nowArr.length) {
-            for (var j = oldArr.length-1; j > 0; j--) {
-              var codeItem = oldArr[j];
-              for (var k = nowArr.length-1; k > 0; k--) {
-                var nowItem = nowArr[k];
-                if (nowItem === codeItem.codeName) {
-                  temp.push(codeItem);
-                }
-              }
-            }
-          } else {//获取新增加进度值
-            var su = [];
-            for (var m = 0; m < oldArr.length; m++) {
-              su.push(oldArr[m].codeName);
-            }
-            ;
-            var dif = this.getArrDifference(su, nowArr);
-            //新增的
-            for (let n = 0; n < dif.length; n++) {
-              var newObj = {
-                codeName: dif[n],
-                createDate: new Date(),
-                state: '1',
-                note: '',
-              };
-            }
-            oldArr.push(newObj);
-            temp = oldArr;
+      //选择操作人；
+      fastCodeChange(e) {
+        console.log(e);
+        let empId = e;
+        this.codeModel.empId = e;
+        var empName = '';
+        for (let i = 0; i < this.emps; i++) {
+          if (e === empId) {
+            empName = this.emps[i].name
           }
         }
-
-        return temp;
+        this.codeModel.empName = empName;
       },
-      //获取两个数组 不同值；
-      getArrDifference(arr1, arr2) {
-        return arr1.concat(arr2).filter(function (v, i, arr) {
-          return arr.indexOf(v) === arr.lastIndexOf(v);
+      submitContactProgress() {
+        let that = this;
+        if (this.codeModel.empName == '') {
+          this.$message({
+            type: 'info',
+            message: '请选择用操作人'
+
+          });
+          return false;
+        }
+        var msg = this.codeModel.empName +
+          this.codeModel.codeName +
+          this.codeModel.state +
+          this.codeModel.note;
+
+        this.$confirm('当前编辑的信息为' + msg, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          that.codeModel.state = that.codeModel.state == "进行中" ? 1 :
+            that.codeModel.state == "已完成" ? 2 : 3;
+          that.contentVisible = false;
+          //在整个合同提交时 将 model中的数据初始化；
+          // that.addNewProgress(that.codeModel);
+        }).catch(() => {
         });
       },
+      //保存
+      // addNewProgress(model){
+      //   this.
+      // },
+
 
       readcodeNote(e, row, l) {
         console.log(e);
@@ -591,7 +625,6 @@
         console.log(column);
         console.log(cell);
         console.log(event);
-        console.log(index);
         row.show = true;
         // this.contentCodeRecord.splice(index,1,row);
       },
@@ -601,9 +634,13 @@
         this.contentCodeRecord.splice(index, 1, row);
       },
       andSNewCode() {
-        this.innerVisible = true;
+        this.fastcodeShow = !this.fastcodeShow;
+        if (this.fastcodeShow) {
+          this.fastCodeName = '';
+        }
         //加载所有进度名称
-        this.loadAllCode();
+        // this.loadAllCode();
+
       },
       loadAllCode() {
         let _this = this;
@@ -611,8 +648,11 @@
           if (resp && resp.status === 200 && resp.data.success) {
             let data = resp.data;
             console.log("codeList" + resp.data);
-            // _this.nations = data.nations;
             _this.codeList = data.data || []
+            _this.codeList.forEach(item=>{
+              item.codeTopShow=false;
+            })
+
           }
         })
       },
@@ -646,7 +686,6 @@
         })
 
 
-        this.codeModel.name = '';
       },
       //编辑
       editCode(index, row) {
@@ -697,7 +736,7 @@
             console.log("codeList" + resp.data);
             // _this.nations = data.nations;
             _this.codeList = data.data || [];
-            _this.contentCodeRecord = [];
+            // _this.contentCodeRecord = [];
             //   for (let i = 0; i <_this.codeList.length ; i++) {
             //     _this.contentCodeRecord.push({
             //       codeName:_this.codeList[i].codeName,
@@ -797,22 +836,10 @@
 
       getBaseData() {
         let _this = this;
-        _this.getRequest("/emp/basicdata").then(resp => {
+        _this.getRequest("/contract/basicdata").then(resp => {
           if (resp && resp.status === 200 && resp.data.success) {
             let data = resp.data;
-            // _this.nations = data.nations;
-            let det = data.root.deptlist || [];
-            let dets = [];
-            det.forEach(function (v) {
-              dets.push({
-                id: v[0],
-                num: v[1],
-                name: v[2]
-              })
-            })
-            _this.depItems = dets;
-            _this.deps = data.root.department;
-            _this.posts = data.root.position;
+            _this.emps = data.root.employee;
 
           }
         })
@@ -1009,6 +1036,12 @@
   }
 </script>
 <style scoped>
+  .code-add-class {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
   .code-class {
     display: flex;
     flex-direction: row;
@@ -1113,5 +1146,20 @@
 
   .new-contact {
     background-color: #E5EFF1;
+  }
+
+  .top-tip-top {
+    position: absolute;
+    right: -8px;
+    top: -8px;
+    border-radius: 50%;
+    z-index: 5;
+    color: white;
+    height: 16px;
+    width: 16px;
+    font-size: 5px;
+    text-align: center;
+    line-height: 14px;
+    background-color: red;
   }
 </style>
