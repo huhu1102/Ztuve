@@ -93,7 +93,6 @@
                   </el-tooltip>
                 </div>
                 <!--                sales-add-new-->
-
               </div>
               <template v-if="tabsIndex==0">
                 <div class="item-sales"

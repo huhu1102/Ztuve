@@ -44,7 +44,7 @@
 
           </div>
         </div>
-        <el-main style="margin: 0 20px">
+        <el-main>
           <transition name="slide-fade">
             <div class="send-main-div"
                  v-show="advanceSearchViewVisible">
@@ -70,14 +70,18 @@
               </el-row>
               <el-row style="margin-top: 10px;display: flex;justify-content: flex-end;">
                 <el-col :span="5" :offset="4">
-                  <el-button size="mini" @click="">取消</el-button>
+                  <el-button size="mini" @click="advanceSearchViewVisible=false">取消</el-button>
                   <el-button icon="el-icon-search" type="primary" size="mini" @click="searchEmp">搜索</el-button>
                 </el-col>
               </el-row>
             </div>
           </transition>
-          <el-table :cell-style="{padding:'2px',fontSize:'12px'}" fit :data="contactList"
-                    style=" width: 100%;border: 1px solid #F7F7F7">
+          <el-table
+            highlight-current-row
+            :cell-style="{padding:'2px',fontSize:'12px'}"
+            fit :data="contactList"
+            style=" width: 100%;border: 1px solid #F7F7F7"
+          >
             <el-table-column
               type="selection"
               align="left"
@@ -144,7 +148,6 @@
                 <span @click="showDetails(scope.$index,scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px"
                       size="mini">编辑
                 </span>
-
                 <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
                            @click="deleteEmp(scope.row)">删除
                 </el-button>
@@ -166,50 +169,201 @@
       </el-container>
       <!--  添加合同 -->
       <el-container v-show="tap===1" class="new-contact">
-        <el-form ref="form" size="mini" :model="form" label-width="100px">
-          <el-form-item label="序号:">
-            <el-input size="mini" v-model="form.sequence"></el-input>
-          </el-form-item>
-          <el-form-item label="合同编号">
-            <el-input v-model="form.contractNumber"></el-input>
-          </el-form-item>
-          <el-form-item label="合同名称">
-            <el-input v-model="form.contractName"></el-input>
-          </el-form-item>
-          <el-form-item label="客户名称">
-            <el-input v-model="form.clientName"></el-input>
-          </el-form-item>
-          <el-form-item size="mini" label="合同金额">
-            <el-input size="mini" style="height: 28px;" v-model="form.totalMoney"></el-input>
-          </el-form-item>
-          <el-form-item label="签订时间">
-            <el-date-picker
-              v-model="form.signContractDate"
-              type="datetime"
-              placeholder="选择日期时间"
-              align="right"
-              :picker-options="pickerOptions">
-            </el-date-picker>
-          </el-form-item>
-          <el-form-item label="备注">
-            <el-input type="textarea" v-model="form.notes"></el-input>
-          </el-form-item>
-          <el-form-item label="合同进度">
 
-            <span @click="updateContact"><a herf="#">请更新合同进度</a></span>
-            <!--            <el-radio-group v-model="form.speed">&ndash;&gt;-->
-            <!--              <el-radio label="正在办"></el-radio>-->
-            <!--              <el-radio label="办理完"></el-radio>-->
-            <!--            </el-radio-group>-->
-          </el-form-item>
-          <el-form-item label="合同详情">
-            <a herf="#">添加生产计划</a>
-          </el-form-item>
-          <div style="text-align: center;  width: 800px;">
-            <el-button type="primary" size="mini" @click="createContract">立即创建</el-button>
-            <el-button size="mini">取消</el-button>
+        <div class="contract-left">
+          <el-form ref="form" size="mini" :model="form" label-width="80px" style="text-align: left;padding-left: 20px;">
+            <el-form-item>
+              <span> 合同详情:</span>
+            </el-form-item>
+            <el-form-item label="订单:">
+
+              <a herf="#" @click="chooseProduct">选择订单</a>
+            </el-form-item>
+            <el-form-item label="序号:">
+              <el-input size="mini" class="cantract-input" v-model="form.sequence"></el-input>
+            </el-form-item>
+            <el-form-item label="编号:">
+              <el-input class="cantract-input" v-model="form.contractNumber"></el-input>
+            </el-form-item>
+            <el-form-item label="名称:">
+              <el-input class="cantract-input" v-model="form.contractName"></el-input>
+            </el-form-item>
+            <el-form-item label="客户:">
+              <el-input class="cantract-input" v-model="form.clientName"></el-input>
+            </el-form-item>
+            <el-form-item size="mini" label="金额:">
+              <el-input class="cantract-input" size="mini" style="height: 28px;" v-model="form.totalMoney"></el-input>
+            </el-form-item>
+            <el-form-item label="时间:">
+              <el-date-picker class="cantract-input"
+                              v-model="form.signContractDate"
+                              type="datetime"
+                              placeholder="选择签订时间"
+                              align="right"
+                              :picker-options="pickerOptions">
+              </el-date-picker>
+            </el-form-item>
+            <el-form-item label="备注:">
+              <el-input class="cantract-input" type="textarea" v-model="form.notes"></el-input>
+            </el-form-item>
+            <el-form-item label="进度:">
+
+              <span @click="updateContact"><a herf="#">{{progressMsg}}</a></span>
+              <!--            <el-radio-group v-model="form.speed">&ndash;&gt;-->
+              <!--              <el-radio label="正在办"></el-radio>-->
+              <!--              <el-radio label="办理完"></el-radio>-->
+              <!--            </el-radio-group>-->
+            </el-form-item>
+            <el-form-item>
+              <el-button type="primary" size="mini" @click="createContract">立即创建</el-button>
+              <el-button size="mini">取消</el-button>
+            </el-form-item>
+
+
+          </el-form>
+        </div>
+        <span v-show="!orderShow" class="fa fa-angle-double-right" @click="packup">
+          </span>
+        <div v-show="orderShow" style="display: flex;flex-direction: row;justify-content: flex-start;">
+          <div class="contract-mid">
+            <span class="fa fa-angle-double-left" @click="packup"> </span> 订单列表
+
+            <el-table height="450px" id="tableid"
+                      highlight-current-row
+                      style="font-size: 12px;"
+                      @current-change="handleCurrentChange"
+                      :data="orderList">
+              <el-table-column label="订单号">
+                <template slot-scope="scope">{{ scope.row.orderNo}}</template>
+              </el-table-column>
+              <el-table-column label="客户">
+                <template slot-scope="scope">
+                  {{ scope.row.cliente.parentName}}
+                  -{{ scope.row.cliente.name}}
+                </template>
+              </el-table-column>
+            </el-table>
+            <el-button style="margin-top: 10px;" size="mini" type="primary" @click="chooseProcut">
+              添加订单
+            </el-button>
           </div>
-        </el-form>
+          <!--        v-show="contractDetailShow"-->
+
+        </div>
+        <span v-show="!orderlistsShow" class="fa fa-angle-double-right" @click="listPackup">
+         </span>
+        <div v-show="orderlistsShow" class="contract-right">
+           <span v-show="orderlistsShow" class="fa fa-angle-double-left" @click="listPackup"> 生产计划
+           </span>
+          <el-table :data="prePlans"
+                    highlight-current-row
+                    height="450px"
+                    style="font-size: 12px;height: auto;">
+            <el-table-column
+              type="selection"
+              width="55">
+            </el-table-column>
+            <el-table-column label="计划号">
+              <template slot-scope="scope">{{ scope.row.planNo}}</template>
+            </el-table-column>
+            <el-table-column label="客户">
+              <template slot-scope="scope" >
+                <span v-if="scope.row&&scope.row.salesPlan">
+                  {{scope.row.salesPlan.client}}
+                </span>
+                <span v-else>
+                  暂无
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量">
+              <template slot-scope="scope">{{ scope.row.actualQuantity}}枚</template>
+            </el-table-column>
+            <el-table-column label="产品">
+              <template slot-scope="scope">
+                <span v-if="scope.row.salesPlan&&scope.row.salesPlan.parentName">
+                {{ scope.row.salesPlan.productName}}
+                </span>
+                <span v-if="scope.row&&scope.row.salesPlan">
+                {{ scope.row.salesPlan.color.name}}
+                </span>
+              </template>
+            </el-table-column>-
+            <el-table-column label="下发时间">
+              <template slot-scope="scope">{{ scope.row.createDate|formatDateTime}}</template>
+            </el-table-column>
+            <el-table-column label="备注">
+              <template slot-scope="scope">{{ scope.row.note}}</template>
+            </el-table-column>
+            <el-table-column label="实际数量">
+              <template slot-scope="scope">
+                <el-input size="mini" type="primary"></el-input>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div style="margin-top: 8px; display: inline-flex;flex-direction: row;">
+
+            <el-input autosize size="mini" placeholder="请输入备注" style="width: 200px;" type="textarea"
+                      v-model="orderListNote"></el-input>
+            <el-button size="mini">创建订单</el-button>
+          </div>
+        </div>
+        <div v-show="orderlistsShow" class="contract-right">
+           <span v-show="orderlistsShow" class="fa fa-angle-double-left" @click="listPackup"> 生产计划
+           </span>
+          <el-table :data="prePlans"
+                    highlight-current-row
+                    height="450px"
+                    style="font-size: 12px;height: auto;">
+            <el-table-column
+              type="selection"
+              width="55">
+            </el-table-column>
+            <el-table-column label="计划号">
+              <template slot-scope="scope">{{ scope.row.planNo}}</template>
+            </el-table-column>
+            <el-table-column label="客户">
+              <template slot-scope="scope" >
+                <span v-if="scope.row&&scope.row.salesPlan">
+                  {{scope.row.salesPlan.client}}
+                </span>
+                <span v-else>
+                  暂无
+                </span>
+              </template>
+            </el-table-column>
+            <el-table-column label="数量">
+              <template slot-scope="scope">{{ scope.row.actualQuantity}}枚</template>
+            </el-table-column>
+            <el-table-column label="产品">
+              <template slot-scope="scope">
+                <span v-if="scope.row.salesPlan&&scope.row.salesPlan.parentName">
+                {{ scope.row.salesPlan.productName}}
+                </span>
+                <span v-if="scope.row&&scope.row.salesPlan">
+                {{ scope.row.salesPlan.color.name}}
+                </span>
+              </template>
+            </el-table-column>-
+            <el-table-column label="下发时间">
+              <template slot-scope="scope">{{ scope.row.createDate|formatDateTime}}</template>
+            </el-table-column>
+            <el-table-column label="备注">
+              <template slot-scope="scope">{{ scope.row.note}}</template>
+            </el-table-column>
+            <el-table-column label="实际数量">
+              <template slot-scope="scope">
+                <el-input size="mini" type="primary"></el-input>
+              </template>
+            </el-table-column>
+          </el-table>
+          <div style="margin-top: 8px; display: inline-flex;flex-direction: row;">
+
+            <el-input autosize size="mini" placeholder="请输入备注" style="width: 200px;" type="textarea"
+                      v-model="orderListNote"></el-input>
+            <el-button size="mini">创建订单</el-button>
+          </div>
+        </div>
       </el-container>
     </el-container>
     <!--    合同进度添加 -->
@@ -217,85 +371,48 @@
       v-dialog-drag :title="contentTitle" style="padding: 0px;" :close-on-click-modal="false"
       :visible.sync="contentVisible" @close="cancelcontent" width="850px">
       <div class="detail-product">
-        <div style="display: flex;flex-direction: row;justify-content: flex-start;">
-          <el-radio-group class="code-class"
-                          v-model="codeProcess"
-                          @change="currentProcess">
-            <el-radio size="mini" class="code-class-item"
-                      v-for="(item,index) in codeList"
-                      :key="'codelist'+index"
-                      :label="item.codeName"
-                      v-model="item.id"
-                      @dblclick.native="codedbclick(item,index)"
-                      border>
-                  {{item.codeName}}
-                <div class="top-tip-top" v-show="item.codeTopShow" @click="deleteCode(index,item)" >x</div>
-            </el-radio>
-
-            <el-button class="code-class-item"
-                       size="mini"
-                       border
-                       @click="andSNewCode">+
-            </el-button>
-            <div v-show="fastcodeShow" class="code-class-item code-add-class">
-              <el-input v-model="fastCodeName" size="mini"></el-input>
-              <el-button type="primary" size="mini" @click="fastAddCode">提交</el-button>
+        <div class="code-class"
+             v-model="codeProcess">
+          <div class="code-class-item" v-for="(item,index) in codeList"
+               :key="'codelist'+index"
+               @click="currentProcess(index,item)"
+               @dblclick="codedbclick(item,index)">
+            <div class="code-class-item-name">
+              {{item.codeName}}
             </div>
-          </el-radio-group>
+            <div class="top-tip-top" v-show="item.codeTopShow" @click="deleteCode(index,item)">x</div>
 
+          </div>
+          <div
+            class="code-class-item code-add-class">
+            <el-input
+              v-model="fastCodeName"
+              size="mini"
+              placeholder="添加进度词典。。。"
+              @keyup.enter.native="fastAddCode">
+              <template slot="prepend">+</template>
+            </el-input>
+          </div>
         </div>
-        <!--        <el-dialog-->
-        <!--          title="提示"-->
-        <!--          :visible.sync="dialogCodeAddVisible"-->
-        <!--          width="30%"-->
-        <!--          @close="handleClose">-->
-        <!--          <span>请输入添加名称</span>-->
-        <!--          -->
-        <!--          <span slot="footer" class="dialog-footer">-->
-        <!--          <el-button @click="dialogCodeAddVisible = false">取 消</el-button>-->
-        <!--          <el-button type="primary" @click="fastAddCode">确 定</el-button>-->
-        <!--          </span>-->
-        <!--        </el-dialog>-->
 
-        <el-form>
-          <el-form-item>
-
-          </el-form-item>
-        </el-form>
-        <el-table :data="contentCodeRecord"
-                  fit
-                  border
-                  :cell-style="{padding:'2px',fontSize:'12px'}"
-                  :model="ContractSchedule"
-                  @cell-dblclick=getRowDate
-                  style="width: 100%">
-          <el-table-column align="left" label="进度">
-            <template slot-scope="scope">
-              <el-radio>{{scope.row.codeName}}</el-radio>
-            </template>
-          </el-table-column>
-          <el-table-column align="left" label="状态">
-            <template slot-scope="scope">
-              <el-radio-group v-model="scope.row.state" @change="changeCodeState">
+        <div class="schedu-class">
+          <el-form size="mini" ref="scheduleForm" class="schedu-form-class"
+                   v-model="ContractSchedule" label-width="90px">
+            <el-form-item label="进度:">
+              <span> {{ ContractSchedule.codeName}}</span>
+            </el-form-item>
+            <el-form-item label="状态:">
+              <el-radio-group v-model="ContractSchedule.state" @change="changeCodeState">
                 <el-radio v-for="(item,index) in codeStates" :label="item.name"></el-radio>
               </el-radio-group>
-            </template>
-          </el-table-column>
-          <el-table-column align="left" label="备注">
-            <template slot-scope="scope">
-              <el-input type="area" placeholder="请输入备注" v-show="scope.row.show"
-                        @change="readcodeNote"
-
-                        v-model="scope.row.notes"></el-input>
-              <span v-show="!scope.row.show">{{scope.row.notes}}</span>
-            </template>
-          </el-table-column>
-
-          <el-table-column align="left" label="操作人">
-            <template slot-scope="scope">
-              <el-select v-show="scope.row.show" v-model="scope.row.epmId" class="product-input-btn-class" size="mini"
-                         @change="fastCodeChange"
-                         placeholder="请选择">
+            </el-form-item>
+            <el-form-item label="人员:">
+              <el-select
+                size="mini"
+                class="product-input-btn-class"
+                @change="fastCodeChange"
+                v-model="ContractSchedule.epmId"
+                placeholder="请选择操作人">
                 <el-option
                   v-for="item in emps"
                   :key="item.id"
@@ -303,40 +420,40 @@
                   :value="item.id">
                 </el-option>
               </el-select>
-              <span v-show="!scope.row.show">{{scope.row.empName}}</span>
-            </template>
-          </el-table-column>
-          <el-table-column align="left" prop="createDate" sortable label="操作时间">
-            <template slot-scope="scope">
-              <span>
-                 {{ scope.row.createDate|formatDateTime}}
-              </span>
-            </template>
-          </el-table-column>
-          <!--          <el-table-column align="left" label="操作">-->
-          <!--            <template slot-scope="scope">-->
-          <!--              <div style="margin-top: 10px;">-->
-          <!--                &lt;!&ndash;                <tooltip content="编辑">&ndash;&gt;-->
-          <!--                &lt;!&ndash;                  <span class="fa fa-pencil opt-color" @click="editCodeProgress(scope.$index,scope.row)"></span>&ndash;&gt;-->
-          <!--                &lt;!&ndash;                </tooltip>&ndash;&gt;-->
-          <!--                <tooltip content="保存">-->
-          <!--                  <span class="fa fa-save opt-color opt-margin" @click="finishcodeSave(scope.$index, scope.row)"></span>-->
-          <!--                </tooltip>-->
-          <!--              </div>-->
-          <!--            </template>-->
-          <!--          </el-table-column>-->
-        </el-table>
-        <div style="display:flex; flex-direction: row;justify-content: flex-end;">
-          <el-button size="mini" type="primary" @click="submitContactProgress">确认</el-button>
+            </el-form-item>
+            <el-form-item label="备注:">
+              <el-input type="textarea" placeholder="请输入备注"
+                        @change="readcodeNote"
+                        style="width: 200px"
+                        autosize resize autofocus clearable
+                        v-model="ContractSchedule.note"></el-input>
+            </el-form-item>
+            <el-form-item label="时间:">
+              <span>{{ContractSchedule.createDate|formatDateTime}}</span>
+            </el-form-item>
+          </el-form>
+        </div>
+        <div style="display:flex; flex-direction: row;justify-content: center;">
+          <el-button size="mini" type="primary" @click="cancelcontent">取消</el-button>
+          <el-button size="mini" type="primary" @click="submitContactProgress">确定</el-button>
         </div>
       </div>
     </el-dialog>
+    <!--    添加生产计划-->
+    <!--    <el-dialog-->
+    <!--      v-dialog-drag :title="" :close-on-click-modal="false"-->
+    <!--      :visible.sync="" @close="" width="850px">-->
+
+    <!--    </el-dialog>-->
 
 
   </div>
 </template>
 <script>
+  import ElSlPanel from "element-ui/packages/color-picker/src/components/sv-panel";
+
   export default {
+    components: {ElSlPanel},
     data() {
 
       let phonevalidate = (rule, value, callback) => {
@@ -350,6 +467,11 @@
         }
       };
       return {
+        orderShow: false,
+        orderlistsShow: false,
+        productShow: false,
+        orderList: [],
+        prePlans: [],
         emps: [],
         //进度名列表
         codeList: [],
@@ -373,8 +495,10 @@
         ContractSchedule: {
           id: 0,
           codeName: '',
-          notes: '',
-          operator: '',
+          note: '',
+          epmId: '',
+          contractCodeId: 0,
+          createDate: new Date(),
         },
         contentVisible: false,
         contentTitle: '',
@@ -485,7 +609,10 @@
         dialogCodeAddVisible: false,
         fastCodeName: '',
         fastcodeShow: false,
-
+        progressMsg: '请更新合同进度',
+        contractDetailShow: false,
+        orderListNote: '',
+        // 生成订单的备注
         codeStates: [
           {
             name: '进行中',
@@ -506,6 +633,27 @@
       this.initData();
     },
     methods: {
+      //选择了订单
+      handleCurrentChange(e) {
+
+      },
+      listPackup() {
+        this.orderlistsShow = !this.orderlistsShow;
+      },
+      packup() {
+        this.orderShow = !this.orderShow;
+      },
+      chooseProduct() {
+        this.orderShow = !this.orderShow;
+        this.orderlistsShow = !this.orderlistsShow;
+
+        // if(!this.orderShow){
+        //   this.getRequest("/productionplandetails/find")
+        // }
+      },
+      chooseProcut() {
+        this.productShow = !this.productShow
+      },
       // 快速添加code字典值
       fastAddCode() {
         let _this = this;
@@ -525,64 +673,47 @@
             _this.loadAllCode();
           } else {
             this.Message("添加失败 ，请重试")
-          }
+          }c
         });
-
       },
-      codedbclick(item,index) {
+      codedbclick(item, index) {
         // this.$message('这是一条消息提示');
-        item.codeTopShow=!item.codeTopShow;
-        this.codeList.splice(index,1,item);
+        item.codeTopShow = !item.codeTopShow;
+        this.codeList.splice(index, 1, item);
       },
       changeCodeState(se) {
         console.log(se);
         // this.codeModel.state=se=="进行中"?1:se=="已完成"?2:"下一步";
-
       },
       handleClose() {
 
       },
-      getRowDate(row, column, cell, event) {
-        console.log(row,);
-        console.log(column,);
-        console.log(cell,);
-        console.log(event,);
-        row.show = !row.show;
-      },
       //选择进度 步骤
-      currentProcess(e, o, l) {
+      currentProcess(index, item) {
         let that = this;
-        console.log(e);//当前选择的
-        console.log(this.codeProcess);
-        this.contentCodeRecord = [];
-        var temp = {
-          codeName: e,
-          createDate: new Date(),
-          state: '进行中',
+        console.log(index, item);
+        var empId = this.$store.state.user.empId;
+        this.ContractSchedule = {
+          id: 0,
+          codeName: item.codeName,
+          state: "进行中",
           note: '',
-          empId: '',
-          empName: '',
-          show: false,
-        };
-        this.contentCodeRecord.push(temp);
+          epmId: empId,
+          contractCodeId: item.id,
+          createDate: new Date(),
+        }
       },
 
       //选择操作人；
       fastCodeChange(e) {
         console.log(e);
-        let empId = e;
-        this.codeModel.empId = e;
-        var empName = '';
-        for (let i = 0; i < this.emps; i++) {
-          if (e === empId) {
-            empName = this.emps[i].name
-          }
-        }
-        this.codeModel.empName = empName;
+        this.ContractSchedule.empId = e;
       },
       submitContactProgress() {
         let that = this;
-        if (this.codeModel.empName == '') {
+        console.log(this.ContractSchedule.empId);
+
+        if (this.ContractSchedule.empId === undefined || this.ContractSchedule.empId === '' || this.ContractSchedule.empId === 0) {
           this.$message({
             type: 'info',
             message: '请选择用操作人'
@@ -590,22 +721,26 @@
           });
           return false;
         }
-        var msg = this.codeModel.empName +
-          this.codeModel.codeName +
-          this.codeModel.state +
-          this.codeModel.note;
 
+        var msg =
+          this.ContractSchedule.codeName +
+          this.ContractSchedule.state +
+          this.ContractSchedule.note;
         this.$confirm('当前编辑的信息为' + msg, '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          that.codeModel.state = that.codeModel.state == "进行中" ? 1 :
-            that.codeModel.state == "已完成" ? 2 : 3;
+          this.progressMsg = this.ContractSchedule.codeName +
+            this.ContractSchedule.state;
+
+          // that.ContractSchedule.state = that.ContractSchedule.state == "进行中" ? 1 :
+          //   that.ContractSchedule.state == "已完成" ? 2 : 3;
           that.contentVisible = false;
           //在整个合同提交时 将 model中的数据初始化；
           // that.addNewProgress(that.codeModel);
         }).catch(() => {
+          this.$message('请重试 ^_^---||！');
         });
       },
       //保存
@@ -649,8 +784,8 @@
             let data = resp.data;
             console.log("codeList" + resp.data);
             _this.codeList = data.data || []
-            _this.codeList.forEach(item=>{
-              item.codeTopShow=false;
+            _this.codeList.forEach(item => {
+              item.codeTopShow = false;
             })
 
           }
@@ -758,12 +893,22 @@
       },
       cancelcontent() {
         this.contentVisible = false;
-        this.loadContact();
       },
       //新增合同方法  该方法要求 在新增加合同时同时新建立订单
       addNewContact() {
+        let _this = this;
         this.tap = 1;
         console.log('1');
+        //获取生产计划数据
+        _this.getRequest("/contract/basicdata").then(resp => {
+          if (resp && resp.status === 200 && resp.data.success) {
+            let data = resp.data;
+            _this.emps = data.root.employee;
+            _this.orderList = data.root.orderList;
+            1
+          }
+        })
+
       },
       //***********  合同附件上传
       handleRemove(file, fileList) {
@@ -840,6 +985,7 @@
           if (resp && resp.status === 200 && resp.data.success) {
             let data = resp.data;
             _this.emps = data.root.employee;
+            _this. prePlans= data.root.prePlans;
 
           }
         })
@@ -994,7 +1140,7 @@
       handleCommand(cmd) {
         var _this = this;
         if (cmd == 'logout') {
-          this.$confirm('注销登录, 是否继续?', '提示', {
+          this.$confirm8('注销登录, 是否继续?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
@@ -1035,45 +1181,54 @@
     }
   }
 </script>
-<style scoped>
+<style scoped scss>
+  .cantract-input {
+    width: 160px;
+    font-size: 12px;
+  }
+
+  handleCommand
   .code-add-class {
     display: inline-flex;
     flex-direction: row;
     justify-content: flex-start;
   }
 
+  /*设置文字颜色，可以选择不设置*/
   .code-class {
     display: flex;
     flex-direction: row;
-    justify-content: stretch;
+    justify-content: flex-start;
+    align-items: center;
     flex-wrap: wrap;
-
+    padding: 10px 20px;
+    box-sizing: border-box;
+    width: 100%;
   }
 
   .code-class-item {
-    margin: 5px;
+    width: 20%;
+    border-radius: 8px;
+    padding: 12px;
+    height: 40px;
   }
 
-  .opt-margin {
-    margin-left: 10px;
+  .code-class-item-name {
+    width: 100%;
+    border: 1px solid #e4e4e4;
   }
 
-  .del-color {
-    color: red;
-    margin-left: 10px;
+  .code-class-item-name:hover {
+    color: #8cc5ff;
+    cursor: pointer;
   }
+
 
   .send-input {
     width: 160px;
     height: 28px;
   }
 
-  .send-head {
-    padding: 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center
-  }
 
   .send-head-right-btn {
     margin-left: 5px;
@@ -1085,11 +1240,6 @@
     margin-left: 5px
   }
 
-  .send-main {
-    padding-left: 0px;
-    padding-top: 0px
-
-  }
 
   .send-main-div {
     margin-bottom: 10px;
@@ -1099,67 +1249,73 @@
     border: 1px solid #20a0ff;
   }
 
-  .page-tool {
-    display: flex;
-    justify-content: flex-end;
-    margin: 2px;
-  }
 
-  .dept-tree {
-    width: 220px;
-    height: 26px;
-    display: inline-flex;
-    font-size: 13px;
-    border-radius: 5px;
-    padding-left: 13px;
-    box-sizing: border-box;
-    cursor: pointer;
-    align-items: center
-  }
-
-  .dept-tree:hover {
-    border: 1px solid #dcdfe6;
-  }
-
-
-  .el-form-item {
-    text-align: left;
-    border: none;
-  }
-
-  .el-form-item:focus:after {
-    text-align: left;
-    width: 220px;
-    height: 26px;
-    display: inline-flex;
-    font-size: 13px;
-    border-radius: 5px;
-    padding-left: 13px;
-    box-sizing: border-box;
-    cursor: pointer;
-    align-items: center
-  }
-
-  .el-table td, .el-table th {
-    padding: 9px 0;
-  }
+  /*.el-table td, .el-table th {*/
+  /*  padding: 9px 0;*/
+  /*}*/
 
   .new-contact {
     background-color: #E5EFF1;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+  }
+
+  .contract-left {
+    width: 400px;
+    height: auto;
+    border: 1px solid #2fc5da;
+  }
+
+  .contract-right {
+    min-width: 500px;
+    height: auto;
+    margin-left: 4px;
+    border: 1px solid #2fc5da;
+  }
+
+  .contract-mid {
+    margin-left: 4px;
+    width: 300px;
+    border: 1px solid #2fc5da;
+
   }
 
   .top-tip-top {
-    position: absolute;
-    right: -8px;
-    top: -8px;
+    position: relative;
+    right: -120px;
+    top: -32px;
     border-radius: 50%;
-    z-index: 5;
+    z-index: 15;
     color: white;
     height: 16px;
     width: 16px;
     font-size: 5px;
-    text-align: center;
     line-height: 14px;
     background-color: red;
+  }
+
+  .schedu-class {
+    padding-left: 160px;
+    ltext-align: left;
+    margin: 0 auto;
+    width: 750px;
+    background-color: #8cc5ff
+  }
+
+  #tableid .el-table__row td {
+    padding: 0;
+  }
+
+  /* 用来设置当前页面element全局table 选中某行时的背景色*/
+  #tableid .el-table__body tr.current-row > td {
+    background-color: #f19944 !important;
+    /* color: #f19944; */ /* 设置文字颜色，可以选择不设置 */
+  }
+
+  /* 用来设置当前页面element全局table 鼠标移入某行时的背景色*/
+  #tableid .el-table--enable-row-hover .el-table__body tr:hover > td {
+    background-color: #f19944;
+    /* color: #f19944; */ /* 设置文字颜色，可以选择不设置 */
   }
 </style>
