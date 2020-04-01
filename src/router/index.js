@@ -52,8 +52,9 @@ import BuyPlanMidProduct from '@/components/dept/BuyPlanMidProduct';
 import productMidRecieving from '@/components/produce/productMidRecieving';
 import BuyAllProduct from '@/components/dept/BuyAllProduct';
 import BuyAllPlanBase from '@/components/dept/BuyAllPlanBase';
-import testMenu from '@/components/ZtDialog/Ztmenu';
-import Contact from '@/components//sale/ProductionContact';
+import testMenu from '@/components/ZTTemplete/Ztmenu';
+import Contact from '@/components/sale/ProductionContact';
+// src/components/sale/ProductionContact.vue
 Vue.use(Router);
 export default new Router({
   // mode: 'history',
@@ -541,9 +542,9 @@ export default new Router({
           requireAuth: true
         }
       }]
-    }, {
+   /* }, {
       path: '**',
-      redirect: '/error',
+      redirect: '/error',*/
     }]
 
 })

@@ -77,6 +77,7 @@
             </div>
           </transition>
           <el-table
+
             highlight-current-row
             :cell-style="{padding:'2px',fontSize:'12px'}"
             fit :data="contactList"
@@ -207,7 +208,6 @@
               <el-input class="cantract-input" type="textarea" v-model="form.notes"></el-input>
             </el-form-item>
             <el-form-item label="进度:">
-
               <span @click="updateContact"><a herf="#">{{progressMsg}}</a></span>
               <!--            <el-radio-group v-model="form.speed">&ndash;&gt;-->
               <!--              <el-radio label="正在办"></el-radio>-->
@@ -228,9 +228,11 @@
           <div class="contract-mid">
             <span class="fa fa-angle-double-left" @click="packup"> </span> 订单列表
 
-            <el-table height="450px" id="tableid"
-                      highlight-current-row
+            <el-table height="450px"
+                      :highlight-current-row="true"
+                      id="contractTableId"
                       style="font-size: 12px;"
+                      @cell-click="orderListClick"
                       @current-change="handleCurrentChange"
                       :data="orderList">
               <el-table-column label="订单号">
@@ -249,7 +251,7 @@
           </div>
           <!--        v-show="contractDetailShow"-->
 
-        </div>
+        </div >
         <span v-show="!orderlistsShow" class="fa fa-angle-double-right" @click="listPackup">
          </span>
         <div v-show="orderlistsShow" class="contract-right">
@@ -258,18 +260,20 @@
           <el-table :data="prePlans"
                     highlight-current-row
                     height="450px"
+                    ref="orderTable"
+                    @selection-change="handleSelectionChange"
                     style="font-size: 12px;height: auto;">
             <el-table-column
               type="selection"
               width="55">
             </el-table-column>
-            <el-table-column label="计划号">
+            <el-table-column label="计划号" width="140">
               <template slot-scope="scope">{{ scope.row.planNo}}</template>
             </el-table-column>
-            <el-table-column label="客户">
+            <el-table-column label="客户1"  width="140">
               <template slot-scope="scope" >
                 <span v-if="scope.row&&scope.row.salesPlan">
-                  {{scope.row.salesPlan.client}}
+               {{scope.row.salesPlan.client.parentName}} - {{scope.row.salesPlan.client.name}}
                 </span>
                 <span v-else>
                   暂无
@@ -281,7 +285,7 @@
             </el-table-column>
             <el-table-column label="产品">
               <template slot-scope="scope">
-                <span v-if="scope.row.salesPlan&&scope.row.salesPlan.parentName">
+                <span v-if="scope.row.salesPlan&&scope.row.salesPlan.productName">
                 {{ scope.row.salesPlan.productName}}
                 </span>
                 <span v-if="scope.row&&scope.row.salesPlan">
@@ -295,9 +299,9 @@
             <el-table-column label="备注">
               <template slot-scope="scope">{{ scope.row.note}}</template>
             </el-table-column>
-            <el-table-column label="实际数量">
+            <el-table-column label="实际数量" width="120">
               <template slot-scope="scope">
-                <el-input size="mini" type="primary"></el-input>
+                <el-input size="mini"  v-model="scope.row.actualCount"  type="primary"></el-input>
               </template>
             </el-table-column>
           </el-table>
@@ -305,63 +309,76 @@
 
             <el-input autosize size="mini" placeholder="请输入备注" style="width: 200px;" type="textarea"
                       v-model="orderListNote"></el-input>
-            <el-button size="mini">创建订单</el-button>
+            <el-button size="mini" @click="createOrderforConctract" >创建订单</el-button>
+            <el-button size="mini" @click="cancelAddOrders">取消</el-button>
+
           </div>
         </div>
-        <div v-show="orderlistsShow" class="contract-right">
-           <span v-show="orderlistsShow" class="fa fa-angle-double-left" @click="listPackup"> 生产计划
+        <div v-show="orderDetailShow" class="contract-right">
+           <span> 订单详情
+<!--             class="fa fa-angle1-double-left" @click="listPackup-->
            </span>
-          <el-table :data="prePlans"
-                    highlight-current-row
-                    height="450px"
-                    style="font-size: 12px;height: auto;">
-            <el-table-column
-              type="selection"
-              width="55">
-            </el-table-column>
-            <el-table-column label="计划号">
-              <template slot-scope="scope">{{ scope.row.planNo}}</template>
-            </el-table-column>
-            <el-table-column label="客户">
-              <template slot-scope="scope" >
-                <span v-if="scope.row&&scope.row.salesPlan">
-                  {{scope.row.salesPlan.client}}
-                </span>
-                <span v-else>
-                  暂无
-                </span>
-              </template>
-            </el-table-column>
-            <el-table-column label="数量">
-              <template slot-scope="scope">{{ scope.row.actualQuantity}}枚</template>
-            </el-table-column>
-            <el-table-column label="产品">
-              <template slot-scope="scope">
-                <span v-if="scope.row.salesPlan&&scope.row.salesPlan.parentName">
-                {{ scope.row.salesPlan.productName}}
-                </span>
-                <span v-if="scope.row&&scope.row.salesPlan">
-                {{ scope.row.salesPlan.color.name}}
-                </span>
-              </template>
-            </el-table-column>-
-            <el-table-column label="下发时间">
-              <template slot-scope="scope">{{ scope.row.createDate|formatDateTime}}</template>
-            </el-table-column>
-            <el-table-column label="备注">
-              <template slot-scope="scope">{{ scope.row.note}}</template>
-            </el-table-column>
-            <el-table-column label="实际数量">
-              <template slot-scope="scope">
-                <el-input size="mini" type="primary"></el-input>
-              </template>
-            </el-table-column>
-          </el-table>
-          <div style="margin-top: 8px; display: inline-flex;flex-direction: row;">
+           <el-form  size="mini" style="text-align: left;"  label-width="120px" :model="orderMode">
+              <el-form-item label="订单编号:">
+                  {{orderMode.orderNo}}
+              </el-form-item>
+             <el-form-item label="客户:">
+               <el-select v-model="orderMode.cliId"  class="product-input-btn-class" size="mini"
+                          placeholder="请重新选择客户">
+                 <el-option
+                   v-for="item in clients"
+                   :key="item.id"
+                   :label="item.name"
+                   :value="item.id">
+                 </el-option>
+               </el-select>{{orderMode.parentName}}
 
-            <el-input autosize size="mini" placeholder="请输入备注" style="width: 200px;" type="textarea"
-                      v-model="orderListNote"></el-input>
-            <el-button size="mini">创建订单</el-button>
+             </el-form-item>
+             <el-form-item label="备注:">
+               <span>{{orderMode.notes}}</span>
+             </el-form-item>
+           </el-form>
+             <div style="text-align: left;font-size: 12px;">
+               生产计划
+             </div>
+               <el-table size="mini" height="290px" :data="orderPlanslist" >
+                 <el-table-column label="计划号"
+                                  prop="resourcesNumber"
+                 >
+                 </el-table-column>
+                 <el-table-column label="客户" >
+                   <template slot-scope="scope">
+                    <span> {{scope.row.productionPlanDetails.salesPlan.client.name}}</span>
+                   </template>
+                 </el-table-column>
+                 <el-table-column label="产品型号">
+                   <template slot-scope="scope">
+                   <span> {{scope.row.productionPlanDetails.salesPlan.product.producteName}}
+                   -
+                   {{scope.row.productionPlanDetails.salesPlan.color.name}}</span>
+                   </template>
+                 </el-table-column>
+                 <el-table-column label="数量">
+                   <template slot-scope="scope">
+                <span> {{scope.row.productNo}}</span>
+                   </template>
+                 </el-table-column>
+
+                 <el-table-column label="计划时间">
+                   <template slot-scope="scope">
+                   <span> {{scope.row.createDate|formatDate}}</span>
+                   </template>
+                 </el-table-column>
+                 <el-table-column label="备注">
+                   <template slot-scope="scope">
+                   <span> {{scope.row.remarks}}</span>
+                   </template>
+                 </el-table-column>
+               </el-table>
+          <div style="margin-top: 8px; display: inline-flex;flex-direction: row;">
+            <el-button size="mini" type="primary" @click="">确定</el-button>
+            <el-button size="mini"type="primary" @click="">修改</el-button>
+            <el-button size="mini"  @click="orderDetailShow=false" >取消</el-button>
           </div>
         </div>
       </el-container>
@@ -443,10 +460,7 @@
     <!--    <el-dialog-->
     <!--      v-dialog-drag :title="" :close-on-click-modal="false"-->
     <!--      :visible.sync="" @close="" width="850px">-->
-
     <!--    </el-dialog>-->
-
-
   </div>
 </template>
 <script>
@@ -467,7 +481,9 @@
         }
       };
       return {
-        orderShow: false,
+        currentSelected:[],
+        orderDetailShow:false,
+        orderShow: true,
         orderlistsShow: false,
         productShow: false,
         orderList: [],
@@ -604,6 +620,12 @@
           imageUrl: '',//附件url
         },
         tableLoading: false,
+        orderMode:{
+          orderNo:'N0000-01',
+          cliId:1,
+
+        },
+        clients:[],
         codeProcess: [],
         // 快速添加字典字段
         dialogCodeAddVisible: false,
@@ -612,6 +634,7 @@
         progressMsg: '请更新合同进度',
         contractDetailShow: false,
         orderListNote: '',
+        orderPlanslist:[],
         // 生成订单的备注
         codeStates: [
           {
@@ -633,6 +656,26 @@
       this.initData();
     },
     methods: {
+      createOrderforConctract(){
+      // var s=  this.$refs.orderTable.getSelected();
+      //  console.log(s);
+       let _this=this;
+       var  nowArr=this.currentSelected;
+       var postData={
+         orderDetails:'',
+         note:this.orderListNote,
+       }
+       this.postRequest('/orders/addnew',postData).then(resp=>{
+           if(resp && resp.status === 200 && resp.data.success){
+
+           }
+
+       })
+      },
+      handleSelectionChange(value){
+        console.log(value);
+        this.currentSelected=value;
+      },
       //选择了订单
       handleCurrentChange(e) {
 
@@ -652,8 +695,25 @@
         // }
       },
       chooseProcut() {
-        this.productShow = !this.productShow
+        let _this=this;
+        this.getRequest("/productionplandetails/find").then(resp=>{
+          if (resp && resp.status === 200 && resp.data.success){
+                    let data=resp.data.data;
+                    console.log(data);
+            _this.orderlistsShow = true;
+            _this.orderShow=false;
+            _this.orderDetailShow=false;
+
+          }else{
+            _this.$message("请重试！")
+          }
+            })
       },
+      cancelAddOrders(){
+        this.orderlistsShow = false;
+        this.orderShow=true;
+      },
+
       // 快速添加code字典值
       fastAddCode() {
         let _this = this;
@@ -673,7 +733,7 @@
             _this.loadAllCode();
           } else {
             this.Message("添加失败 ，请重试")
-          }c
+          }
         });
       },
       codedbclick(item, index) {
@@ -904,8 +964,9 @@
           if (resp && resp.status === 200 && resp.data.success) {
             let data = resp.data;
             _this.emps = data.root.employee;
+            _this.clients = data.root.clients;
+
             _this.orderList = data.root.orderList;
-            1
           }
         })
 
@@ -1156,6 +1217,32 @@
           });
         }
       },
+      // 订单列被点击触发方法，在右侧展示订单
+      orderListClick(row, column, cell, event){
+
+          let _this=this;
+
+           console.log( row);
+           this.orderMode=row;
+           if(row.cliId&&row.cliId!=null){
+            this.orderMode.cliId=row.cliId;
+            if(row.cliente.parentName&&row.cliente.parentName!=undefined){
+            this.orderMode.parentName=row.cliente.parentName;
+            }else{
+              this.orderMode.parentName='';
+            }
+           }
+            this.orderMode.notes=row.notes;
+            if(row.salesOrderDetails){
+
+              this.orderPlanslist= row.salesOrderDetails
+            }
+
+        this.orderDetailShow=true;
+        this.orderlistsShow=false;
+
+
+      },
       emptyEmpData() {
         console.log('+++++_+++++_')
         this.contact = {
@@ -1181,7 +1268,10 @@
     }
   }
 </script>
-<style scoped scss>
+<style scoped>
+  .product-input-btn-class{
+    width: 160px;
+  }
   .cantract-input {
     width: 160px;
     font-size: 12px;
@@ -1269,11 +1359,10 @@
 
   .contract-right {
     min-width: 500px;
-    height: auto;
+    height: 800px;
     margin-left: 4px;
     border: 1px solid #2fc5da;
   }
-
   .contract-mid {
     margin-left: 4px;
     width: 300px;
@@ -1297,25 +1386,22 @@
 
   .schedu-class {
     padding-left: 160px;
-    ltext-align: left;
+    text-align: left;
     margin: 0 auto;
     width: 750px;
     background-color: #8cc5ff
   }
 
-  #tableid .el-table__row td {
+  #contractTableId .el-table__row td {
     padding: 0;
   }
 
-  /* 用来设置当前页面element全局table 选中某行时的背景色*/
-  #tableid .el-table__body tr.current-row > td {
-    background-color: #f19944 !important;
-    /* color: #f19944; */ /* 设置文字颜色，可以选择不设置 */
-  }
-
-  /* 用来设置当前页面element全局table 鼠标移入某行时的背景色*/
-  #tableid .el-table--enable-row-hover .el-table__body tr:hover > td {
-    background-color: #f19944;
-    /* color: #f19944; */ /* 设置文字颜色，可以选择不设置 */
+  .el-table__body tr.current-row>td{
+    background-color: #ff784a !important;
+    color: #fff;
+}
+  .el-table .cell{
+    line-height: 14px;
+    font-size: 12px;
   }
 </style>

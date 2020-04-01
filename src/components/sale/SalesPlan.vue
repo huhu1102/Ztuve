@@ -913,8 +913,8 @@
 </template>
 <script>
   import {  Message } from 'element-ui'
-  import ZtDialog from "../ZtDialog/index";
-  import ZtCascader from "../ZtDialog/ZtCascade";
+  import ZtDialog from "../ZTTemplete/index";
+  import ZtCascader from "../ZTTemplete/ZtCascade";
   import sendView from "./send/SendRecord";
   import tagTip from "../sale/send/Tagtip";
   import manageChart from "../sale/send/CreatProduct";

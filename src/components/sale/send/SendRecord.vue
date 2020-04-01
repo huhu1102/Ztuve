@@ -18,17 +18,12 @@
           </div>
         </div>
       </el-page-header>
-
-
 <!--      <div>-->
-
 <!--          <span class="fa fa-arrow-left"  style="font-size: 16px;color: #2fc5da;padding: 16px;">返回</span>-->
-
 <!--      </div>-->
     </div>
     <div>
-      <el-table
-                :data="plansRecord"
+      <el-table :data="plansRecord"
                 :cell-style="{padding:'2px',fontSize:'12px'}"
                 fit
                 border

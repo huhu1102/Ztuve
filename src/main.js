@@ -23,7 +23,7 @@ import './utils/filter_utils'
 import './utils/directives';
 import dragTreeTable from 'drag-tree-table'
 import _ from "lodash";
-import ZtDialog from './components/ZtDialog/index.vue'
+import ZtDialog from './components/ZTTemplete/index.vue'
 import 'xe-utils'
 // import { Popover } from 'element-ui';
 // Vue.use(Popover);

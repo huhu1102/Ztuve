@@ -1008,7 +1008,7 @@
   import {Message} from 'element-ui'
   import manageChart from "../sale/send/CreatProduct";
   // import {jsonToString} from "../../utils/api";
-  import ZtDialog from "../ZtDialog/index";
+  import ZtDialog from "../ZTTemplete/index";
   import SendThings from "../sale/send/ZtSendTemplete";
   // import ElCascaderMenu from "element-ui/packages/cascader-panel/src/cascader-menu";
   import sendView from "./send/SendRecord";

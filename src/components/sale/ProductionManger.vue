@@ -1044,7 +1044,6 @@
         currentFinishRow:{},
         currentplanDetails:{},
         currentPlandetails:{},
-        /****发货记计划************************************************/
         stateList: [{
           label: '运输中',
           value: 1,
@@ -1314,7 +1313,7 @@
           startNo: '',
           endNo: '',
         },
-        serialNuberDeleted: [], //删除编号集合
+        serialNumberDeleted: [], //删除编号集合
         serialNuberUpdate: [], //更新编号集合
         serialNuberList: [], //编号集合
         dialogPlanVisible: false,
@@ -1897,7 +1896,7 @@
           deletData[0].type === 'new';
         if (!conditions) {
           deletData[0].type = 'delete';
-          this.serialNuberDeleted.push(deletData[0])
+          this.serialNumberDeleted.push(deletData[0])
         }
         console.log(deletData);
       },
