@@ -299,6 +299,9 @@
             <el-table-column label="备注">
               <template slot-scope="scope">{{ scope.row.note}}</template>
             </el-table-column>
+            <el-table-column label="归档量">
+              <template slot-scope="scope">{{ scope.row.contractNo}}</template>
+            </el-table-column>
             <el-table-column label="实际数量" width="120">
               <template slot-scope="scope">
                 <el-input size="mini"  v-model="scope.row.actualCount"  type="primary"></el-input>
@@ -345,6 +348,9 @@
                  <el-table-column label="计划号"
                                   prop="resourcesNumber"
                  >
+                   <template slot-scope="scope">
+                     <span> {{scope.$index+1}}</span>
+                   </template>
                  </el-table-column>
                  <el-table-column label="客户" >
                    <template slot-scope="scope">
@@ -477,7 +483,6 @@
           callback()
         } else {
           callback("电话号码格式错误!")
-
         }
       };
       return {
@@ -661,13 +666,26 @@
       //  console.log(s);
        let _this=this;
        var  nowArr=this.currentSelected;
+       var  arr=[];
+       if(nowArr.length){
+         let len=nowArr.length;
+         for (let i = len-1; i >=0 ; i--) {
+           arr.push({
+             'productDetailsId': nowArr[i].id,
+             'productNo': nowArr[i].actualCount,
+           })
+         }
+       }
+        let strs=JSON.stringify(arr);
        var postData={
-         orderDetails:'',
+         orderDetails:strs,
          note:this.orderListNote,
        }
        this.postRequest('/orders/addnew',postData).then(resp=>{
            if(resp && resp.status === 200 && resp.data.success){
-
+              this.$message("成功！")
+           }else{
+              this.$message("失败")
            }
 
        })
@@ -1276,8 +1294,6 @@
     width: 160px;
     font-size: 12px;
   }
-
-  handleCommand
   .code-add-class {
     display: inline-flex;
     flex-direction: row;
@@ -1367,7 +1383,6 @@
     margin-left: 4px;
     width: 300px;
     border: 1px solid #2fc5da;
-
   }
 
   .top-tip-top {
