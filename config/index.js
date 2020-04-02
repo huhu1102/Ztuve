@@ -9,6 +9,7 @@ module.exports = {
     assetsPublicPath: '/',
      proxyTable: {
          '/': {
+           // target: 'http://192.168.0.198:8082',
            target: 'http://localhost:8082',
            changeOrigin: true,
            pathRewrite: {
@@ -17,6 +18,7 @@ module.exports = {
          }
          ,
        '/ws/*': {
+         // target: 'ws://192.168.0.198:8082',
          target: 'ws://127.0.0.1:8082',
          ws: true
        }

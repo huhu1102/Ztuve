@@ -1344,31 +1344,31 @@
       //   this.sendVisible=false;
       //
       // },
-      // sendLuggage(index,row){
-      //   let that=this;
-      //   this.getRequest('/productionplandetails/findbyMangeId/'+row.id)
-      //     .then(resp=> {
-      //       if (resp && resp.status === 200) {
-      //         console.log(resp.data);
-      //         that.currentManagerId = resp.data;
-      //         if(resp.data===0){
-      //           that.$message({
-      //             message: '暂无数据,请稍后再试试',
-      //             type: 'info'
-      //           });
-      //         }else{
-      //           that.sendVisible=true;
-      //         }
-      //       } else {
-      //         that.$message({
-      //           message: '暂无数据,请稍后再试试',
-      //           type: 'info'
-      //         });
-      //       }
-      //     });
-      //
-      //
-      // },
+      sendLuggage(index,row){
+        let that=this;
+        this.getRequest('/productionplandetails/findbyMangeId/'+row.id)
+          .then(resp=> {
+            if (resp && resp.status === 200) {
+              console.log(resp.data);
+              that.currentManagerId = resp.data;
+              if(resp.data===0){
+                that.$message({
+                  message: '暂无数据,请稍后再试试',
+                  type: 'info'
+                });
+              }else{
+                that.sendVisible=true;
+              }
+            } else {
+              that.$message({
+                message: '暂无数据,请稍后再试试',
+                type: 'info'
+              });
+            }
+          });
+
+
+      },
       backTo(){
         this.sendShow=1;
       },
