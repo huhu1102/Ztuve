@@ -82,7 +82,7 @@
       <el-form :model="outRecive" :rules="rules" ref="addInData" size="sam" label-width="90px">
         <el-form-item label="数量:" prop="quantity">
           <el-input prefix-icon="el-icon-edit" v-model="outRecive.quantity" size="mini" style="width: 200px"
-            type='number' placeholder="采购数量..."></el-input>
+            type='number'  step="1000" placeholder="采购数量..."></el-input>
         </el-form-item>
         <el-form-item label="备注:" prop="note">
           <el-input prefix-icon="el-icon-edit" v-model="outRecive.note" size="mini" style="width: 200px"

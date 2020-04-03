@@ -270,6 +270,10 @@
         type:Array,
         default:[],
       },
+      hasProduct:{
+        type:Boolean,
+        default:false
+      },
       currentManagerId:{
         type:Number,
         default:0
@@ -384,6 +388,20 @@
         console.log(please.id);
         this.$refs[sendForm].validate((valid) => {
           if (valid) {
+            console.log(_this.hasProduct);
+            if(_this.hasProduct){
+              //无生产计划的
+              this.tableLoading = true;
+              this.postRequest("/shippingBill/billAdd", please).then(resp => {
+                _this.tableLoading = false;
+                if (resp && resp.status === 200) {
+
+                  _this.loadFinishData();
+                  _this.cancelSend();
+                }
+              })
+            }else{
+
             if (please.id) {
               //更新
               this.tableLoading = true;
@@ -408,6 +426,9 @@
                 }
               })
             }
+            }
+
+
           } else {
             return false;
           }

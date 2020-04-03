@@ -257,6 +257,37 @@
         <div v-show="orderlistsShow" class="contract-right">
            <span v-show="orderlistsShow" class="fa fa-angle-double-left" @click="listPackup"> 生产计划
            </span>
+
+          <!--            选择父公司   选择了客户后 查询该客户名下的所有生产计划
+             该条目应该以数结构显示
+           -->
+          <div>
+            <el-popover
+              v-model="showOrHidePop2"
+              placement="right"
+              title="请选择客户"
+              trigger="manual">
+<!--              :props="defaultClientProps"-->
+              <el-tree :data="clients"  node-key="id" :default-expand-all="true"  :expand-on-click-node="false"
+                       @node-click="handleNodeClick2"></el-tree>
+              <div slot="reference"
+                   style="width: 130px;height: 26px;display: inline-flex;font-size:13px;border: 1px;border-radius: 5px;border-style: solid;padding-left: 13px;box-sizing:border-box;border-color: #dcdfe6;cursor: pointer;align-items: center"
+                   @click="showDepTree2" v-bind:style="{color: depTextColor}">{{choosedClientName}}
+              </div>
+            </el-popover>
+<!--            <el-input v-model="productionClientId"  @change="showCompanyPlan"  class="product-input-btn-class" size="mini"-->
+<!--                       placeholder="请选择客户">-->
+<!--              <el-tree-->
+<!--                 :data="clients"-->
+<!--                 :props="defaultClientProps"-->
+<!--                 default-expand-all>-->
+<!--&lt;!&ndash;                v-for="item in clients"&ndash;&gt;-->
+<!--&lt;!&ndash;                :key="item.id"&ndash;&gt;-->
+<!--&lt;!&ndash;                :label="item.name"&ndash;&gt;-->
+<!--&lt;!&ndash;                :value="item.id"&ndash;&gt;-->
+<!--              </el-tree>-->
+<!--            </el-input>-->
+          </div>
           <el-table :data="prePlans"
                     highlight-current-row
                     height="450px"
@@ -344,6 +375,7 @@
              <div style="text-align: left;font-size: 12px;">
                生产计划
              </div>
+
                <el-table size="mini" height="290px" :data="orderPlanslist" >
                  <el-table-column label="计划号"
                                   prop="resourcesNumber"
@@ -486,6 +518,11 @@
         }
       };
       return {
+        depTextColor:'#c0c4cc',
+        showOrHidePop2:false,
+        choosedClientName:'',
+        choosedClientId:'',
+        productionClientId:'',
         currentSelected:[],
         orderDetailShow:false,
         orderShow: true,
@@ -583,6 +620,11 @@
           isLeaf: 'leaf',
           children: 'children'
         },
+        defaultClientProps:{
+          label: 'name',
+          // isLeaf: 'leaf',
+          children: 'children'
+        },
         dialogTitle: '',
         currentPage: 1,
         formLabelWidth: '120px',
@@ -661,6 +703,77 @@
       this.initData();
     },
     methods: {
+  showDepTree2(){
+    this.showOrHidePop2 = !this.showOrHidePop2;
+  },
+  handleNodeClick2(data) {
+    let  _this=this;
+    console.log(data);
+    this.choosedClientName = data.label;
+    this.choosedClientId = data.value;
+     this.getRequest("/contract/findByClientId?clientId="+ data.value).then(resp=>{
+      if(resp&&resp.data&&resp.data.success){
+          _this.prePlans=resp.data.data.planDetail;
+      }else{
+        this.$message("未查询到，请重试！")
+      }
+     })
+    this.showOrHidePop2 = false;
+    this.depTextColor = '#606266';
+  },
+
+
+  //根据客户Id 查询对应的生产计划（该生产计划未完成分配的 即 contractStratus 状态为1 和3的；
+     //该方法要求 ，如果选择的是子公司 只查询子公司的， 如果选择的是父公司，
+      // 要查父公司名下所有的客户对应的符合要求的生产计划；
+      showCompanyPlan(e){
+
+      },
+      // choosedClientName(){
+
+      // },
+      toTree(data) {
+        console.log('toTree');
+        let that = this;
+        let result = []
+        if (!Array.isArray(data)) {
+          return result
+        }
+        var treeData = [];
+        data.forEach(item => {
+          treeData.push({
+            'value': item.id,
+            'label': item.name,
+            'parentId': item.parentClientId
+          })
+        });
+        let map = {};
+        treeData.forEach(item => {
+          map[item.value] = item;
+        });
+        treeData.forEach(item => {
+          let parent = map[item.parentId];
+          if (parent) {
+            (parent.children || (parent.children = [])).push(item);
+          } else {
+            result.push(item);
+          }
+        });
+        result = that.getResult(result)
+        console.log(result);
+        //将父parentId 删除掉
+        return result;
+      },
+      getResult(reusult) {
+        let that = this;
+        reusult.map(item => {
+          delete item.parentId;
+          if (item.children && item.children.length) {
+            that.getResult(item.children)
+          }
+        });
+        return reusult;
+      },
       createOrderforConctract(){
       // var s=  this.$refs.orderTable.getSelected();
       //  console.log(s);
@@ -982,8 +1095,8 @@
           if (resp && resp.status === 200 && resp.data.success) {
             let data = resp.data;
             _this.emps = data.root.employee;
-            _this.clients = data.root.clients;
-
+            _this.clients =_this.toTree(data.root.clients);
+            console.log(_this.clients);
             _this.orderList = data.root.orderList;
           }
         })

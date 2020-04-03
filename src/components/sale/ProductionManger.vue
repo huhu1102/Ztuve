@@ -2666,7 +2666,7 @@
           startDate: '',
           endDate: '',
         }
-        dialogSendVisible=false;
+        this.dialogSendVisible=false;
       },
       toTree(data) {
         let result = []

@@ -37,9 +37,12 @@
           sortable
           label="客户">
           <template slot-scope="scope">
-            <div v-if="scope.row.productionPlanDetails.salesPlan&&scope.row.productionPlanDetails.salesPlan.client">
+            <div v-if="scope.row.productionPlanDetails&&scope.row.productionPlanDetails.salesPlan&&scope.row.productionPlanDetails.salesPlan.client">
               {{scope.row.productionPlanDetails.salesPlan.client.name}}
             </div>
+<!--            <div v-else-if="scope.row.client">-->
+<!--              {{scope.row.client.name}}-->
+<!--            </div>-->
             <div v-else>
               暂无
             </div>
@@ -76,7 +79,7 @@
           align="left"
           label="规格">
           <template slot-scope="scope">
-            <div v-if="scope.row.productionPlanDetails.salesPlan&&scope.row.productionPlanDetails.salesPlan.specification">
+            <div v-if="scope.row.productionPlanDetails&&scope.row.productionPlanDetails.salesPlan&&scope.row.productionPlanDetails.salesPlan.specification">
               {{scope.row.productionPlanDetails.salesPlan.specification.name}}
             </div>
             <div v-else>
@@ -88,7 +91,7 @@
           align="left"
           label="颜色">
           <template slot-scope="scope">
-            <div v-if="scope.row.productionPlanDetails.salesPlan&&scope.row.productionPlanDetails.salesPlan.color">
+            <div v-if="scope.row.productionPlanDetails&&scope.row.productionPlanDetails.salesPlan&&scope.row.productionPlanDetails.salesPlan.color">
               {{scope.row.productionPlanDetails.salesPlan.color.name}}
             </div>
             <div v-else>
@@ -125,7 +128,7 @@
         <el-table-column
           prop="proNumber"
           align="left"
-          label="产品数量">
+          label="当前数量">
         </el-table-column>
         <el-table-column
           show-overflow-tooltip
@@ -145,8 +148,7 @@
             <span class="fa fa-truck" @click="sendLuggage(scope.$index,scope.row)"
                   style="padding: 3px 4px 3px 4px;margin: 2px;color: #2fc5da;" size="mini"></span>
             </el-tooltip>
-            <el-tooltip content="查询发货记录" effect="light" placement="top"
-            >
+            <el-tooltip content="查询发货记录" effect="light" placement="top">
              <span class="fa fa-th-list" style="padding: 3px 4px 3px 4px;margin: 2px;color:#2fc5da;"
                    @click="showSendDetail(scope.row)">
           </span>
@@ -181,11 +183,11 @@
       <div style="width: 100% " v-if="dialogFormVisible">
         <el-form :model="product" :rules="rules" ref="addEmpForm" size="sam" label-width="90px">
           <el-form-item label="产品名称:" prop="productId">
-            <el-select v-model="product.productId" style="width: 200px" size="mini" placeholder="请选择职位">
+            <el-select v-model="product.productId" style="width: 200px" size="mini" placeholder="请选择产品">
               <el-option
                 v-for="item in productes"
                 :key="item.id"
-                :label="item.name"
+                :label="item.producteName"
                 :value="item.id">
               </el-option>
             </el-select>
@@ -196,7 +198,7 @@
               placement="right"
               title="请选择公司"
               trigger="hover">
-              <el-tree :data="shops" :default-expand-all="false" :props="defaultProps" :expand-on-click-node="false"
+              <el-tree :data="clients" :default-expand-all="false" :props="defaultProps" :expand-on-click-node="false"
                        @node-click="handleNodeClick"></el-tree>
               <div slot="reference"
                    @click="showDepTree" v-bind:style="{color: depTextColor}">
@@ -212,7 +214,7 @@
           note:'',
           clientId:'' -->
           <el-form-item label="产品数量:" prop="proNumber">
-            <el-input prefix-icon="el-icon-edit" v-model="product.proNumber" size="mini" style="width: 200px"
+            <el-input prefix-icon="el-icon-edit" type="number" step="1000" v-model="product.proNumber" size="mini" style="width: 200px"
                       placeholder="产品数量..."></el-input>
           </el-form-item>
           <el-form-item label="备注:" prop="note">
@@ -232,6 +234,7 @@
       :clients="clients"
       @loadData="loadData"
      :current-manager-id="currentManagerId"
+     :has-product="hasproduct"
     :dialog-send-title="dialogSendTitle"
     :dialog-send-visible="dialogSendVisible">
 <!--      :send-data="confirmData"-->
@@ -263,6 +266,7 @@
         dialogVisible: false,
         showOrHidePop: false,
         depTextColor: '#c0c4cc',
+
         keywords: '',
         tableLoading: false,
         advanceSearchViewVisible: false,
@@ -274,7 +278,7 @@
         defaultProps: {
           label: 'name',
           isLeaf: 'leaf',
-          children: 'children'
+          children: 'child'
         },
         dialogTitle: '',
         currentPage: 1,
@@ -297,10 +301,12 @@
         pId: '',
         pName: '',
         // 发货*************************************
-
         dialogSendVisible:false,
         dialogSendTitle:'发货请求',
         currentManagerId:0,//当前选中的成品记录对应的生产管理Id；
+        productes:[],
+        clients:[],
+        hasproduct:false,
       }
     },
     mounted: function () {
@@ -358,6 +364,11 @@
 
       sendLuggage(index,row){
         let that=this;
+        if(row.productionPlanDetails==null||row.productionPlanDetails==undefined){
+          that.hasproduct=true;
+          that.dialogSendVisible=true;
+          return false;
+        }
         this.getRequest('/productionplandetails/findbyMangeId/'+row.productionPlanDetails.id)
           .then(resp=> {
             if (resp && resp.status === 200) {
@@ -412,7 +423,7 @@
             var data = resp.data.root;
             _this.clients =_this.toTree(data.clients);
             console.log(`this ${_this.clients}`);
-            _this.products = data.pruducts;
+            _this.productes = data.pruducts;
 
           }
         })
@@ -542,6 +553,7 @@
       loadData() {
         var _this = this;
         this.tableLoading = true;
+        this.hasproduct=false;
         this.getRequest("/finishedProduct/findbypage?page=" + this.currentPage + "&size=10&queryName=" + this.keywords).then(resp => {
           this.tableLoading = false;
           if (resp && resp.status == 200) {
