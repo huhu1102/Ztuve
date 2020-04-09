@@ -50,7 +50,7 @@
               <el-row>
                 <el-col :span='6'>
                   合同名称:
-                  <el-input prefix-icon="el-icon-edit" v-model="keywords" size="mini" class="send-input"
+                  <el-input prefix-icon="el-icon-edit" v-model="keyContractName" size="mini" class="send-input"
                             placeholder="合同名。。。">
                   </el-input>
                 </el-col>
@@ -452,7 +452,7 @@
             </el-form-item>
             <el-form-item label="状态:">
               <el-radio-group v-model="ContractSchedule.state" @change="changeCodeState">
-                <el-radio v-for="(item,index) in codeStates" :label="item.name"></el-radio>
+                <el-radio v-for="(item,index) in codeStates" :label="item.code">{{item.name}}</el-radio>
               </el-radio-group>
             </el-form-item>
             <el-form-item label="人员:">
@@ -512,6 +512,8 @@
         }
       };
       return {
+        keyContractName:'',
+        empName:'',
         depTextColor:'#c0c4cc',
         showOrHidePop2:false,
         choosedClientName:'',
@@ -1049,7 +1051,7 @@
            this.$message("请输入合同金额！");
             return false;
          }
-         this.ContractMode.signContractDate=new Date( this.ContractMode.signContractDate);
+         this.ContractMode.signContractDate=this.formatDateTime(new Date(this.ContractMode.signContractDate));
          this.ContractMode.contractCode=this.ContractSchedule.codeName;
          this.ContractMode.contractCodeName=this.ContractSchedule.codeName;
          this.ContractMode.contractScheduleNotes=this.ContractSchedule.note;
@@ -1331,9 +1333,9 @@
       loadContact() {
         var _this = this;
         this.tableLoading = true;
-        this.getRequest("/contract/findbypage?page="
+        this.getRequest("/contract/listByPage?page="
           + this.currentPage
-          + "&size=10&contractName=" + this.contractName
+          + "&size=10&contractName=" + this.keyContractName
           + "&clientName=" + this.clientName
           + "&empName=" + this.empName
           + "&createDateStart=" + this.createDateStart

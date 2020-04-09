@@ -297,48 +297,78 @@
             </el-row>
             <div style="text-align: center;padding:0 0 12px 0; ">
               <span class="labels-style">消耗原料清单: </span>
-            </div>
+
             <el-row class="product-form-item">
-              <div>原料:</div>
-              <div>
-                <el-select v-model="detail.name" @change='matterSelect' @clear='emptyDetail' style="width: 200px"
+
+
+                原料: <el-select v-model="detail.name" @change='matterSelect' @clear='emptyDetail' style="width: 200px"
                            clearable size="mini" placeholder="请选择原料">
                   <el-option v-for="item in midProduct" :key="item.name" :label="item.name" :value="item.id">
                   </el-option>
                 </el-select>
-              </div>
+
             </el-row>
             <el-row class="product-form-item">
-              <div>
-                原料数量:
-              </div>
-              <div>
-                <el-input placeholder="原料数量" size="mini" prefix-icon="el-icon-edit" v-model="detail.quantity"
+
+                数量:<el-input placeholder="原料数量" size="mini" prefix-icon="el-icon-edit" v-model="detail.quantity"
                           min="0" type='number' style="width: 200px;background: #fff;">
                 </el-input>
-              </div>
+              <el-button  size="mini"  type="primary"  style="width:120px;" @click.stop.prevent="addBox"> 添加</el-button>
             </el-row>
-            <span class="fa fa-plus" style="color: blue;" @click.stop.prevent="addBox"> 添加</span>
-
-
+            </div>
             <el-row style="display: flex;flex-direction: column;justify-content: center;">
               <div v-if=" details.length!==0"
                    style="width:100%;display:flex;flex-direction: column;justify-content: center;">
-                <div style="width: 100%;" v-for="(mitem,key,index) in details" :key="mitem.sid">
-                  {{mitem.sid}}
-                  {{mitem.quantity}}
-                  {{mitem.name}}
-                  <span @click="editeDetail(index,mitem)"> 编辑</span>
-                  <span @click="deleteDetail(index,mitem)"> 删除</span>
-                </div>
+                <el-table  :data="details" style="margin-left:360px;width:500px;text-align: center;">
+                  <el-table-column
+                    align="left"
+                    prop="sid"
+                    label="序号"
+                    width="80"
+                  >
+                  </el-table-column>
+                  <el-table-column
+                    align="left"
+                    prop="quantity"
+                    label="数量"
+                    width="120">
+                  </el-table-column>
+                  <el-table-column
+                    align="left"
+                    prop="name"
+                    label="材料名称"
+                    width="180">
+                  </el-table-column>
+                  <el-table-column
+                    align="left"
+                    label="操作"
+                   >
+                  <template slot-scope="scope">
+                    <el-button @click="editeDetail(scope.$index,scope.row)" style="padding: 3px 4px 3px 4px;margin: 2px"
+                               size="mini">编辑
+                    </el-button>
+
+                    <el-button type="danger" style="padding: 3px 4px 3px 4px;margin: 2px" size="mini"
+                               @click="deleteDetail(scope.row)">删除
+                    </el-button>
+                  </template>
+                  </el-table-column>
+
+                </el-table>
+
+<!--                <div style="width: 100%;padding: 12px; " v-for="(mitem,key,index) in details" :key="mitem.sid">-->
+<!--                  {{mitem.sid}}-->
+<!--                  {{mitem.quantity}}-->
+<!--                  {{mitem.name}}-->
+<!--                  <span style="" > 编辑</span>-->
+<!--                  <span @click="deleteDetail(index,mitem)"> 删除</span>-->
+<!--                </div>-->
               </div>
               <div style="width: 100%; text-align: center;" v-else>
                 暂无原料
               </div>
 
             </el-row>
-
-
           </el-form>
           <div class="dialog-footer">
             <el-button @click="cancelOpt">取 消</el-button>
@@ -1109,7 +1139,7 @@
       add(addEmpForm) {
         let _this = this;
         let productModel = _.cloneDeep(this.product);
-        let currentDetail = _this.details.concat(_this.currentDeleteData);
+        let currentDetail = _this.details.concat(_this.currentDeleteData)||[];
         let str = '';
         if (currentDetail.length) {
           currentDetail.forEach(function (v) {
@@ -1253,7 +1283,9 @@
   .productbg {
     background-color: #E5EFF1;
   }
-
+   .dialog-footer{
+     padding: 10px;
+   }
   .product-header-style {
     /*padding: 0px;*/
     display: flex;
