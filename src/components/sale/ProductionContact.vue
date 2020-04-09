@@ -26,8 +26,7 @@
               style="width: 300px;margin: 0;padding: 0;"
               size="mini"
               :disabled="advanceSearchViewVisible"
-              @keyup.enter.native="searchEmp"
-              prefix-icon="el-icon-search"
+              @keyup.enter.native="searchEmp" prefix-icon="el-icon-search"
               v-model="keywords">
             </el-input>
             <el-button type="primary" size="mini" class="send-head-left-btn" icon="el-icon-search" @click="searchEmp">搜索
@@ -172,40 +171,39 @@
       <el-container v-show="tap===1" class="new-contact">
 
         <div class="contract-left">
-          <el-form ref="form" size="mini" :model="form" label-width="80px" style="text-align: left;padding-left: 20px;">
-            <el-form-item>
-              <span> 合同详情:</span>
-            </el-form-item>
+          <el-form ref="form" size="mini" :model="ContractMode" label-width="80px" style="text-align: left;padding-left: 20px;">
+<!--            <el-form-item>-->
+<!--&lt;!&ndash;              <span> 合同详情:</span>&ndash;&gt;-->
+<!--            </el-form-item>-->
             <el-form-item label="订单:">
-
-              <a herf="#" @click="chooseProduct">选择订单</a>
+              <span v-if="orderMode.cliente&&orderMode.cliente.parentName">{{orderMode.orderNo}}-{{orderMode.cliente.parentName}}</span>
+              <span v-else-if="orderMode.cliente&&!(orderMode.cliente.parentName)">{{orderMode.orderNo}}-{{orderMode.cliente.name}}</span>
+              <a  v-else  herf="#" @click="chooseProduct">选择订单</a>
             </el-form-item>
             <el-form-item label="序号:">
-              <el-input size="mini" class="cantract-input" v-model="form.sequence"></el-input>
+              <el-input size="mini" class="cantract-input" v-model="ContractMode.sequence"></el-input>
             </el-form-item>
             <el-form-item label="编号:">
-              <el-input class="cantract-input" v-model="form.contractNumber"></el-input>
+              <el-input class="cantract-input" placeholder="请输入合同编号" v-model="ContractMode.contractNumber"></el-input>
             </el-form-item>
             <el-form-item label="名称:">
-              <el-input class="cantract-input" v-model="form.contractName"></el-input>
+              <el-input class="cantract-input"  placeholder="请输入合同名称"v-model="ContractMode.contractName"></el-input>
             </el-form-item>
-            <el-form-item label="客户:">
-              <el-input class="cantract-input" v-model="form.clientName"></el-input>
-            </el-form-item>
+
             <el-form-item size="mini" label="金额:">
-              <el-input class="cantract-input" size="mini" style="height: 28px;" v-model="form.totalMoney"></el-input>
+              <el-input class="cantract-input" type="number" placeholder="请输入合同总金额" size="mini"step="1000"   style="height: 28px;" v-model="ContractMode.totalMoney"></el-input>
             </el-form-item>
             <el-form-item label="时间:">
               <el-date-picker class="cantract-input"
-                              v-model="form.signContractDate"
+                              v-model="ContractMode.signContractDate"
                               type="datetime"
-                              placeholder="选择签订时间"
+                              placeholder="请选择签订时间"
                               align="right"
                               :picker-options="pickerOptions">
               </el-date-picker>
             </el-form-item>
             <el-form-item label="备注:">
-              <el-input class="cantract-input" type="textarea" v-model="form.notes"></el-input>
+              <el-input class="cantract-input"  placeholder="请输入注意事项" type="textarea" v-model="ContractMode.notes"></el-input>
             </el-form-item>
             <el-form-item label="进度:">
               <span @click="updateContact"><a herf="#">{{progressMsg}}</a></span>
@@ -218,8 +216,6 @@
               <el-button type="primary" size="mini" @click="createContract">立即创建</el-button>
               <el-button size="mini">取消</el-button>
             </el-form-item>
-
-
           </el-form>
         </div>
         <span v-show="!orderShow" class="fa fa-angle-double-right" @click="packup">
@@ -227,12 +223,11 @@
         <div v-show="orderShow" style="display: flex;flex-direction: row;justify-content: flex-start;">
           <div class="contract-mid">
             <span class="fa fa-angle-double-left" @click="packup"> </span> 订单列表
-
             <el-table height="450px"
                       :highlight-current-row="true"
                       id="contractTableId"
                       style="font-size: 12px;"
-                      @cell-click="orderListClick"
+                      @row-click="orderListClick"
                       @current-change="handleCurrentChange"
                       :data="orderList">
               <el-table-column label="订单号">
@@ -240,8 +235,8 @@
               </el-table-column>
               <el-table-column label="客户">
                 <template slot-scope="scope">
-                  {{ scope.row.cliente.parentName}}
-                  -{{ scope.row.cliente.name}}
+                  <span v-if="scope.row.cliente.parentName"> {{ scope.row.cliente.parentName}}</span>
+                 <span v-else> {{ scope.row.cliente.name}}</span>
                 </template>
               </el-table-column>
             </el-table>
@@ -314,7 +309,7 @@
             <el-table-column label="数量">
               <template slot-scope="scope">{{ scope.row.actualQuantity}}枚</template>
             </el-table-column>
-            <el-table-column label="产品">
+                <el-table-column label="产品">
               <template slot-scope="scope">
                 <span v-if="scope.row.salesPlan&&scope.row.salesPlan.productName">
                 {{ scope.row.salesPlan.productName}}
@@ -323,7 +318,7 @@
                 {{ scope.row.salesPlan.color.name}}
                 </span>
               </template>
-            </el-table-column>-
+            </el-table-column>
             <el-table-column label="下发时间">
               <template slot-scope="scope">{{ scope.row.createDate|formatDateTime}}</template>
             </el-table-column>
@@ -345,7 +340,6 @@
                       v-model="orderListNote"></el-input>
             <el-button size="mini" @click="createOrderforConctract" >创建订单</el-button>
             <el-button size="mini" @click="cancelAddOrders">取消</el-button>
-
           </div>
         </div>
         <div v-show="orderDetailShow" class="contract-right">
@@ -445,7 +439,7 @@
               size="mini"
               placeholder="添加进度词典。。。"
               @keyup.enter.native="fastAddCode">
-              <template slot="prepend">+</template>
+              <template slot="prepend"> <span @click.native="fastAddCode" >+</span> </template>
             </el-input>
           </div>
         </div>
@@ -466,7 +460,7 @@
                 size="mini"
                 class="product-input-btn-class"
                 @change="fastCodeChange"
-                v-model="ContractSchedule.epmId"
+                v-model="ContractSchedule.empId"
                 placeholder="请选择操作人">
                 <el-option
                   v-for="item in emps"
@@ -554,7 +548,7 @@
           id: 0,
           codeName: '',
           note: '',
-          epmId: '',
+          empId: '',
           contractCodeId: 0,
           createDate: new Date(),
         },
@@ -594,13 +588,13 @@
             }
           }]
         },
-        form: {
-          sequence: '',
-          contractName: '',
-          contractNumber: '',
+        ContractMode: {
+          sequence: 'c000412',
+          contractName: '买卖合同',
+          contractNumber: '18A-19-05-0015',
           clientName: '',
-          totalMoney: '',
-          signContractDacodeListte: '',
+          totalMoney: '1000',
+          signContractDate: "",
           notes: '',
           speed: '',
         },
@@ -706,6 +700,9 @@
   showDepTree2(){
     this.showOrHidePop2 = !this.showOrHidePop2;
   },
+  //根据客户Id 查询对应的生产计划（该生产计划未完成分配的 即 contractStratus 状态为1 和3的；
+  //该方法要求 ，如果选择的是子公司 只查询子公司的， 如果选择的是父公司，
+  // 要查父公司名下所有的客户对应的符合要求的生产计划；
   handleNodeClick2(data) {
     let  _this=this;
     console.log(data);
@@ -713,7 +710,8 @@
     this.choosedClientId = data.value;
      this.getRequest("/contract/findByClientId?clientId="+ data.value).then(resp=>{
       if(resp&&resp.data&&resp.data.success){
-          _this.prePlans=resp.data.data.planDetail;
+          _this.prePlans=resp.data.root.planDetail||[];
+          console.log(_this.prePlans);
       }else{
         this.$message("未查询到，请重试！")
       }
@@ -722,16 +720,9 @@
     this.depTextColor = '#606266';
   },
 
-
-  //根据客户Id 查询对应的生产计划（该生产计划未完成分配的 即 contractStratus 状态为1 和3的；
-     //该方法要求 ，如果选择的是子公司 只查询子公司的， 如果选择的是父公司，
-      // 要查父公司名下所有的客户对应的符合要求的生产计划；
       showCompanyPlan(e){
 
       },
-      // choosedClientName(){
-
-      // },
       toTree(data) {
         console.log('toTree');
         let that = this;
@@ -818,8 +809,8 @@
         this.orderShow = !this.orderShow;
       },
       chooseProduct() {
-        this.orderShow = !this.orderShow;
-        this.orderlistsShow = !this.orderlistsShow;
+        this.orderShow = true;
+        this.orderlistsShow = true;
 
         // if(!this.orderShow){
         //   this.getRequest("/productionplandetails/find")
@@ -889,7 +880,7 @@
           codeName: item.codeName,
           state: "进行中",
           note: '',
-          epmId: empId,
+          empId: empId,
           contractCodeId: item.id,
           createDate: new Date(),
         }
@@ -914,24 +905,22 @@
         }
 
         var msg =
-          this.ContractSchedule.codeName +
-          this.ContractSchedule.state +
-          this.ContractSchedule.note;
-        this.$confirm('当前编辑的信息为' + msg, '提示', {
+         "进度:"+ this.ContractSchedule.codeName +
+         "  状态"+ this.ContractSchedule.state +
+         "  备注:"+ this.ContractSchedule.note;
+        this.$confirm(msg, '当前编辑的信息为:', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
         }).then(() => {
-          this.progressMsg = this.ContractSchedule.codeName +
-            this.ContractSchedule.state;
-
+          that.progressMsg = msg;
           // that.ContractSchedule.state = that.ContractSchedule.state == "进行中" ? 1 :
           //   that.ContractSchedule.state == "已完成" ? 2 : 3;
           that.contentVisible = false;
           //在整个合同提交时 将 model中的数据初始化；
           // that.addNewProgress(that.codeModel);
         }).catch(() => {
-          this.$message('请重试 ^_^---||！');
+          that.$message('请重试 ^_^---||！');
         });
       },
       //保存
@@ -1050,6 +1039,36 @@
       },
       //合同新建方法
       createContract() {
+        let _this=this;
+        console.log(this.ContractSchedule);
+        console.log(this.orderMode);
+        console.log(this.ContractMode);
+         this.ContractMode.empId=this.$store.state.user.empId;
+         this.ContractMode.cliId=this.orderMode.cliId;
+         if(this.ContractMode.totalMoney==0){
+           this.$message("请输入合同金额！");
+            return false;
+         }
+         this.ContractMode.signContractDate=new Date( this.ContractMode.signContractDate);
+         this.ContractMode.contractCode=this.ContractSchedule.codeName;
+         this.ContractMode.contractCodeName=this.ContractSchedule.codeName;
+         this.ContractMode.contractScheduleNotes=this.ContractSchedule.note;
+         this.ContractMode.contractScheduleStatus=this.ContractSchedule.state;
+         this.ContractMode.contractDetails=JSON.stringify(this.orderMode);
+
+         this.tableLoading = true;
+         this.postRequest("/contract/add", this.ContractMode).then(resp => {
+           _this.tableLoading = false;
+           if (resp && resp.status === 200 && resp.data.success) {
+             _this.dialogFormVisible = false;
+             _this.emptyContractData();
+
+
+          }
+        })
+
+      },
+      emptyContractData(){
 
       },
       // 更新合同進度  查询到后台1. 该合同对应的进度 
@@ -1062,6 +1081,7 @@
             console.log("codeList" + resp.data);
             // _this.nations = data.nations;
             _this.codeList = data.data || [];
+
             // _this.contentCodeRecord = [];
             //   for (let i = 0; i <_this.codeList.length ; i++) {
             //     _this.contentCodeRecord.push({
@@ -1098,6 +1118,10 @@
             _this.clients =_this.toTree(data.root.clients);
             console.log(_this.clients);
             _this.orderList = data.root.orderList;
+            //从后台获取到的序列号
+            _this.ContractMode.sequence=data.root.serialNo;
+          }else{
+            _this.$message("请联系后台！")
           }
         })
 
@@ -1350,9 +1374,7 @@
       },
       // 订单列被点击触发方法，在右侧展示订单
       orderListClick(row, column, cell, event){
-
           let _this=this;
-
            console.log( row);
            this.orderMode=row;
            if(row.cliId&&row.cliId!=null){
@@ -1368,7 +1390,6 @@
 
               this.orderPlanslist= row.salesOrderDetails
             }
-
         this.orderDetailShow=true;
         this.orderlistsShow=false;
 
