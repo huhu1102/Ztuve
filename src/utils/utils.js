@@ -16,7 +16,7 @@ export const initMenu = (router, store)=> {
   if (store.state.routes.length > 0) {
     return;
   }
-  getRequest("/users/getMenu").then(resp=> {
+  getRequest("/config/getMenu").then(resp=> {
     if (resp && resp.status === 200) {
       console.log(resp);
       var fmtRoutes = formatRoutes(resp.data.root.menuData);
