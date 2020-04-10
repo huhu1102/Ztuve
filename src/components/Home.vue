@@ -477,6 +477,7 @@
         let arr = [];
 
         if (this.$store.state.routes) {
+          console.log(`hellow home  ${this.$store.state.routes}`);
           let f=[],s=[],thir=[];
           this.$store.state.routes.forEach(function (value) {
             let state=value.isbtn+'';

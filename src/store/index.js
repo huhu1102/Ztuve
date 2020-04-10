@@ -31,8 +31,9 @@ export default new Vuex.Store({
       window.localStorage.setItem('user', JSON.stringify(user));
     },
     logout(state){
-      window.localStorage.removeItem('user');
       state.routes = [];
+      window.localStorage.removeItem('user');
+      // window.localStorage.clear();
     },
     toggleNFDot(state, newValue){
       state.nfDot = newValue;

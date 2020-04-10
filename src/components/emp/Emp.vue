@@ -449,6 +449,10 @@
         this.currentRowData = JSON.parse(JSON.stringify(row));
         this.currentIndex = index;
         this.employee.name = row.name;
+        if(row.createDate==null){
+          row.createDate= this.formatDate(new Date());
+        }
+        this.employee.createDate = row.createDate;
         this.employee.birthday = this.formatDate(new Date(row.birthday));
         this.employee.entryDate = this.formatDate(new Date(row.entryDate));
         this.employee.departmentIds = row.departmentIds.split(',').map(value => parseInt(value));
@@ -469,7 +473,9 @@
         }
        this.employee.positionId=0;
        this.employee.departmentId=0;
-
+       if(this.employee.createDate){
+       this.employee.creatDate=this.formatDate(this.employee.creatDate);
+       }
 
         var _this = this;
         this.$refs[addEmpForm].validate((valid) => {
@@ -480,8 +486,11 @@
               //更新
               this.tableLoading = true;
               console.log(this.employee);
+             delete this.employee.dept;
+             delete this.employee.post;
+
               // this.employee.createDate=new Date(this.employee.createDate)
-              this.postRequest("/emp/update", this.employee).then(resp => {
+              this.postRequest("/emp/update?deptIds="+deptIds+"&postIds="+postIds, this.employee).then(resp => {
                 _this.tableLoading = false;
                 if (resp && resp.status === 200 && resp.data.success) {
                   // var data = resp.data;
@@ -587,7 +596,6 @@
         console.log('+++++_+++++_')
         this.employee = {
           name: '',
-
           phone: '',
           address: '',
           email: '',

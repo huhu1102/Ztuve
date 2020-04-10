@@ -30,7 +30,7 @@
                        :key="item.id"
                        :data="treeData"
                        :default-checked-keys="checkedKeys"
-                       :default-expand-all="true"
+                       :default-expand-all="false"
                        :expand-on-click-node="false"
                        node-key="id"
                        ref="tree"
@@ -79,7 +79,7 @@
           type: 'warning'
         }).then(() => {
           _this.loading = true;
-          _this.deleteRequest("/system/basic/role/" + rid).then(resp => {
+          _this.postRequest("/sysrole/delete?id=" + rid).then(resp => {
             if (resp && resp.status == 200) {
               _this.initRoles();
             } else {
@@ -114,8 +114,15 @@
       //有五个树，但是五个树用的同一个数据源
       updateRoleMenu(index) {
         console.log('update');
-        var checkedKeys = this.$refs.tree[index].getCheckedKeys(false);
         var _this = this;
+        var checkedKeys = this.$refs.tree[index].getCheckedKeys();
+
+        // var hlfkey=this.$refs.tree[index].getHalfCheckedKeys();
+
+
+
+
+
         this.postRequest("/sysrole/updateMenuRole", {
           rid: this.activeColItem,
           mids: checkedKeys
