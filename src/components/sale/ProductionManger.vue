@@ -292,7 +292,7 @@
                                   @click.prevent="showDetails(plan)">
                           </span>
                           </el-tooltip>
-                          <el-tooltip effect="light" content="发货记录查看" placement="top">
+                          <el-tooltip effect="light" content="clients记录查看" placement="top">
                             <span class="fa fa-th-list "
                                   v-if="plan.details.length"
                                   style="margin-left: 10px;"
@@ -1386,6 +1386,7 @@
               this.postRequest("/shippingBill/update", please).then(resp => {
                 _this.tableLoading = false;
                 if (resp && resp.status === 200) {
+                  _this.dialogSendVisible=false;
                   _this.loadFinishData();
                   _this.cancelSend();
                 }
@@ -1396,9 +1397,11 @@
               this.postRequest("/shippingBill/add", please).then(resp => {
                 _this.tableLoading = false;
                 if (resp && resp.status === 200 && resp.data.success) {
+                  _this.dialogSendVisible=false;
                   _this.loadFinishData();
                   _this.cancelSend();
                 } else {
+                  _this.dialogSendVisible=false;
                   // Message("添加失败")
                   console.log('Message')
                 }
