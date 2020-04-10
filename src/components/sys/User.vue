@@ -44,7 +44,7 @@
               </el-form-item>
 
             <el-form-item label="员工:" prop="empId">
-             <el-select v-model="user.empId"  style="width: 200px" size="mini" placeholder="请选择员工">
+             <el-select v-model="user.empId"  @change="empChange"    style="width: 200px" size="mini" placeholder="请选择员工">
               <el-option
                 v-for="item in emps"
                 :key="item.id"
@@ -184,6 +184,9 @@
           user: {
             username: '',
             phone: '',
+            empName:'',
+            empId:'',
+            password:'',
           },
           users:[],
           deps: [],
@@ -224,6 +227,20 @@
   
                 }
           })
+        },
+        empChange(e){
+          let _this=this;
+          if(this.emps.length){
+            var len=this.emps.length;
+            for (let i = 0; i < len; i++) {
+              let  emp=_this.emps[i];
+
+              if(emp.id===e){
+                _this.user.empName=emp.name;
+              }
+
+            }
+          }
         },
         keywordsChange(val){
           if (val == '') {
@@ -311,7 +328,7 @@
           // this.emps[this.currentIndex] =this.currentRowData;
         },
         deleteEmp(row){
-          this.$confirm('此操作将删除[' + row.name + '], 是否继续?', '提示', {
+          this.$confirm('此操作将删除该条数数据, 是否继续?', '提示', {
             confirmButtonText: '确定',
             cancelButtonText: '取消',
             type: 'warning'
