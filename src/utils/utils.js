@@ -13,20 +13,24 @@ export const isNotNullORBlank = (...args)=> {
   return true;
 }
 export const initMenu = (router, store)=> {
+  console.log(store.state.routes.length);
+
   if (store.state.routes.length > 0) {
     return;
   }
+  console.log("utils. initMenu");
   getRequest("/config/getMenu").then(resp=> {
     if (resp && resp.status === 200) {
       console.log(resp);
-      var fmtRoutes = formatRoutes(resp.data.root.menuData);
+      var menudata=  resp.data.root.menuData;
+
+
+      var fmtRoutes = formatRoutes(menudata);
       let unique = (fmtRoutes)=> [...new Set(fmtRoutes)];
-      console.log(unique(fmtRoutes));
+      // console.log(unique(fmtRoutes));
+      // var  menuNow=unique(fmtRoutes)[0]
       router.push(unique(fmtRoutes));
       store.commit('initMenu', unique(fmtRoutes));
-
-
-
       //发起socockt连接
       store.dispatch('connect');
     }
@@ -34,8 +38,8 @@ export const initMenu = (router, store)=> {
 };
 export const uploadImgToBase64= (file)=> {
   return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.readAsDataURL(file)
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
     reader.onload = function () { // 图片转base64完成后返回reader对象
       resolve(reader)
     }

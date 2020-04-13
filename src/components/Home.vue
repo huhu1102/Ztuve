@@ -477,15 +477,15 @@
         let arr = [];
 
         if (this.$store.state.routes) {
-          console.log(`hellow home  ${this.$store.state.routes}`);
+          console.log(`hellow home~` );
           let f=[],s=[],thir=[];
           this.$store.state.routes.forEach(function (value) {
             let state=value.isbtn+'';
-            if(!value.children.length){
-              value['leaf']=true
-            }else{
-              value['leaf']=false
-            }
+            // if(!value.children.length){
+            //   value['leaf']=true
+            // }else{
+            //   value['leaf']=false
+            // }
             switch (state) {
               case '2':f.push(value);break;
               case '3':s.push(value);break;

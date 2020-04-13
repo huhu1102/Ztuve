@@ -24,7 +24,7 @@ export default new Vuex.Store({
   mutations: {
     initMenu(state, menus){
       state.routes = menus;
-      console.log(menus);
+      console.log("menu login"+menus);
     },
     login(state, user){
       state.user = user;

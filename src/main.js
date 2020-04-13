@@ -57,13 +57,13 @@ Vue.use(dragTreeTable);
 let routeList = [];
 router.beforeEach((to, from, next) => {
   console.log('beforeEach');
-  if (to.name === 'Login') {
+  if (to.path === '/login') {
     next();
     return;
   }
   var name = store.state.user.name;
   if (name === '未登录') {
-    if (to.meta.requireAuth || to.name == null) {
+    if (to.meta.requireAuth || to.path == null) {
       next({
         path: '/',
         query: {
@@ -74,32 +74,35 @@ router.beforeEach((to, from, next) => {
       next();
     }
   } else {
-
+    initMenu(router, store);
     if (to.path === '/chat') {
       store.commit("updateMsgList", []);
+      // next();
     }
+    next();
     console.log("toto"+to);
-     if (to.matched.length === 0) {
-       next('/home')
-     } else {
-      next(); //如果匹配到正确跳转
-     }
+
+     // if (to.matched.length === 0) {
+     //   next({path:'/home',query:{redirect:to.path}});
+     // } else {
+     //  next(); //如果匹配到正确跳转
+     // }
   }
-  var index = -1;
-  for (var i = 0; i < routeList.length; i++) {
-    if (routeList[i].name === to.name) {
-      index = i;
-      break;
-    }
-  }
-  if (index !== -1) {
+  // var index = -1;
+  // for (var i = 0; i < routeList.length; i++) {
+  //   if (routeList[i].name === to.name) {
+  //     index = i;
+  //     break;
+  //   }
+  // }
+ /* if (index !== -1) {
 //如果存在路由列表，则把之后的路由都删掉
     routeList.splice(index + 1, routeList.length - index - 1);
   } else if (to.name != '登录') {
     routeList.push({"name": to.name, "path": to.fullPath});
   }
-  to.meta.routeList = routeList;
-  initMenu(router, store);
+  to.meta.routeList = routeList;*/
+
 });
 Vue.directive('enterNumber', {
   inserted: function (el) {
