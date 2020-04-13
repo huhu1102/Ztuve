@@ -599,6 +599,7 @@
           signContractDate: "",
           notes: '',
           speed: '',
+          orderId:'',
         },
         depItems: [],
         dialogVisible: false,
@@ -1056,7 +1057,7 @@
          this.ContractMode.contractCodeName=this.ContractSchedule.codeName;
          this.ContractMode.contractScheduleNotes=this.ContractSchedule.note;
          this.ContractMode.contractScheduleStatus=this.ContractSchedule.state;
-         this.ContractMode.contractDetails=JSON.stringify(this.orderMode);
+         // this.ContractMode.contractDetails=JSON.stringify(this.orderMode);
 
          this.tableLoading = true;
          this.postRequest("/contract/add", this.ContractMode).then(resp => {
@@ -1379,6 +1380,7 @@
           let _this=this;
            console.log( row);
            this.orderMode=row;
+           this.orderMode.orderId=row.id;
            if(row.cliId&&row.cliId!=null){
             this.orderMode.cliId=row.cliId;
             if(row.cliente.parentName&&row.cliente.parentName!=undefined){
@@ -1388,10 +1390,10 @@
             }
            }
             this.orderMode.notes=row.notes;
-            if(row.salesOrderDetails){
-
-              this.orderPlanslist= row.salesOrderDetails
-            }
+            // if(row.salesOrderDetails){
+            //
+            //   this.orderPlanslist= row.salesOrderDetails
+            // }
         this.orderDetailShow=true;
         this.orderlistsShow=false;
 
