@@ -367,8 +367,6 @@ export default new Router({
           keepAlive: false,
           requireAuth: true
         }
-//         import BuyAllProduct from '@/components/dept/BuyAllProduct';
-// import BuyAllPlanBase from '@/components/dept/BuyAllPlanBase';
       }, {
         path: '/buyallproduct',
         name: '生产计划',
